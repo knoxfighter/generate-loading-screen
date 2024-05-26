@@ -1,5 +1,37 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+
+enum HostType {
+  Github = 'github',
+  Standalone = 'standalone'
+}
+
+enum DownloadType {
+  Archive = 'archive',
+  Dll = 'dll'
+}
+
+enum InstallMode {
+  Binary = 'binary',
+  Arc = 'arc'
+}
+
+type Plugin = {
+  name: string
+  description: string
+  tooltip: string
+  website: string
+  developer: string
+
+  host_type: HostType
+  host_url: string
+  version_url?: string
+
+  download_type: DownloadType
+  install_mode: InstallMode
+  dependencies?: string[]
+  optional_dependencies?: string[]
+  conflicts?: string[]
+}
 
 /**
  * The main function for the action.
@@ -7,18 +39,19 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    // download json
+    let response = await fetch(
+      'https://knoxfighter.github.io/addon-repo/manifest.json'
+    )
+    if (!response.ok) {
+      core.setFailed(response.statusText)
+      return
+    }
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    let responseJson = await response.json()
+    let data: Plugin[] = JSON.parse(responseJson)
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    console.log(data)
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
