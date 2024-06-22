@@ -994,6 +994,259 @@ exports.toCommandProperties = toCommandProperties;
 
 /***/ }),
 
+/***/ 4087:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Context = void 0;
+const fs_1 = __nccwpck_require__(7147);
+const os_1 = __nccwpck_require__(2037);
+class Context {
+    /**
+     * Hydrate the context from the environment
+     */
+    constructor() {
+        var _a, _b, _c;
+        this.payload = {};
+        if (process.env.GITHUB_EVENT_PATH) {
+            if ((0, fs_1.existsSync)(process.env.GITHUB_EVENT_PATH)) {
+                this.payload = JSON.parse((0, fs_1.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
+            }
+            else {
+                const path = process.env.GITHUB_EVENT_PATH;
+                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${os_1.EOL}`);
+            }
+        }
+        this.eventName = process.env.GITHUB_EVENT_NAME;
+        this.sha = process.env.GITHUB_SHA;
+        this.ref = process.env.GITHUB_REF;
+        this.workflow = process.env.GITHUB_WORKFLOW;
+        this.action = process.env.GITHUB_ACTION;
+        this.actor = process.env.GITHUB_ACTOR;
+        this.job = process.env.GITHUB_JOB;
+        this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
+        this.runId = parseInt(process.env.GITHUB_RUN_ID, 10);
+        this.apiUrl = (_a = process.env.GITHUB_API_URL) !== null && _a !== void 0 ? _a : `https://api.github.com`;
+        this.serverUrl = (_b = process.env.GITHUB_SERVER_URL) !== null && _b !== void 0 ? _b : `https://github.com`;
+        this.graphqlUrl =
+            (_c = process.env.GITHUB_GRAPHQL_URL) !== null && _c !== void 0 ? _c : `https://api.github.com/graphql`;
+    }
+    get issue() {
+        const payload = this.payload;
+        return Object.assign(Object.assign({}, this.repo), { number: (payload.issue || payload.pull_request || payload).number });
+    }
+    get repo() {
+        if (process.env.GITHUB_REPOSITORY) {
+            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+            return { owner, repo };
+        }
+        if (this.payload.repository) {
+            return {
+                owner: this.payload.repository.owner.login,
+                repo: this.payload.repository.name
+            };
+        }
+        throw new Error("context.repo requires a GITHUB_REPOSITORY environment variable like 'owner/repo'");
+    }
+}
+exports.Context = Context;
+//# sourceMappingURL=context.js.map
+
+/***/ }),
+
+/***/ 5438:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getOctokit = exports.context = void 0;
+const Context = __importStar(__nccwpck_require__(4087));
+const utils_1 = __nccwpck_require__(3030);
+exports.context = new Context.Context();
+/**
+ * Returns a hydrated octokit ready to use for GitHub Actions
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokit(token, options, ...additionalPlugins) {
+    const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
+    return new GitHubWithPlugins((0, utils_1.getOctokitOptions)(token, options));
+}
+exports.getOctokit = getOctokit;
+//# sourceMappingURL=github.js.map
+
+/***/ }),
+
+/***/ 7914:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getApiBaseUrl = exports.getProxyFetch = exports.getProxyAgentDispatcher = exports.getProxyAgent = exports.getAuthString = void 0;
+const httpClient = __importStar(__nccwpck_require__(6255));
+const undici_1 = __nccwpck_require__(1773);
+function getAuthString(token, options) {
+    if (!token && !options.auth) {
+        throw new Error('Parameter token or opts.auth is required');
+    }
+    else if (token && options.auth) {
+        throw new Error('Parameters token and opts.auth may not both be specified');
+    }
+    return typeof options.auth === 'string' ? options.auth : `token ${token}`;
+}
+exports.getAuthString = getAuthString;
+function getProxyAgent(destinationUrl) {
+    const hc = new httpClient.HttpClient();
+    return hc.getAgent(destinationUrl);
+}
+exports.getProxyAgent = getProxyAgent;
+function getProxyAgentDispatcher(destinationUrl) {
+    const hc = new httpClient.HttpClient();
+    return hc.getAgentDispatcher(destinationUrl);
+}
+exports.getProxyAgentDispatcher = getProxyAgentDispatcher;
+function getProxyFetch(destinationUrl) {
+    const httpDispatcher = getProxyAgentDispatcher(destinationUrl);
+    const proxyFetch = (url, opts) => __awaiter(this, void 0, void 0, function* () {
+        return (0, undici_1.fetch)(url, Object.assign(Object.assign({}, opts), { dispatcher: httpDispatcher }));
+    });
+    return proxyFetch;
+}
+exports.getProxyFetch = getProxyFetch;
+function getApiBaseUrl() {
+    return process.env['GITHUB_API_URL'] || 'https://api.github.com';
+}
+exports.getApiBaseUrl = getApiBaseUrl;
+//# sourceMappingURL=utils.js.map
+
+/***/ }),
+
+/***/ 3030:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getOctokitOptions = exports.GitHub = exports.defaults = exports.context = void 0;
+const Context = __importStar(__nccwpck_require__(4087));
+const Utils = __importStar(__nccwpck_require__(7914));
+// octokit + plugins
+const core_1 = __nccwpck_require__(6762);
+const plugin_rest_endpoint_methods_1 = __nccwpck_require__(3044);
+const plugin_paginate_rest_1 = __nccwpck_require__(4193);
+exports.context = new Context.Context();
+const baseUrl = Utils.getApiBaseUrl();
+exports.defaults = {
+    baseUrl,
+    request: {
+        agent: Utils.getProxyAgent(baseUrl),
+        fetch: Utils.getProxyFetch(baseUrl)
+    }
+};
+exports.GitHub = core_1.Octokit.plugin(plugin_rest_endpoint_methods_1.restEndpointMethods, plugin_paginate_rest_1.paginateRest).defaults(exports.defaults);
+/**
+ * Convience function to correctly format Octokit Options to pass into the constructor.
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokitOptions(token, options) {
+    const opts = Object.assign({}, options || {}); // Shallow clone - don't mutate the object provided by the caller
+    // Auth
+    const auth = Utils.getAuthString(token, opts);
+    if (auth) {
+        opts.auth = auth;
+    }
+    return opts;
+}
+exports.getOctokitOptions = getOctokitOptions;
+//# sourceMappingURL=utils.js.map
+
+/***/ }),
+
 /***/ 5526:
 /***/ (function(__unused_webpack_module, exports) {
 
@@ -1831,6 +2084,8303 @@ function isLoopbackAddress(host) {
         hostLower.startsWith('[0:0:0:0:0:0:0:1]'));
 }
 //# sourceMappingURL=proxy.js.map
+
+/***/ }),
+
+/***/ 334:
+/***/ ((module) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  createTokenAuth: () => createTokenAuth
+});
+module.exports = __toCommonJS(dist_src_exports);
+
+// pkg/dist-src/auth.js
+var REGEX_IS_INSTALLATION_LEGACY = /^v1\./;
+var REGEX_IS_INSTALLATION = /^ghs_/;
+var REGEX_IS_USER_TO_SERVER = /^ghu_/;
+async function auth(token) {
+  const isApp = token.split(/\./).length === 3;
+  const isInstallation = REGEX_IS_INSTALLATION_LEGACY.test(token) || REGEX_IS_INSTALLATION.test(token);
+  const isUserToServer = REGEX_IS_USER_TO_SERVER.test(token);
+  const tokenType = isApp ? "app" : isInstallation ? "installation" : isUserToServer ? "user-to-server" : "oauth";
+  return {
+    type: "token",
+    token,
+    tokenType
+  };
+}
+
+// pkg/dist-src/with-authorization-prefix.js
+function withAuthorizationPrefix(token) {
+  if (token.split(/\./).length === 3) {
+    return `bearer ${token}`;
+  }
+  return `token ${token}`;
+}
+
+// pkg/dist-src/hook.js
+async function hook(token, request, route, parameters) {
+  const endpoint = request.endpoint.merge(
+    route,
+    parameters
+  );
+  endpoint.headers.authorization = withAuthorizationPrefix(token);
+  return request(endpoint);
+}
+
+// pkg/dist-src/index.js
+var createTokenAuth = function createTokenAuth2(token) {
+  if (!token) {
+    throw new Error("[@octokit/auth-token] No token passed to createTokenAuth");
+  }
+  if (typeof token !== "string") {
+    throw new Error(
+      "[@octokit/auth-token] Token passed to createTokenAuth is not a string"
+    );
+  }
+  token = token.replace(/^(token|bearer) +/i, "");
+  return Object.assign(auth.bind(null, token), {
+    hook: hook.bind(null, token)
+  });
+};
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 6762:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  Octokit: () => Octokit
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_universal_user_agent = __nccwpck_require__(1429);
+var import_before_after_hook = __nccwpck_require__(3682);
+var import_request = __nccwpck_require__(6234);
+var import_graphql = __nccwpck_require__(8467);
+var import_auth_token = __nccwpck_require__(334);
+
+// pkg/dist-src/version.js
+var VERSION = "5.2.0";
+
+// pkg/dist-src/index.js
+var noop = () => {
+};
+var consoleWarn = console.warn.bind(console);
+var consoleError = console.error.bind(console);
+var userAgentTrail = `octokit-core.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
+var Octokit = class {
+  static {
+    this.VERSION = VERSION;
+  }
+  static defaults(defaults) {
+    const OctokitWithDefaults = class extends this {
+      constructor(...args) {
+        const options = args[0] || {};
+        if (typeof defaults === "function") {
+          super(defaults(options));
+          return;
+        }
+        super(
+          Object.assign(
+            {},
+            defaults,
+            options,
+            options.userAgent && defaults.userAgent ? {
+              userAgent: `${options.userAgent} ${defaults.userAgent}`
+            } : null
+          )
+        );
+      }
+    };
+    return OctokitWithDefaults;
+  }
+  static {
+    this.plugins = [];
+  }
+  /**
+   * Attach a plugin (or many) to your Octokit instance.
+   *
+   * @example
+   * const API = Octokit.plugin(plugin1, plugin2, plugin3, ...)
+   */
+  static plugin(...newPlugins) {
+    const currentPlugins = this.plugins;
+    const NewOctokit = class extends this {
+      static {
+        this.plugins = currentPlugins.concat(
+          newPlugins.filter((plugin) => !currentPlugins.includes(plugin))
+        );
+      }
+    };
+    return NewOctokit;
+  }
+  constructor(options = {}) {
+    const hook = new import_before_after_hook.Collection();
+    const requestDefaults = {
+      baseUrl: import_request.request.endpoint.DEFAULTS.baseUrl,
+      headers: {},
+      request: Object.assign({}, options.request, {
+        // @ts-ignore internal usage only, no need to type
+        hook: hook.bind(null, "request")
+      }),
+      mediaType: {
+        previews: [],
+        format: ""
+      }
+    };
+    requestDefaults.headers["user-agent"] = options.userAgent ? `${options.userAgent} ${userAgentTrail}` : userAgentTrail;
+    if (options.baseUrl) {
+      requestDefaults.baseUrl = options.baseUrl;
+    }
+    if (options.previews) {
+      requestDefaults.mediaType.previews = options.previews;
+    }
+    if (options.timeZone) {
+      requestDefaults.headers["time-zone"] = options.timeZone;
+    }
+    this.request = import_request.request.defaults(requestDefaults);
+    this.graphql = (0, import_graphql.withCustomRequest)(this.request).defaults(requestDefaults);
+    this.log = Object.assign(
+      {
+        debug: noop,
+        info: noop,
+        warn: consoleWarn,
+        error: consoleError
+      },
+      options.log
+    );
+    this.hook = hook;
+    if (!options.authStrategy) {
+      if (!options.auth) {
+        this.auth = async () => ({
+          type: "unauthenticated"
+        });
+      } else {
+        const auth = (0, import_auth_token.createTokenAuth)(options.auth);
+        hook.wrap("request", auth.hook);
+        this.auth = auth;
+      }
+    } else {
+      const { authStrategy, ...otherOptions } = options;
+      const auth = authStrategy(
+        Object.assign(
+          {
+            request: this.request,
+            log: this.log,
+            // we pass the current octokit instance as well as its constructor options
+            // to allow for authentication strategies that return a new octokit instance
+            // that shares the same internal state as the current one. The original
+            // requirement for this was the "event-octokit" authentication strategy
+            // of https://github.com/probot/octokit-auth-probot.
+            octokit: this,
+            octokitOptions: otherOptions
+          },
+          options.auth
+        )
+      );
+      hook.wrap("request", auth.hook);
+      this.auth = auth;
+    }
+    const classConstructor = this.constructor;
+    for (let i = 0; i < classConstructor.plugins.length; ++i) {
+      Object.assign(this, classConstructor.plugins[i](this, options));
+    }
+  }
+};
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 9440:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  endpoint: () => endpoint
+});
+module.exports = __toCommonJS(dist_src_exports);
+
+// pkg/dist-src/defaults.js
+var import_universal_user_agent = __nccwpck_require__(1429);
+
+// pkg/dist-src/version.js
+var VERSION = "9.0.5";
+
+// pkg/dist-src/defaults.js
+var userAgent = `octokit-endpoint.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
+var DEFAULTS = {
+  method: "GET",
+  baseUrl: "https://api.github.com",
+  headers: {
+    accept: "application/vnd.github.v3+json",
+    "user-agent": userAgent
+  },
+  mediaType: {
+    format: ""
+  }
+};
+
+// pkg/dist-src/util/lowercase-keys.js
+function lowercaseKeys(object) {
+  if (!object) {
+    return {};
+  }
+  return Object.keys(object).reduce((newObj, key) => {
+    newObj[key.toLowerCase()] = object[key];
+    return newObj;
+  }, {});
+}
+
+// pkg/dist-src/util/is-plain-object.js
+function isPlainObject(value) {
+  if (typeof value !== "object" || value === null)
+    return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]")
+    return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null)
+    return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/util/merge-deep.js
+function mergeDeep(defaults, options) {
+  const result = Object.assign({}, defaults);
+  Object.keys(options).forEach((key) => {
+    if (isPlainObject(options[key])) {
+      if (!(key in defaults))
+        Object.assign(result, { [key]: options[key] });
+      else
+        result[key] = mergeDeep(defaults[key], options[key]);
+    } else {
+      Object.assign(result, { [key]: options[key] });
+    }
+  });
+  return result;
+}
+
+// pkg/dist-src/util/remove-undefined-properties.js
+function removeUndefinedProperties(obj) {
+  for (const key in obj) {
+    if (obj[key] === void 0) {
+      delete obj[key];
+    }
+  }
+  return obj;
+}
+
+// pkg/dist-src/merge.js
+function merge(defaults, route, options) {
+  if (typeof route === "string") {
+    let [method, url] = route.split(" ");
+    options = Object.assign(url ? { method, url } : { url: method }, options);
+  } else {
+    options = Object.assign({}, route);
+  }
+  options.headers = lowercaseKeys(options.headers);
+  removeUndefinedProperties(options);
+  removeUndefinedProperties(options.headers);
+  const mergedOptions = mergeDeep(defaults || {}, options);
+  if (options.url === "/graphql") {
+    if (defaults && defaults.mediaType.previews?.length) {
+      mergedOptions.mediaType.previews = defaults.mediaType.previews.filter(
+        (preview) => !mergedOptions.mediaType.previews.includes(preview)
+      ).concat(mergedOptions.mediaType.previews);
+    }
+    mergedOptions.mediaType.previews = (mergedOptions.mediaType.previews || []).map((preview) => preview.replace(/-preview/, ""));
+  }
+  return mergedOptions;
+}
+
+// pkg/dist-src/util/add-query-parameters.js
+function addQueryParameters(url, parameters) {
+  const separator = /\?/.test(url) ? "&" : "?";
+  const names = Object.keys(parameters);
+  if (names.length === 0) {
+    return url;
+  }
+  return url + separator + names.map((name) => {
+    if (name === "q") {
+      return "q=" + parameters.q.split("+").map(encodeURIComponent).join("+");
+    }
+    return `${name}=${encodeURIComponent(parameters[name])}`;
+  }).join("&");
+}
+
+// pkg/dist-src/util/extract-url-variable-names.js
+var urlVariableRegex = /\{[^}]+\}/g;
+function removeNonChars(variableName) {
+  return variableName.replace(/^\W+|\W+$/g, "").split(/,/);
+}
+function extractUrlVariableNames(url) {
+  const matches = url.match(urlVariableRegex);
+  if (!matches) {
+    return [];
+  }
+  return matches.map(removeNonChars).reduce((a, b) => a.concat(b), []);
+}
+
+// pkg/dist-src/util/omit.js
+function omit(object, keysToOmit) {
+  const result = { __proto__: null };
+  for (const key of Object.keys(object)) {
+    if (keysToOmit.indexOf(key) === -1) {
+      result[key] = object[key];
+    }
+  }
+  return result;
+}
+
+// pkg/dist-src/util/url-template.js
+function encodeReserved(str) {
+  return str.split(/(%[0-9A-Fa-f]{2})/g).map(function(part) {
+    if (!/%[0-9A-Fa-f]/.test(part)) {
+      part = encodeURI(part).replace(/%5B/g, "[").replace(/%5D/g, "]");
+    }
+    return part;
+  }).join("");
+}
+function encodeUnreserved(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return "%" + c.charCodeAt(0).toString(16).toUpperCase();
+  });
+}
+function encodeValue(operator, value, key) {
+  value = operator === "+" || operator === "#" ? encodeReserved(value) : encodeUnreserved(value);
+  if (key) {
+    return encodeUnreserved(key) + "=" + value;
+  } else {
+    return value;
+  }
+}
+function isDefined(value) {
+  return value !== void 0 && value !== null;
+}
+function isKeyOperator(operator) {
+  return operator === ";" || operator === "&" || operator === "?";
+}
+function getValues(context, operator, key, modifier) {
+  var value = context[key], result = [];
+  if (isDefined(value) && value !== "") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+      value = value.toString();
+      if (modifier && modifier !== "*") {
+        value = value.substring(0, parseInt(modifier, 10));
+      }
+      result.push(
+        encodeValue(operator, value, isKeyOperator(operator) ? key : "")
+      );
+    } else {
+      if (modifier === "*") {
+        if (Array.isArray(value)) {
+          value.filter(isDefined).forEach(function(value2) {
+            result.push(
+              encodeValue(operator, value2, isKeyOperator(operator) ? key : "")
+            );
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (isDefined(value[k])) {
+              result.push(encodeValue(operator, value[k], k));
+            }
+          });
+        }
+      } else {
+        const tmp = [];
+        if (Array.isArray(value)) {
+          value.filter(isDefined).forEach(function(value2) {
+            tmp.push(encodeValue(operator, value2));
+          });
+        } else {
+          Object.keys(value).forEach(function(k) {
+            if (isDefined(value[k])) {
+              tmp.push(encodeUnreserved(k));
+              tmp.push(encodeValue(operator, value[k].toString()));
+            }
+          });
+        }
+        if (isKeyOperator(operator)) {
+          result.push(encodeUnreserved(key) + "=" + tmp.join(","));
+        } else if (tmp.length !== 0) {
+          result.push(tmp.join(","));
+        }
+      }
+    }
+  } else {
+    if (operator === ";") {
+      if (isDefined(value)) {
+        result.push(encodeUnreserved(key));
+      }
+    } else if (value === "" && (operator === "&" || operator === "?")) {
+      result.push(encodeUnreserved(key) + "=");
+    } else if (value === "") {
+      result.push("");
+    }
+  }
+  return result;
+}
+function parseUrl(template) {
+  return {
+    expand: expand.bind(null, template)
+  };
+}
+function expand(template, context) {
+  var operators = ["+", "#", ".", "/", ";", "?", "&"];
+  template = template.replace(
+    /\{([^\{\}]+)\}|([^\{\}]+)/g,
+    function(_, expression, literal) {
+      if (expression) {
+        let operator = "";
+        const values = [];
+        if (operators.indexOf(expression.charAt(0)) !== -1) {
+          operator = expression.charAt(0);
+          expression = expression.substr(1);
+        }
+        expression.split(/,/g).forEach(function(variable) {
+          var tmp = /([^:\*]*)(?::(\d+)|(\*))?/.exec(variable);
+          values.push(getValues(context, operator, tmp[1], tmp[2] || tmp[3]));
+        });
+        if (operator && operator !== "+") {
+          var separator = ",";
+          if (operator === "?") {
+            separator = "&";
+          } else if (operator !== "#") {
+            separator = operator;
+          }
+          return (values.length !== 0 ? operator : "") + values.join(separator);
+        } else {
+          return values.join(",");
+        }
+      } else {
+        return encodeReserved(literal);
+      }
+    }
+  );
+  if (template === "/") {
+    return template;
+  } else {
+    return template.replace(/\/$/, "");
+  }
+}
+
+// pkg/dist-src/parse.js
+function parse(options) {
+  let method = options.method.toUpperCase();
+  let url = (options.url || "/").replace(/:([a-z]\w+)/g, "{$1}");
+  let headers = Object.assign({}, options.headers);
+  let body;
+  let parameters = omit(options, [
+    "method",
+    "baseUrl",
+    "url",
+    "headers",
+    "request",
+    "mediaType"
+  ]);
+  const urlVariableNames = extractUrlVariableNames(url);
+  url = parseUrl(url).expand(parameters);
+  if (!/^http/.test(url)) {
+    url = options.baseUrl + url;
+  }
+  const omittedParameters = Object.keys(options).filter((option) => urlVariableNames.includes(option)).concat("baseUrl");
+  const remainingParameters = omit(parameters, omittedParameters);
+  const isBinaryRequest = /application\/octet-stream/i.test(headers.accept);
+  if (!isBinaryRequest) {
+    if (options.mediaType.format) {
+      headers.accept = headers.accept.split(/,/).map(
+        (format) => format.replace(
+          /application\/vnd(\.\w+)(\.v3)?(\.\w+)?(\+json)?$/,
+          `application/vnd$1$2.${options.mediaType.format}`
+        )
+      ).join(",");
+    }
+    if (url.endsWith("/graphql")) {
+      if (options.mediaType.previews?.length) {
+        const previewsFromAcceptHeader = headers.accept.match(/[\w-]+(?=-preview)/g) || [];
+        headers.accept = previewsFromAcceptHeader.concat(options.mediaType.previews).map((preview) => {
+          const format = options.mediaType.format ? `.${options.mediaType.format}` : "+json";
+          return `application/vnd.github.${preview}-preview${format}`;
+        }).join(",");
+      }
+    }
+  }
+  if (["GET", "HEAD"].includes(method)) {
+    url = addQueryParameters(url, remainingParameters);
+  } else {
+    if ("data" in remainingParameters) {
+      body = remainingParameters.data;
+    } else {
+      if (Object.keys(remainingParameters).length) {
+        body = remainingParameters;
+      }
+    }
+  }
+  if (!headers["content-type"] && typeof body !== "undefined") {
+    headers["content-type"] = "application/json; charset=utf-8";
+  }
+  if (["PATCH", "PUT"].includes(method) && typeof body === "undefined") {
+    body = "";
+  }
+  return Object.assign(
+    { method, url, headers },
+    typeof body !== "undefined" ? { body } : null,
+    options.request ? { request: options.request } : null
+  );
+}
+
+// pkg/dist-src/endpoint-with-defaults.js
+function endpointWithDefaults(defaults, route, options) {
+  return parse(merge(defaults, route, options));
+}
+
+// pkg/dist-src/with-defaults.js
+function withDefaults(oldDefaults, newDefaults) {
+  const DEFAULTS2 = merge(oldDefaults, newDefaults);
+  const endpoint2 = endpointWithDefaults.bind(null, DEFAULTS2);
+  return Object.assign(endpoint2, {
+    DEFAULTS: DEFAULTS2,
+    defaults: withDefaults.bind(null, DEFAULTS2),
+    merge: merge.bind(null, DEFAULTS2),
+    parse
+  });
+}
+
+// pkg/dist-src/index.js
+var endpoint = withDefaults(null, DEFAULTS);
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 8467:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  GraphqlResponseError: () => GraphqlResponseError,
+  graphql: () => graphql2,
+  withCustomRequest: () => withCustomRequest
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_request3 = __nccwpck_require__(6234);
+var import_universal_user_agent = __nccwpck_require__(1429);
+
+// pkg/dist-src/version.js
+var VERSION = "7.1.0";
+
+// pkg/dist-src/with-defaults.js
+var import_request2 = __nccwpck_require__(6234);
+
+// pkg/dist-src/graphql.js
+var import_request = __nccwpck_require__(6234);
+
+// pkg/dist-src/error.js
+function _buildMessageForResponseErrors(data) {
+  return `Request failed due to following response errors:
+` + data.errors.map((e) => ` - ${e.message}`).join("\n");
+}
+var GraphqlResponseError = class extends Error {
+  constructor(request2, headers, response) {
+    super(_buildMessageForResponseErrors(response));
+    this.request = request2;
+    this.headers = headers;
+    this.response = response;
+    this.name = "GraphqlResponseError";
+    this.errors = response.errors;
+    this.data = response.data;
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+  }
+};
+
+// pkg/dist-src/graphql.js
+var NON_VARIABLE_OPTIONS = [
+  "method",
+  "baseUrl",
+  "url",
+  "headers",
+  "request",
+  "query",
+  "mediaType"
+];
+var FORBIDDEN_VARIABLE_OPTIONS = ["query", "method", "url"];
+var GHES_V3_SUFFIX_REGEX = /\/api\/v3\/?$/;
+function graphql(request2, query, options) {
+  if (options) {
+    if (typeof query === "string" && "query" in options) {
+      return Promise.reject(
+        new Error(`[@octokit/graphql] "query" cannot be used as variable name`)
+      );
+    }
+    for (const key in options) {
+      if (!FORBIDDEN_VARIABLE_OPTIONS.includes(key))
+        continue;
+      return Promise.reject(
+        new Error(
+          `[@octokit/graphql] "${key}" cannot be used as variable name`
+        )
+      );
+    }
+  }
+  const parsedOptions = typeof query === "string" ? Object.assign({ query }, options) : query;
+  const requestOptions = Object.keys(
+    parsedOptions
+  ).reduce((result, key) => {
+    if (NON_VARIABLE_OPTIONS.includes(key)) {
+      result[key] = parsedOptions[key];
+      return result;
+    }
+    if (!result.variables) {
+      result.variables = {};
+    }
+    result.variables[key] = parsedOptions[key];
+    return result;
+  }, {});
+  const baseUrl = parsedOptions.baseUrl || request2.endpoint.DEFAULTS.baseUrl;
+  if (GHES_V3_SUFFIX_REGEX.test(baseUrl)) {
+    requestOptions.url = baseUrl.replace(GHES_V3_SUFFIX_REGEX, "/api/graphql");
+  }
+  return request2(requestOptions).then((response) => {
+    if (response.data.errors) {
+      const headers = {};
+      for (const key of Object.keys(response.headers)) {
+        headers[key] = response.headers[key];
+      }
+      throw new GraphqlResponseError(
+        requestOptions,
+        headers,
+        response.data
+      );
+    }
+    return response.data.data;
+  });
+}
+
+// pkg/dist-src/with-defaults.js
+function withDefaults(request2, newDefaults) {
+  const newRequest = request2.defaults(newDefaults);
+  const newApi = (query, options) => {
+    return graphql(newRequest, query, options);
+  };
+  return Object.assign(newApi, {
+    defaults: withDefaults.bind(null, newRequest),
+    endpoint: newRequest.endpoint
+  });
+}
+
+// pkg/dist-src/index.js
+var graphql2 = withDefaults(import_request3.request, {
+  headers: {
+    "user-agent": `octokit-graphql.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
+  },
+  method: "POST",
+  url: "/graphql"
+});
+function withCustomRequest(customRequest) {
+  return withDefaults(customRequest, {
+    method: "POST",
+    url: "/graphql"
+  });
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 4193:
+/***/ ((module) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  composePaginateRest: () => composePaginateRest,
+  isPaginatingEndpoint: () => isPaginatingEndpoint,
+  paginateRest: () => paginateRest,
+  paginatingEndpoints: () => paginatingEndpoints
+});
+module.exports = __toCommonJS(dist_src_exports);
+
+// pkg/dist-src/version.js
+var VERSION = "9.2.1";
+
+// pkg/dist-src/normalize-paginated-list-response.js
+function normalizePaginatedListResponse(response) {
+  if (!response.data) {
+    return {
+      ...response,
+      data: []
+    };
+  }
+  const responseNeedsNormalization = "total_count" in response.data && !("url" in response.data);
+  if (!responseNeedsNormalization)
+    return response;
+  const incompleteResults = response.data.incomplete_results;
+  const repositorySelection = response.data.repository_selection;
+  const totalCount = response.data.total_count;
+  delete response.data.incomplete_results;
+  delete response.data.repository_selection;
+  delete response.data.total_count;
+  const namespaceKey = Object.keys(response.data)[0];
+  const data = response.data[namespaceKey];
+  response.data = data;
+  if (typeof incompleteResults !== "undefined") {
+    response.data.incomplete_results = incompleteResults;
+  }
+  if (typeof repositorySelection !== "undefined") {
+    response.data.repository_selection = repositorySelection;
+  }
+  response.data.total_count = totalCount;
+  return response;
+}
+
+// pkg/dist-src/iterator.js
+function iterator(octokit, route, parameters) {
+  const options = typeof route === "function" ? route.endpoint(parameters) : octokit.request.endpoint(route, parameters);
+  const requestMethod = typeof route === "function" ? route : octokit.request;
+  const method = options.method;
+  const headers = options.headers;
+  let url = options.url;
+  return {
+    [Symbol.asyncIterator]: () => ({
+      async next() {
+        if (!url)
+          return { done: true };
+        try {
+          const response = await requestMethod({ method, url, headers });
+          const normalizedResponse = normalizePaginatedListResponse(response);
+          url = ((normalizedResponse.headers.link || "").match(
+            /<([^>]+)>;\s*rel="next"/
+          ) || [])[1];
+          return { value: normalizedResponse };
+        } catch (error) {
+          if (error.status !== 409)
+            throw error;
+          url = "";
+          return {
+            value: {
+              status: 200,
+              headers: {},
+              data: []
+            }
+          };
+        }
+      }
+    })
+  };
+}
+
+// pkg/dist-src/paginate.js
+function paginate(octokit, route, parameters, mapFn) {
+  if (typeof parameters === "function") {
+    mapFn = parameters;
+    parameters = void 0;
+  }
+  return gather(
+    octokit,
+    [],
+    iterator(octokit, route, parameters)[Symbol.asyncIterator](),
+    mapFn
+  );
+}
+function gather(octokit, results, iterator2, mapFn) {
+  return iterator2.next().then((result) => {
+    if (result.done) {
+      return results;
+    }
+    let earlyExit = false;
+    function done() {
+      earlyExit = true;
+    }
+    results = results.concat(
+      mapFn ? mapFn(result.value, done) : result.value.data
+    );
+    if (earlyExit) {
+      return results;
+    }
+    return gather(octokit, results, iterator2, mapFn);
+  });
+}
+
+// pkg/dist-src/compose-paginate.js
+var composePaginateRest = Object.assign(paginate, {
+  iterator
+});
+
+// pkg/dist-src/generated/paginating-endpoints.js
+var paginatingEndpoints = [
+  "GET /advisories",
+  "GET /app/hook/deliveries",
+  "GET /app/installation-requests",
+  "GET /app/installations",
+  "GET /assignments/{assignment_id}/accepted_assignments",
+  "GET /classrooms",
+  "GET /classrooms/{classroom_id}/assignments",
+  "GET /enterprises/{enterprise}/dependabot/alerts",
+  "GET /enterprises/{enterprise}/secret-scanning/alerts",
+  "GET /events",
+  "GET /gists",
+  "GET /gists/public",
+  "GET /gists/starred",
+  "GET /gists/{gist_id}/comments",
+  "GET /gists/{gist_id}/commits",
+  "GET /gists/{gist_id}/forks",
+  "GET /installation/repositories",
+  "GET /issues",
+  "GET /licenses",
+  "GET /marketplace_listing/plans",
+  "GET /marketplace_listing/plans/{plan_id}/accounts",
+  "GET /marketplace_listing/stubbed/plans",
+  "GET /marketplace_listing/stubbed/plans/{plan_id}/accounts",
+  "GET /networks/{owner}/{repo}/events",
+  "GET /notifications",
+  "GET /organizations",
+  "GET /orgs/{org}/actions/cache/usage-by-repository",
+  "GET /orgs/{org}/actions/permissions/repositories",
+  "GET /orgs/{org}/actions/runners",
+  "GET /orgs/{org}/actions/secrets",
+  "GET /orgs/{org}/actions/secrets/{secret_name}/repositories",
+  "GET /orgs/{org}/actions/variables",
+  "GET /orgs/{org}/actions/variables/{name}/repositories",
+  "GET /orgs/{org}/blocks",
+  "GET /orgs/{org}/code-scanning/alerts",
+  "GET /orgs/{org}/codespaces",
+  "GET /orgs/{org}/codespaces/secrets",
+  "GET /orgs/{org}/codespaces/secrets/{secret_name}/repositories",
+  "GET /orgs/{org}/copilot/billing/seats",
+  "GET /orgs/{org}/dependabot/alerts",
+  "GET /orgs/{org}/dependabot/secrets",
+  "GET /orgs/{org}/dependabot/secrets/{secret_name}/repositories",
+  "GET /orgs/{org}/events",
+  "GET /orgs/{org}/failed_invitations",
+  "GET /orgs/{org}/hooks",
+  "GET /orgs/{org}/hooks/{hook_id}/deliveries",
+  "GET /orgs/{org}/installations",
+  "GET /orgs/{org}/invitations",
+  "GET /orgs/{org}/invitations/{invitation_id}/teams",
+  "GET /orgs/{org}/issues",
+  "GET /orgs/{org}/members",
+  "GET /orgs/{org}/members/{username}/codespaces",
+  "GET /orgs/{org}/migrations",
+  "GET /orgs/{org}/migrations/{migration_id}/repositories",
+  "GET /orgs/{org}/organization-roles/{role_id}/teams",
+  "GET /orgs/{org}/organization-roles/{role_id}/users",
+  "GET /orgs/{org}/outside_collaborators",
+  "GET /orgs/{org}/packages",
+  "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
+  "GET /orgs/{org}/personal-access-token-requests",
+  "GET /orgs/{org}/personal-access-token-requests/{pat_request_id}/repositories",
+  "GET /orgs/{org}/personal-access-tokens",
+  "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories",
+  "GET /orgs/{org}/projects",
+  "GET /orgs/{org}/properties/values",
+  "GET /orgs/{org}/public_members",
+  "GET /orgs/{org}/repos",
+  "GET /orgs/{org}/rulesets",
+  "GET /orgs/{org}/rulesets/rule-suites",
+  "GET /orgs/{org}/secret-scanning/alerts",
+  "GET /orgs/{org}/security-advisories",
+  "GET /orgs/{org}/teams",
+  "GET /orgs/{org}/teams/{team_slug}/discussions",
+  "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments",
+  "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}/reactions",
+  "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/reactions",
+  "GET /orgs/{org}/teams/{team_slug}/invitations",
+  "GET /orgs/{org}/teams/{team_slug}/members",
+  "GET /orgs/{org}/teams/{team_slug}/projects",
+  "GET /orgs/{org}/teams/{team_slug}/repos",
+  "GET /orgs/{org}/teams/{team_slug}/teams",
+  "GET /projects/columns/{column_id}/cards",
+  "GET /projects/{project_id}/collaborators",
+  "GET /projects/{project_id}/columns",
+  "GET /repos/{owner}/{repo}/actions/artifacts",
+  "GET /repos/{owner}/{repo}/actions/caches",
+  "GET /repos/{owner}/{repo}/actions/organization-secrets",
+  "GET /repos/{owner}/{repo}/actions/organization-variables",
+  "GET /repos/{owner}/{repo}/actions/runners",
+  "GET /repos/{owner}/{repo}/actions/runs",
+  "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
+  "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/jobs",
+  "GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs",
+  "GET /repos/{owner}/{repo}/actions/secrets",
+  "GET /repos/{owner}/{repo}/actions/variables",
+  "GET /repos/{owner}/{repo}/actions/workflows",
+  "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs",
+  "GET /repos/{owner}/{repo}/activity",
+  "GET /repos/{owner}/{repo}/assignees",
+  "GET /repos/{owner}/{repo}/branches",
+  "GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations",
+  "GET /repos/{owner}/{repo}/check-suites/{check_suite_id}/check-runs",
+  "GET /repos/{owner}/{repo}/code-scanning/alerts",
+  "GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances",
+  "GET /repos/{owner}/{repo}/code-scanning/analyses",
+  "GET /repos/{owner}/{repo}/codespaces",
+  "GET /repos/{owner}/{repo}/codespaces/devcontainers",
+  "GET /repos/{owner}/{repo}/codespaces/secrets",
+  "GET /repos/{owner}/{repo}/collaborators",
+  "GET /repos/{owner}/{repo}/comments",
+  "GET /repos/{owner}/{repo}/comments/{comment_id}/reactions",
+  "GET /repos/{owner}/{repo}/commits",
+  "GET /repos/{owner}/{repo}/commits/{commit_sha}/comments",
+  "GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls",
+  "GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
+  "GET /repos/{owner}/{repo}/commits/{ref}/check-suites",
+  "GET /repos/{owner}/{repo}/commits/{ref}/status",
+  "GET /repos/{owner}/{repo}/commits/{ref}/statuses",
+  "GET /repos/{owner}/{repo}/contributors",
+  "GET /repos/{owner}/{repo}/dependabot/alerts",
+  "GET /repos/{owner}/{repo}/dependabot/secrets",
+  "GET /repos/{owner}/{repo}/deployments",
+  "GET /repos/{owner}/{repo}/deployments/{deployment_id}/statuses",
+  "GET /repos/{owner}/{repo}/environments",
+  "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies",
+  "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules/apps",
+  "GET /repos/{owner}/{repo}/events",
+  "GET /repos/{owner}/{repo}/forks",
+  "GET /repos/{owner}/{repo}/hooks",
+  "GET /repos/{owner}/{repo}/hooks/{hook_id}/deliveries",
+  "GET /repos/{owner}/{repo}/invitations",
+  "GET /repos/{owner}/{repo}/issues",
+  "GET /repos/{owner}/{repo}/issues/comments",
+  "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
+  "GET /repos/{owner}/{repo}/issues/events",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/events",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/labels",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/reactions",
+  "GET /repos/{owner}/{repo}/issues/{issue_number}/timeline",
+  "GET /repos/{owner}/{repo}/keys",
+  "GET /repos/{owner}/{repo}/labels",
+  "GET /repos/{owner}/{repo}/milestones",
+  "GET /repos/{owner}/{repo}/milestones/{milestone_number}/labels",
+  "GET /repos/{owner}/{repo}/notifications",
+  "GET /repos/{owner}/{repo}/pages/builds",
+  "GET /repos/{owner}/{repo}/projects",
+  "GET /repos/{owner}/{repo}/pulls",
+  "GET /repos/{owner}/{repo}/pulls/comments",
+  "GET /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions",
+  "GET /repos/{owner}/{repo}/pulls/{pull_number}/comments",
+  "GET /repos/{owner}/{repo}/pulls/{pull_number}/commits",
+  "GET /repos/{owner}/{repo}/pulls/{pull_number}/files",
+  "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews",
+  "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments",
+  "GET /repos/{owner}/{repo}/releases",
+  "GET /repos/{owner}/{repo}/releases/{release_id}/assets",
+  "GET /repos/{owner}/{repo}/releases/{release_id}/reactions",
+  "GET /repos/{owner}/{repo}/rules/branches/{branch}",
+  "GET /repos/{owner}/{repo}/rulesets",
+  "GET /repos/{owner}/{repo}/rulesets/rule-suites",
+  "GET /repos/{owner}/{repo}/secret-scanning/alerts",
+  "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations",
+  "GET /repos/{owner}/{repo}/security-advisories",
+  "GET /repos/{owner}/{repo}/stargazers",
+  "GET /repos/{owner}/{repo}/subscribers",
+  "GET /repos/{owner}/{repo}/tags",
+  "GET /repos/{owner}/{repo}/teams",
+  "GET /repos/{owner}/{repo}/topics",
+  "GET /repositories",
+  "GET /repositories/{repository_id}/environments/{environment_name}/secrets",
+  "GET /repositories/{repository_id}/environments/{environment_name}/variables",
+  "GET /search/code",
+  "GET /search/commits",
+  "GET /search/issues",
+  "GET /search/labels",
+  "GET /search/repositories",
+  "GET /search/topics",
+  "GET /search/users",
+  "GET /teams/{team_id}/discussions",
+  "GET /teams/{team_id}/discussions/{discussion_number}/comments",
+  "GET /teams/{team_id}/discussions/{discussion_number}/comments/{comment_number}/reactions",
+  "GET /teams/{team_id}/discussions/{discussion_number}/reactions",
+  "GET /teams/{team_id}/invitations",
+  "GET /teams/{team_id}/members",
+  "GET /teams/{team_id}/projects",
+  "GET /teams/{team_id}/repos",
+  "GET /teams/{team_id}/teams",
+  "GET /user/blocks",
+  "GET /user/codespaces",
+  "GET /user/codespaces/secrets",
+  "GET /user/emails",
+  "GET /user/followers",
+  "GET /user/following",
+  "GET /user/gpg_keys",
+  "GET /user/installations",
+  "GET /user/installations/{installation_id}/repositories",
+  "GET /user/issues",
+  "GET /user/keys",
+  "GET /user/marketplace_purchases",
+  "GET /user/marketplace_purchases/stubbed",
+  "GET /user/memberships/orgs",
+  "GET /user/migrations",
+  "GET /user/migrations/{migration_id}/repositories",
+  "GET /user/orgs",
+  "GET /user/packages",
+  "GET /user/packages/{package_type}/{package_name}/versions",
+  "GET /user/public_emails",
+  "GET /user/repos",
+  "GET /user/repository_invitations",
+  "GET /user/social_accounts",
+  "GET /user/ssh_signing_keys",
+  "GET /user/starred",
+  "GET /user/subscriptions",
+  "GET /user/teams",
+  "GET /users",
+  "GET /users/{username}/events",
+  "GET /users/{username}/events/orgs/{org}",
+  "GET /users/{username}/events/public",
+  "GET /users/{username}/followers",
+  "GET /users/{username}/following",
+  "GET /users/{username}/gists",
+  "GET /users/{username}/gpg_keys",
+  "GET /users/{username}/keys",
+  "GET /users/{username}/orgs",
+  "GET /users/{username}/packages",
+  "GET /users/{username}/projects",
+  "GET /users/{username}/received_events",
+  "GET /users/{username}/received_events/public",
+  "GET /users/{username}/repos",
+  "GET /users/{username}/social_accounts",
+  "GET /users/{username}/ssh_signing_keys",
+  "GET /users/{username}/starred",
+  "GET /users/{username}/subscriptions"
+];
+
+// pkg/dist-src/paginating-endpoints.js
+function isPaginatingEndpoint(arg) {
+  if (typeof arg === "string") {
+    return paginatingEndpoints.includes(arg);
+  } else {
+    return false;
+  }
+}
+
+// pkg/dist-src/index.js
+function paginateRest(octokit) {
+  return {
+    paginate: Object.assign(paginate.bind(null, octokit), {
+      iterator: iterator.bind(null, octokit)
+    })
+  };
+}
+paginateRest.VERSION = VERSION;
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 3044:
+/***/ ((module) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  legacyRestEndpointMethods: () => legacyRestEndpointMethods,
+  restEndpointMethods: () => restEndpointMethods
+});
+module.exports = __toCommonJS(dist_src_exports);
+
+// pkg/dist-src/version.js
+var VERSION = "10.4.1";
+
+// pkg/dist-src/generated/endpoints.js
+var Endpoints = {
+  actions: {
+    addCustomLabelsToSelfHostedRunnerForOrg: [
+      "POST /orgs/{org}/actions/runners/{runner_id}/labels"
+    ],
+    addCustomLabelsToSelfHostedRunnerForRepo: [
+      "POST /repos/{owner}/{repo}/actions/runners/{runner_id}/labels"
+    ],
+    addSelectedRepoToOrgSecret: [
+      "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories/{repository_id}"
+    ],
+    addSelectedRepoToOrgVariable: [
+      "PUT /orgs/{org}/actions/variables/{name}/repositories/{repository_id}"
+    ],
+    approveWorkflowRun: [
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/approve"
+    ],
+    cancelWorkflowRun: [
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/cancel"
+    ],
+    createEnvironmentVariable: [
+      "POST /repositories/{repository_id}/environments/{environment_name}/variables"
+    ],
+    createOrUpdateEnvironmentSecret: [
+      "PUT /repositories/{repository_id}/environments/{environment_name}/secrets/{secret_name}"
+    ],
+    createOrUpdateOrgSecret: ["PUT /orgs/{org}/actions/secrets/{secret_name}"],
+    createOrUpdateRepoSecret: [
+      "PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}"
+    ],
+    createOrgVariable: ["POST /orgs/{org}/actions/variables"],
+    createRegistrationTokenForOrg: [
+      "POST /orgs/{org}/actions/runners/registration-token"
+    ],
+    createRegistrationTokenForRepo: [
+      "POST /repos/{owner}/{repo}/actions/runners/registration-token"
+    ],
+    createRemoveTokenForOrg: ["POST /orgs/{org}/actions/runners/remove-token"],
+    createRemoveTokenForRepo: [
+      "POST /repos/{owner}/{repo}/actions/runners/remove-token"
+    ],
+    createRepoVariable: ["POST /repos/{owner}/{repo}/actions/variables"],
+    createWorkflowDispatch: [
+      "POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches"
+    ],
+    deleteActionsCacheById: [
+      "DELETE /repos/{owner}/{repo}/actions/caches/{cache_id}"
+    ],
+    deleteActionsCacheByKey: [
+      "DELETE /repos/{owner}/{repo}/actions/caches{?key,ref}"
+    ],
+    deleteArtifact: [
+      "DELETE /repos/{owner}/{repo}/actions/artifacts/{artifact_id}"
+    ],
+    deleteEnvironmentSecret: [
+      "DELETE /repositories/{repository_id}/environments/{environment_name}/secrets/{secret_name}"
+    ],
+    deleteEnvironmentVariable: [
+      "DELETE /repositories/{repository_id}/environments/{environment_name}/variables/{name}"
+    ],
+    deleteOrgSecret: ["DELETE /orgs/{org}/actions/secrets/{secret_name}"],
+    deleteOrgVariable: ["DELETE /orgs/{org}/actions/variables/{name}"],
+    deleteRepoSecret: [
+      "DELETE /repos/{owner}/{repo}/actions/secrets/{secret_name}"
+    ],
+    deleteRepoVariable: [
+      "DELETE /repos/{owner}/{repo}/actions/variables/{name}"
+    ],
+    deleteSelfHostedRunnerFromOrg: [
+      "DELETE /orgs/{org}/actions/runners/{runner_id}"
+    ],
+    deleteSelfHostedRunnerFromRepo: [
+      "DELETE /repos/{owner}/{repo}/actions/runners/{runner_id}"
+    ],
+    deleteWorkflowRun: ["DELETE /repos/{owner}/{repo}/actions/runs/{run_id}"],
+    deleteWorkflowRunLogs: [
+      "DELETE /repos/{owner}/{repo}/actions/runs/{run_id}/logs"
+    ],
+    disableSelectedRepositoryGithubActionsOrganization: [
+      "DELETE /orgs/{org}/actions/permissions/repositories/{repository_id}"
+    ],
+    disableWorkflow: [
+      "PUT /repos/{owner}/{repo}/actions/workflows/{workflow_id}/disable"
+    ],
+    downloadArtifact: [
+      "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}"
+    ],
+    downloadJobLogsForWorkflowRun: [
+      "GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs"
+    ],
+    downloadWorkflowRunAttemptLogs: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/logs"
+    ],
+    downloadWorkflowRunLogs: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/logs"
+    ],
+    enableSelectedRepositoryGithubActionsOrganization: [
+      "PUT /orgs/{org}/actions/permissions/repositories/{repository_id}"
+    ],
+    enableWorkflow: [
+      "PUT /repos/{owner}/{repo}/actions/workflows/{workflow_id}/enable"
+    ],
+    forceCancelWorkflowRun: [
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/force-cancel"
+    ],
+    generateRunnerJitconfigForOrg: [
+      "POST /orgs/{org}/actions/runners/generate-jitconfig"
+    ],
+    generateRunnerJitconfigForRepo: [
+      "POST /repos/{owner}/{repo}/actions/runners/generate-jitconfig"
+    ],
+    getActionsCacheList: ["GET /repos/{owner}/{repo}/actions/caches"],
+    getActionsCacheUsage: ["GET /repos/{owner}/{repo}/actions/cache/usage"],
+    getActionsCacheUsageByRepoForOrg: [
+      "GET /orgs/{org}/actions/cache/usage-by-repository"
+    ],
+    getActionsCacheUsageForOrg: ["GET /orgs/{org}/actions/cache/usage"],
+    getAllowedActionsOrganization: [
+      "GET /orgs/{org}/actions/permissions/selected-actions"
+    ],
+    getAllowedActionsRepository: [
+      "GET /repos/{owner}/{repo}/actions/permissions/selected-actions"
+    ],
+    getArtifact: ["GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}"],
+    getCustomOidcSubClaimForRepo: [
+      "GET /repos/{owner}/{repo}/actions/oidc/customization/sub"
+    ],
+    getEnvironmentPublicKey: [
+      "GET /repositories/{repository_id}/environments/{environment_name}/secrets/public-key"
+    ],
+    getEnvironmentSecret: [
+      "GET /repositories/{repository_id}/environments/{environment_name}/secrets/{secret_name}"
+    ],
+    getEnvironmentVariable: [
+      "GET /repositories/{repository_id}/environments/{environment_name}/variables/{name}"
+    ],
+    getGithubActionsDefaultWorkflowPermissionsOrganization: [
+      "GET /orgs/{org}/actions/permissions/workflow"
+    ],
+    getGithubActionsDefaultWorkflowPermissionsRepository: [
+      "GET /repos/{owner}/{repo}/actions/permissions/workflow"
+    ],
+    getGithubActionsPermissionsOrganization: [
+      "GET /orgs/{org}/actions/permissions"
+    ],
+    getGithubActionsPermissionsRepository: [
+      "GET /repos/{owner}/{repo}/actions/permissions"
+    ],
+    getJobForWorkflowRun: ["GET /repos/{owner}/{repo}/actions/jobs/{job_id}"],
+    getOrgPublicKey: ["GET /orgs/{org}/actions/secrets/public-key"],
+    getOrgSecret: ["GET /orgs/{org}/actions/secrets/{secret_name}"],
+    getOrgVariable: ["GET /orgs/{org}/actions/variables/{name}"],
+    getPendingDeploymentsForRun: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/pending_deployments"
+    ],
+    getRepoPermissions: [
+      "GET /repos/{owner}/{repo}/actions/permissions",
+      {},
+      { renamed: ["actions", "getGithubActionsPermissionsRepository"] }
+    ],
+    getRepoPublicKey: ["GET /repos/{owner}/{repo}/actions/secrets/public-key"],
+    getRepoSecret: ["GET /repos/{owner}/{repo}/actions/secrets/{secret_name}"],
+    getRepoVariable: ["GET /repos/{owner}/{repo}/actions/variables/{name}"],
+    getReviewsForRun: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals"
+    ],
+    getSelfHostedRunnerForOrg: ["GET /orgs/{org}/actions/runners/{runner_id}"],
+    getSelfHostedRunnerForRepo: [
+      "GET /repos/{owner}/{repo}/actions/runners/{runner_id}"
+    ],
+    getWorkflow: ["GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}"],
+    getWorkflowAccessToRepository: [
+      "GET /repos/{owner}/{repo}/actions/permissions/access"
+    ],
+    getWorkflowRun: ["GET /repos/{owner}/{repo}/actions/runs/{run_id}"],
+    getWorkflowRunAttempt: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}"
+    ],
+    getWorkflowRunUsage: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/timing"
+    ],
+    getWorkflowUsage: [
+      "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/timing"
+    ],
+    listArtifactsForRepo: ["GET /repos/{owner}/{repo}/actions/artifacts"],
+    listEnvironmentSecrets: [
+      "GET /repositories/{repository_id}/environments/{environment_name}/secrets"
+    ],
+    listEnvironmentVariables: [
+      "GET /repositories/{repository_id}/environments/{environment_name}/variables"
+    ],
+    listJobsForWorkflowRun: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs"
+    ],
+    listJobsForWorkflowRunAttempt: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/jobs"
+    ],
+    listLabelsForSelfHostedRunnerForOrg: [
+      "GET /orgs/{org}/actions/runners/{runner_id}/labels"
+    ],
+    listLabelsForSelfHostedRunnerForRepo: [
+      "GET /repos/{owner}/{repo}/actions/runners/{runner_id}/labels"
+    ],
+    listOrgSecrets: ["GET /orgs/{org}/actions/secrets"],
+    listOrgVariables: ["GET /orgs/{org}/actions/variables"],
+    listRepoOrganizationSecrets: [
+      "GET /repos/{owner}/{repo}/actions/organization-secrets"
+    ],
+    listRepoOrganizationVariables: [
+      "GET /repos/{owner}/{repo}/actions/organization-variables"
+    ],
+    listRepoSecrets: ["GET /repos/{owner}/{repo}/actions/secrets"],
+    listRepoVariables: ["GET /repos/{owner}/{repo}/actions/variables"],
+    listRepoWorkflows: ["GET /repos/{owner}/{repo}/actions/workflows"],
+    listRunnerApplicationsForOrg: ["GET /orgs/{org}/actions/runners/downloads"],
+    listRunnerApplicationsForRepo: [
+      "GET /repos/{owner}/{repo}/actions/runners/downloads"
+    ],
+    listSelectedReposForOrgSecret: [
+      "GET /orgs/{org}/actions/secrets/{secret_name}/repositories"
+    ],
+    listSelectedReposForOrgVariable: [
+      "GET /orgs/{org}/actions/variables/{name}/repositories"
+    ],
+    listSelectedRepositoriesEnabledGithubActionsOrganization: [
+      "GET /orgs/{org}/actions/permissions/repositories"
+    ],
+    listSelfHostedRunnersForOrg: ["GET /orgs/{org}/actions/runners"],
+    listSelfHostedRunnersForRepo: ["GET /repos/{owner}/{repo}/actions/runners"],
+    listWorkflowRunArtifacts: [
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts"
+    ],
+    listWorkflowRuns: [
+      "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs"
+    ],
+    listWorkflowRunsForRepo: ["GET /repos/{owner}/{repo}/actions/runs"],
+    reRunJobForWorkflowRun: [
+      "POST /repos/{owner}/{repo}/actions/jobs/{job_id}/rerun"
+    ],
+    reRunWorkflow: ["POST /repos/{owner}/{repo}/actions/runs/{run_id}/rerun"],
+    reRunWorkflowFailedJobs: [
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/rerun-failed-jobs"
+    ],
+    removeAllCustomLabelsFromSelfHostedRunnerForOrg: [
+      "DELETE /orgs/{org}/actions/runners/{runner_id}/labels"
+    ],
+    removeAllCustomLabelsFromSelfHostedRunnerForRepo: [
+      "DELETE /repos/{owner}/{repo}/actions/runners/{runner_id}/labels"
+    ],
+    removeCustomLabelFromSelfHostedRunnerForOrg: [
+      "DELETE /orgs/{org}/actions/runners/{runner_id}/labels/{name}"
+    ],
+    removeCustomLabelFromSelfHostedRunnerForRepo: [
+      "DELETE /repos/{owner}/{repo}/actions/runners/{runner_id}/labels/{name}"
+    ],
+    removeSelectedRepoFromOrgSecret: [
+      "DELETE /orgs/{org}/actions/secrets/{secret_name}/repositories/{repository_id}"
+    ],
+    removeSelectedRepoFromOrgVariable: [
+      "DELETE /orgs/{org}/actions/variables/{name}/repositories/{repository_id}"
+    ],
+    reviewCustomGatesForRun: [
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/deployment_protection_rule"
+    ],
+    reviewPendingDeploymentsForRun: [
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/pending_deployments"
+    ],
+    setAllowedActionsOrganization: [
+      "PUT /orgs/{org}/actions/permissions/selected-actions"
+    ],
+    setAllowedActionsRepository: [
+      "PUT /repos/{owner}/{repo}/actions/permissions/selected-actions"
+    ],
+    setCustomLabelsForSelfHostedRunnerForOrg: [
+      "PUT /orgs/{org}/actions/runners/{runner_id}/labels"
+    ],
+    setCustomLabelsForSelfHostedRunnerForRepo: [
+      "PUT /repos/{owner}/{repo}/actions/runners/{runner_id}/labels"
+    ],
+    setCustomOidcSubClaimForRepo: [
+      "PUT /repos/{owner}/{repo}/actions/oidc/customization/sub"
+    ],
+    setGithubActionsDefaultWorkflowPermissionsOrganization: [
+      "PUT /orgs/{org}/actions/permissions/workflow"
+    ],
+    setGithubActionsDefaultWorkflowPermissionsRepository: [
+      "PUT /repos/{owner}/{repo}/actions/permissions/workflow"
+    ],
+    setGithubActionsPermissionsOrganization: [
+      "PUT /orgs/{org}/actions/permissions"
+    ],
+    setGithubActionsPermissionsRepository: [
+      "PUT /repos/{owner}/{repo}/actions/permissions"
+    ],
+    setSelectedReposForOrgSecret: [
+      "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories"
+    ],
+    setSelectedReposForOrgVariable: [
+      "PUT /orgs/{org}/actions/variables/{name}/repositories"
+    ],
+    setSelectedRepositoriesEnabledGithubActionsOrganization: [
+      "PUT /orgs/{org}/actions/permissions/repositories"
+    ],
+    setWorkflowAccessToRepository: [
+      "PUT /repos/{owner}/{repo}/actions/permissions/access"
+    ],
+    updateEnvironmentVariable: [
+      "PATCH /repositories/{repository_id}/environments/{environment_name}/variables/{name}"
+    ],
+    updateOrgVariable: ["PATCH /orgs/{org}/actions/variables/{name}"],
+    updateRepoVariable: [
+      "PATCH /repos/{owner}/{repo}/actions/variables/{name}"
+    ]
+  },
+  activity: {
+    checkRepoIsStarredByAuthenticatedUser: ["GET /user/starred/{owner}/{repo}"],
+    deleteRepoSubscription: ["DELETE /repos/{owner}/{repo}/subscription"],
+    deleteThreadSubscription: [
+      "DELETE /notifications/threads/{thread_id}/subscription"
+    ],
+    getFeeds: ["GET /feeds"],
+    getRepoSubscription: ["GET /repos/{owner}/{repo}/subscription"],
+    getThread: ["GET /notifications/threads/{thread_id}"],
+    getThreadSubscriptionForAuthenticatedUser: [
+      "GET /notifications/threads/{thread_id}/subscription"
+    ],
+    listEventsForAuthenticatedUser: ["GET /users/{username}/events"],
+    listNotificationsForAuthenticatedUser: ["GET /notifications"],
+    listOrgEventsForAuthenticatedUser: [
+      "GET /users/{username}/events/orgs/{org}"
+    ],
+    listPublicEvents: ["GET /events"],
+    listPublicEventsForRepoNetwork: ["GET /networks/{owner}/{repo}/events"],
+    listPublicEventsForUser: ["GET /users/{username}/events/public"],
+    listPublicOrgEvents: ["GET /orgs/{org}/events"],
+    listReceivedEventsForUser: ["GET /users/{username}/received_events"],
+    listReceivedPublicEventsForUser: [
+      "GET /users/{username}/received_events/public"
+    ],
+    listRepoEvents: ["GET /repos/{owner}/{repo}/events"],
+    listRepoNotificationsForAuthenticatedUser: [
+      "GET /repos/{owner}/{repo}/notifications"
+    ],
+    listReposStarredByAuthenticatedUser: ["GET /user/starred"],
+    listReposStarredByUser: ["GET /users/{username}/starred"],
+    listReposWatchedByUser: ["GET /users/{username}/subscriptions"],
+    listStargazersForRepo: ["GET /repos/{owner}/{repo}/stargazers"],
+    listWatchedReposForAuthenticatedUser: ["GET /user/subscriptions"],
+    listWatchersForRepo: ["GET /repos/{owner}/{repo}/subscribers"],
+    markNotificationsAsRead: ["PUT /notifications"],
+    markRepoNotificationsAsRead: ["PUT /repos/{owner}/{repo}/notifications"],
+    markThreadAsDone: ["DELETE /notifications/threads/{thread_id}"],
+    markThreadAsRead: ["PATCH /notifications/threads/{thread_id}"],
+    setRepoSubscription: ["PUT /repos/{owner}/{repo}/subscription"],
+    setThreadSubscription: [
+      "PUT /notifications/threads/{thread_id}/subscription"
+    ],
+    starRepoForAuthenticatedUser: ["PUT /user/starred/{owner}/{repo}"],
+    unstarRepoForAuthenticatedUser: ["DELETE /user/starred/{owner}/{repo}"]
+  },
+  apps: {
+    addRepoToInstallation: [
+      "PUT /user/installations/{installation_id}/repositories/{repository_id}",
+      {},
+      { renamed: ["apps", "addRepoToInstallationForAuthenticatedUser"] }
+    ],
+    addRepoToInstallationForAuthenticatedUser: [
+      "PUT /user/installations/{installation_id}/repositories/{repository_id}"
+    ],
+    checkToken: ["POST /applications/{client_id}/token"],
+    createFromManifest: ["POST /app-manifests/{code}/conversions"],
+    createInstallationAccessToken: [
+      "POST /app/installations/{installation_id}/access_tokens"
+    ],
+    deleteAuthorization: ["DELETE /applications/{client_id}/grant"],
+    deleteInstallation: ["DELETE /app/installations/{installation_id}"],
+    deleteToken: ["DELETE /applications/{client_id}/token"],
+    getAuthenticated: ["GET /app"],
+    getBySlug: ["GET /apps/{app_slug}"],
+    getInstallation: ["GET /app/installations/{installation_id}"],
+    getOrgInstallation: ["GET /orgs/{org}/installation"],
+    getRepoInstallation: ["GET /repos/{owner}/{repo}/installation"],
+    getSubscriptionPlanForAccount: [
+      "GET /marketplace_listing/accounts/{account_id}"
+    ],
+    getSubscriptionPlanForAccountStubbed: [
+      "GET /marketplace_listing/stubbed/accounts/{account_id}"
+    ],
+    getUserInstallation: ["GET /users/{username}/installation"],
+    getWebhookConfigForApp: ["GET /app/hook/config"],
+    getWebhookDelivery: ["GET /app/hook/deliveries/{delivery_id}"],
+    listAccountsForPlan: ["GET /marketplace_listing/plans/{plan_id}/accounts"],
+    listAccountsForPlanStubbed: [
+      "GET /marketplace_listing/stubbed/plans/{plan_id}/accounts"
+    ],
+    listInstallationReposForAuthenticatedUser: [
+      "GET /user/installations/{installation_id}/repositories"
+    ],
+    listInstallationRequestsForAuthenticatedApp: [
+      "GET /app/installation-requests"
+    ],
+    listInstallations: ["GET /app/installations"],
+    listInstallationsForAuthenticatedUser: ["GET /user/installations"],
+    listPlans: ["GET /marketplace_listing/plans"],
+    listPlansStubbed: ["GET /marketplace_listing/stubbed/plans"],
+    listReposAccessibleToInstallation: ["GET /installation/repositories"],
+    listSubscriptionsForAuthenticatedUser: ["GET /user/marketplace_purchases"],
+    listSubscriptionsForAuthenticatedUserStubbed: [
+      "GET /user/marketplace_purchases/stubbed"
+    ],
+    listWebhookDeliveries: ["GET /app/hook/deliveries"],
+    redeliverWebhookDelivery: [
+      "POST /app/hook/deliveries/{delivery_id}/attempts"
+    ],
+    removeRepoFromInstallation: [
+      "DELETE /user/installations/{installation_id}/repositories/{repository_id}",
+      {},
+      { renamed: ["apps", "removeRepoFromInstallationForAuthenticatedUser"] }
+    ],
+    removeRepoFromInstallationForAuthenticatedUser: [
+      "DELETE /user/installations/{installation_id}/repositories/{repository_id}"
+    ],
+    resetToken: ["PATCH /applications/{client_id}/token"],
+    revokeInstallationAccessToken: ["DELETE /installation/token"],
+    scopeToken: ["POST /applications/{client_id}/token/scoped"],
+    suspendInstallation: ["PUT /app/installations/{installation_id}/suspended"],
+    unsuspendInstallation: [
+      "DELETE /app/installations/{installation_id}/suspended"
+    ],
+    updateWebhookConfigForApp: ["PATCH /app/hook/config"]
+  },
+  billing: {
+    getGithubActionsBillingOrg: ["GET /orgs/{org}/settings/billing/actions"],
+    getGithubActionsBillingUser: [
+      "GET /users/{username}/settings/billing/actions"
+    ],
+    getGithubPackagesBillingOrg: ["GET /orgs/{org}/settings/billing/packages"],
+    getGithubPackagesBillingUser: [
+      "GET /users/{username}/settings/billing/packages"
+    ],
+    getSharedStorageBillingOrg: [
+      "GET /orgs/{org}/settings/billing/shared-storage"
+    ],
+    getSharedStorageBillingUser: [
+      "GET /users/{username}/settings/billing/shared-storage"
+    ]
+  },
+  checks: {
+    create: ["POST /repos/{owner}/{repo}/check-runs"],
+    createSuite: ["POST /repos/{owner}/{repo}/check-suites"],
+    get: ["GET /repos/{owner}/{repo}/check-runs/{check_run_id}"],
+    getSuite: ["GET /repos/{owner}/{repo}/check-suites/{check_suite_id}"],
+    listAnnotations: [
+      "GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations"
+    ],
+    listForRef: ["GET /repos/{owner}/{repo}/commits/{ref}/check-runs"],
+    listForSuite: [
+      "GET /repos/{owner}/{repo}/check-suites/{check_suite_id}/check-runs"
+    ],
+    listSuitesForRef: ["GET /repos/{owner}/{repo}/commits/{ref}/check-suites"],
+    rerequestRun: [
+      "POST /repos/{owner}/{repo}/check-runs/{check_run_id}/rerequest"
+    ],
+    rerequestSuite: [
+      "POST /repos/{owner}/{repo}/check-suites/{check_suite_id}/rerequest"
+    ],
+    setSuitesPreferences: [
+      "PATCH /repos/{owner}/{repo}/check-suites/preferences"
+    ],
+    update: ["PATCH /repos/{owner}/{repo}/check-runs/{check_run_id}"]
+  },
+  codeScanning: {
+    deleteAnalysis: [
+      "DELETE /repos/{owner}/{repo}/code-scanning/analyses/{analysis_id}{?confirm_delete}"
+    ],
+    getAlert: [
+      "GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}",
+      {},
+      { renamedParameters: { alert_id: "alert_number" } }
+    ],
+    getAnalysis: [
+      "GET /repos/{owner}/{repo}/code-scanning/analyses/{analysis_id}"
+    ],
+    getCodeqlDatabase: [
+      "GET /repos/{owner}/{repo}/code-scanning/codeql/databases/{language}"
+    ],
+    getDefaultSetup: ["GET /repos/{owner}/{repo}/code-scanning/default-setup"],
+    getSarif: ["GET /repos/{owner}/{repo}/code-scanning/sarifs/{sarif_id}"],
+    listAlertInstances: [
+      "GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances"
+    ],
+    listAlertsForOrg: ["GET /orgs/{org}/code-scanning/alerts"],
+    listAlertsForRepo: ["GET /repos/{owner}/{repo}/code-scanning/alerts"],
+    listAlertsInstances: [
+      "GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances",
+      {},
+      { renamed: ["codeScanning", "listAlertInstances"] }
+    ],
+    listCodeqlDatabases: [
+      "GET /repos/{owner}/{repo}/code-scanning/codeql/databases"
+    ],
+    listRecentAnalyses: ["GET /repos/{owner}/{repo}/code-scanning/analyses"],
+    updateAlert: [
+      "PATCH /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}"
+    ],
+    updateDefaultSetup: [
+      "PATCH /repos/{owner}/{repo}/code-scanning/default-setup"
+    ],
+    uploadSarif: ["POST /repos/{owner}/{repo}/code-scanning/sarifs"]
+  },
+  codesOfConduct: {
+    getAllCodesOfConduct: ["GET /codes_of_conduct"],
+    getConductCode: ["GET /codes_of_conduct/{key}"]
+  },
+  codespaces: {
+    addRepositoryForSecretForAuthenticatedUser: [
+      "PUT /user/codespaces/secrets/{secret_name}/repositories/{repository_id}"
+    ],
+    addSelectedRepoToOrgSecret: [
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}"
+    ],
+    checkPermissionsForDevcontainer: [
+      "GET /repos/{owner}/{repo}/codespaces/permissions_check"
+    ],
+    codespaceMachinesForAuthenticatedUser: [
+      "GET /user/codespaces/{codespace_name}/machines"
+    ],
+    createForAuthenticatedUser: ["POST /user/codespaces"],
+    createOrUpdateOrgSecret: [
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}"
+    ],
+    createOrUpdateRepoSecret: [
+      "PUT /repos/{owner}/{repo}/codespaces/secrets/{secret_name}"
+    ],
+    createOrUpdateSecretForAuthenticatedUser: [
+      "PUT /user/codespaces/secrets/{secret_name}"
+    ],
+    createWithPrForAuthenticatedUser: [
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/codespaces"
+    ],
+    createWithRepoForAuthenticatedUser: [
+      "POST /repos/{owner}/{repo}/codespaces"
+    ],
+    deleteForAuthenticatedUser: ["DELETE /user/codespaces/{codespace_name}"],
+    deleteFromOrganization: [
+      "DELETE /orgs/{org}/members/{username}/codespaces/{codespace_name}"
+    ],
+    deleteOrgSecret: ["DELETE /orgs/{org}/codespaces/secrets/{secret_name}"],
+    deleteRepoSecret: [
+      "DELETE /repos/{owner}/{repo}/codespaces/secrets/{secret_name}"
+    ],
+    deleteSecretForAuthenticatedUser: [
+      "DELETE /user/codespaces/secrets/{secret_name}"
+    ],
+    exportForAuthenticatedUser: [
+      "POST /user/codespaces/{codespace_name}/exports"
+    ],
+    getCodespacesForUserInOrg: [
+      "GET /orgs/{org}/members/{username}/codespaces"
+    ],
+    getExportDetailsForAuthenticatedUser: [
+      "GET /user/codespaces/{codespace_name}/exports/{export_id}"
+    ],
+    getForAuthenticatedUser: ["GET /user/codespaces/{codespace_name}"],
+    getOrgPublicKey: ["GET /orgs/{org}/codespaces/secrets/public-key"],
+    getOrgSecret: ["GET /orgs/{org}/codespaces/secrets/{secret_name}"],
+    getPublicKeyForAuthenticatedUser: [
+      "GET /user/codespaces/secrets/public-key"
+    ],
+    getRepoPublicKey: [
+      "GET /repos/{owner}/{repo}/codespaces/secrets/public-key"
+    ],
+    getRepoSecret: [
+      "GET /repos/{owner}/{repo}/codespaces/secrets/{secret_name}"
+    ],
+    getSecretForAuthenticatedUser: [
+      "GET /user/codespaces/secrets/{secret_name}"
+    ],
+    listDevcontainersInRepositoryForAuthenticatedUser: [
+      "GET /repos/{owner}/{repo}/codespaces/devcontainers"
+    ],
+    listForAuthenticatedUser: ["GET /user/codespaces"],
+    listInOrganization: [
+      "GET /orgs/{org}/codespaces",
+      {},
+      { renamedParameters: { org_id: "org" } }
+    ],
+    listInRepositoryForAuthenticatedUser: [
+      "GET /repos/{owner}/{repo}/codespaces"
+    ],
+    listOrgSecrets: ["GET /orgs/{org}/codespaces/secrets"],
+    listRepoSecrets: ["GET /repos/{owner}/{repo}/codespaces/secrets"],
+    listRepositoriesForSecretForAuthenticatedUser: [
+      "GET /user/codespaces/secrets/{secret_name}/repositories"
+    ],
+    listSecretsForAuthenticatedUser: ["GET /user/codespaces/secrets"],
+    listSelectedReposForOrgSecret: [
+      "GET /orgs/{org}/codespaces/secrets/{secret_name}/repositories"
+    ],
+    preFlightWithRepoForAuthenticatedUser: [
+      "GET /repos/{owner}/{repo}/codespaces/new"
+    ],
+    publishForAuthenticatedUser: [
+      "POST /user/codespaces/{codespace_name}/publish"
+    ],
+    removeRepositoryForSecretForAuthenticatedUser: [
+      "DELETE /user/codespaces/secrets/{secret_name}/repositories/{repository_id}"
+    ],
+    removeSelectedRepoFromOrgSecret: [
+      "DELETE /orgs/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}"
+    ],
+    repoMachinesForAuthenticatedUser: [
+      "GET /repos/{owner}/{repo}/codespaces/machines"
+    ],
+    setRepositoriesForSecretForAuthenticatedUser: [
+      "PUT /user/codespaces/secrets/{secret_name}/repositories"
+    ],
+    setSelectedReposForOrgSecret: [
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories"
+    ],
+    startForAuthenticatedUser: ["POST /user/codespaces/{codespace_name}/start"],
+    stopForAuthenticatedUser: ["POST /user/codespaces/{codespace_name}/stop"],
+    stopInOrganization: [
+      "POST /orgs/{org}/members/{username}/codespaces/{codespace_name}/stop"
+    ],
+    updateForAuthenticatedUser: ["PATCH /user/codespaces/{codespace_name}"]
+  },
+  copilot: {
+    addCopilotSeatsForTeams: [
+      "POST /orgs/{org}/copilot/billing/selected_teams"
+    ],
+    addCopilotSeatsForUsers: [
+      "POST /orgs/{org}/copilot/billing/selected_users"
+    ],
+    cancelCopilotSeatAssignmentForTeams: [
+      "DELETE /orgs/{org}/copilot/billing/selected_teams"
+    ],
+    cancelCopilotSeatAssignmentForUsers: [
+      "DELETE /orgs/{org}/copilot/billing/selected_users"
+    ],
+    getCopilotOrganizationDetails: ["GET /orgs/{org}/copilot/billing"],
+    getCopilotSeatDetailsForUser: [
+      "GET /orgs/{org}/members/{username}/copilot"
+    ],
+    listCopilotSeats: ["GET /orgs/{org}/copilot/billing/seats"]
+  },
+  dependabot: {
+    addSelectedRepoToOrgSecret: [
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}"
+    ],
+    createOrUpdateOrgSecret: [
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}"
+    ],
+    createOrUpdateRepoSecret: [
+      "PUT /repos/{owner}/{repo}/dependabot/secrets/{secret_name}"
+    ],
+    deleteOrgSecret: ["DELETE /orgs/{org}/dependabot/secrets/{secret_name}"],
+    deleteRepoSecret: [
+      "DELETE /repos/{owner}/{repo}/dependabot/secrets/{secret_name}"
+    ],
+    getAlert: ["GET /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"],
+    getOrgPublicKey: ["GET /orgs/{org}/dependabot/secrets/public-key"],
+    getOrgSecret: ["GET /orgs/{org}/dependabot/secrets/{secret_name}"],
+    getRepoPublicKey: [
+      "GET /repos/{owner}/{repo}/dependabot/secrets/public-key"
+    ],
+    getRepoSecret: [
+      "GET /repos/{owner}/{repo}/dependabot/secrets/{secret_name}"
+    ],
+    listAlertsForEnterprise: [
+      "GET /enterprises/{enterprise}/dependabot/alerts"
+    ],
+    listAlertsForOrg: ["GET /orgs/{org}/dependabot/alerts"],
+    listAlertsForRepo: ["GET /repos/{owner}/{repo}/dependabot/alerts"],
+    listOrgSecrets: ["GET /orgs/{org}/dependabot/secrets"],
+    listRepoSecrets: ["GET /repos/{owner}/{repo}/dependabot/secrets"],
+    listSelectedReposForOrgSecret: [
+      "GET /orgs/{org}/dependabot/secrets/{secret_name}/repositories"
+    ],
+    removeSelectedRepoFromOrgSecret: [
+      "DELETE /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}"
+    ],
+    setSelectedReposForOrgSecret: [
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories"
+    ],
+    updateAlert: [
+      "PATCH /repos/{owner}/{repo}/dependabot/alerts/{alert_number}"
+    ]
+  },
+  dependencyGraph: {
+    createRepositorySnapshot: [
+      "POST /repos/{owner}/{repo}/dependency-graph/snapshots"
+    ],
+    diffRange: [
+      "GET /repos/{owner}/{repo}/dependency-graph/compare/{basehead}"
+    ],
+    exportSbom: ["GET /repos/{owner}/{repo}/dependency-graph/sbom"]
+  },
+  emojis: { get: ["GET /emojis"] },
+  gists: {
+    checkIsStarred: ["GET /gists/{gist_id}/star"],
+    create: ["POST /gists"],
+    createComment: ["POST /gists/{gist_id}/comments"],
+    delete: ["DELETE /gists/{gist_id}"],
+    deleteComment: ["DELETE /gists/{gist_id}/comments/{comment_id}"],
+    fork: ["POST /gists/{gist_id}/forks"],
+    get: ["GET /gists/{gist_id}"],
+    getComment: ["GET /gists/{gist_id}/comments/{comment_id}"],
+    getRevision: ["GET /gists/{gist_id}/{sha}"],
+    list: ["GET /gists"],
+    listComments: ["GET /gists/{gist_id}/comments"],
+    listCommits: ["GET /gists/{gist_id}/commits"],
+    listForUser: ["GET /users/{username}/gists"],
+    listForks: ["GET /gists/{gist_id}/forks"],
+    listPublic: ["GET /gists/public"],
+    listStarred: ["GET /gists/starred"],
+    star: ["PUT /gists/{gist_id}/star"],
+    unstar: ["DELETE /gists/{gist_id}/star"],
+    update: ["PATCH /gists/{gist_id}"],
+    updateComment: ["PATCH /gists/{gist_id}/comments/{comment_id}"]
+  },
+  git: {
+    createBlob: ["POST /repos/{owner}/{repo}/git/blobs"],
+    createCommit: ["POST /repos/{owner}/{repo}/git/commits"],
+    createRef: ["POST /repos/{owner}/{repo}/git/refs"],
+    createTag: ["POST /repos/{owner}/{repo}/git/tags"],
+    createTree: ["POST /repos/{owner}/{repo}/git/trees"],
+    deleteRef: ["DELETE /repos/{owner}/{repo}/git/refs/{ref}"],
+    getBlob: ["GET /repos/{owner}/{repo}/git/blobs/{file_sha}"],
+    getCommit: ["GET /repos/{owner}/{repo}/git/commits/{commit_sha}"],
+    getRef: ["GET /repos/{owner}/{repo}/git/ref/{ref}"],
+    getTag: ["GET /repos/{owner}/{repo}/git/tags/{tag_sha}"],
+    getTree: ["GET /repos/{owner}/{repo}/git/trees/{tree_sha}"],
+    listMatchingRefs: ["GET /repos/{owner}/{repo}/git/matching-refs/{ref}"],
+    updateRef: ["PATCH /repos/{owner}/{repo}/git/refs/{ref}"]
+  },
+  gitignore: {
+    getAllTemplates: ["GET /gitignore/templates"],
+    getTemplate: ["GET /gitignore/templates/{name}"]
+  },
+  interactions: {
+    getRestrictionsForAuthenticatedUser: ["GET /user/interaction-limits"],
+    getRestrictionsForOrg: ["GET /orgs/{org}/interaction-limits"],
+    getRestrictionsForRepo: ["GET /repos/{owner}/{repo}/interaction-limits"],
+    getRestrictionsForYourPublicRepos: [
+      "GET /user/interaction-limits",
+      {},
+      { renamed: ["interactions", "getRestrictionsForAuthenticatedUser"] }
+    ],
+    removeRestrictionsForAuthenticatedUser: ["DELETE /user/interaction-limits"],
+    removeRestrictionsForOrg: ["DELETE /orgs/{org}/interaction-limits"],
+    removeRestrictionsForRepo: [
+      "DELETE /repos/{owner}/{repo}/interaction-limits"
+    ],
+    removeRestrictionsForYourPublicRepos: [
+      "DELETE /user/interaction-limits",
+      {},
+      { renamed: ["interactions", "removeRestrictionsForAuthenticatedUser"] }
+    ],
+    setRestrictionsForAuthenticatedUser: ["PUT /user/interaction-limits"],
+    setRestrictionsForOrg: ["PUT /orgs/{org}/interaction-limits"],
+    setRestrictionsForRepo: ["PUT /repos/{owner}/{repo}/interaction-limits"],
+    setRestrictionsForYourPublicRepos: [
+      "PUT /user/interaction-limits",
+      {},
+      { renamed: ["interactions", "setRestrictionsForAuthenticatedUser"] }
+    ]
+  },
+  issues: {
+    addAssignees: [
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/assignees"
+    ],
+    addLabels: ["POST /repos/{owner}/{repo}/issues/{issue_number}/labels"],
+    checkUserCanBeAssigned: ["GET /repos/{owner}/{repo}/assignees/{assignee}"],
+    checkUserCanBeAssignedToIssue: [
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/assignees/{assignee}"
+    ],
+    create: ["POST /repos/{owner}/{repo}/issues"],
+    createComment: [
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/comments"
+    ],
+    createLabel: ["POST /repos/{owner}/{repo}/labels"],
+    createMilestone: ["POST /repos/{owner}/{repo}/milestones"],
+    deleteComment: [
+      "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}"
+    ],
+    deleteLabel: ["DELETE /repos/{owner}/{repo}/labels/{name}"],
+    deleteMilestone: [
+      "DELETE /repos/{owner}/{repo}/milestones/{milestone_number}"
+    ],
+    get: ["GET /repos/{owner}/{repo}/issues/{issue_number}"],
+    getComment: ["GET /repos/{owner}/{repo}/issues/comments/{comment_id}"],
+    getEvent: ["GET /repos/{owner}/{repo}/issues/events/{event_id}"],
+    getLabel: ["GET /repos/{owner}/{repo}/labels/{name}"],
+    getMilestone: ["GET /repos/{owner}/{repo}/milestones/{milestone_number}"],
+    list: ["GET /issues"],
+    listAssignees: ["GET /repos/{owner}/{repo}/assignees"],
+    listComments: ["GET /repos/{owner}/{repo}/issues/{issue_number}/comments"],
+    listCommentsForRepo: ["GET /repos/{owner}/{repo}/issues/comments"],
+    listEvents: ["GET /repos/{owner}/{repo}/issues/{issue_number}/events"],
+    listEventsForRepo: ["GET /repos/{owner}/{repo}/issues/events"],
+    listEventsForTimeline: [
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/timeline"
+    ],
+    listForAuthenticatedUser: ["GET /user/issues"],
+    listForOrg: ["GET /orgs/{org}/issues"],
+    listForRepo: ["GET /repos/{owner}/{repo}/issues"],
+    listLabelsForMilestone: [
+      "GET /repos/{owner}/{repo}/milestones/{milestone_number}/labels"
+    ],
+    listLabelsForRepo: ["GET /repos/{owner}/{repo}/labels"],
+    listLabelsOnIssue: [
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/labels"
+    ],
+    listMilestones: ["GET /repos/{owner}/{repo}/milestones"],
+    lock: ["PUT /repos/{owner}/{repo}/issues/{issue_number}/lock"],
+    removeAllLabels: [
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels"
+    ],
+    removeAssignees: [
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/assignees"
+    ],
+    removeLabel: [
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}"
+    ],
+    setLabels: ["PUT /repos/{owner}/{repo}/issues/{issue_number}/labels"],
+    unlock: ["DELETE /repos/{owner}/{repo}/issues/{issue_number}/lock"],
+    update: ["PATCH /repos/{owner}/{repo}/issues/{issue_number}"],
+    updateComment: ["PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}"],
+    updateLabel: ["PATCH /repos/{owner}/{repo}/labels/{name}"],
+    updateMilestone: [
+      "PATCH /repos/{owner}/{repo}/milestones/{milestone_number}"
+    ]
+  },
+  licenses: {
+    get: ["GET /licenses/{license}"],
+    getAllCommonlyUsed: ["GET /licenses"],
+    getForRepo: ["GET /repos/{owner}/{repo}/license"]
+  },
+  markdown: {
+    render: ["POST /markdown"],
+    renderRaw: [
+      "POST /markdown/raw",
+      { headers: { "content-type": "text/plain; charset=utf-8" } }
+    ]
+  },
+  meta: {
+    get: ["GET /meta"],
+    getAllVersions: ["GET /versions"],
+    getOctocat: ["GET /octocat"],
+    getZen: ["GET /zen"],
+    root: ["GET /"]
+  },
+  migrations: {
+    cancelImport: [
+      "DELETE /repos/{owner}/{repo}/import",
+      {},
+      {
+        deprecated: "octokit.rest.migrations.cancelImport() is deprecated, see https://docs.github.com/rest/migrations/source-imports#cancel-an-import"
+      }
+    ],
+    deleteArchiveForAuthenticatedUser: [
+      "DELETE /user/migrations/{migration_id}/archive"
+    ],
+    deleteArchiveForOrg: [
+      "DELETE /orgs/{org}/migrations/{migration_id}/archive"
+    ],
+    downloadArchiveForOrg: [
+      "GET /orgs/{org}/migrations/{migration_id}/archive"
+    ],
+    getArchiveForAuthenticatedUser: [
+      "GET /user/migrations/{migration_id}/archive"
+    ],
+    getCommitAuthors: [
+      "GET /repos/{owner}/{repo}/import/authors",
+      {},
+      {
+        deprecated: "octokit.rest.migrations.getCommitAuthors() is deprecated, see https://docs.github.com/rest/migrations/source-imports#get-commit-authors"
+      }
+    ],
+    getImportStatus: [
+      "GET /repos/{owner}/{repo}/import",
+      {},
+      {
+        deprecated: "octokit.rest.migrations.getImportStatus() is deprecated, see https://docs.github.com/rest/migrations/source-imports#get-an-import-status"
+      }
+    ],
+    getLargeFiles: [
+      "GET /repos/{owner}/{repo}/import/large_files",
+      {},
+      {
+        deprecated: "octokit.rest.migrations.getLargeFiles() is deprecated, see https://docs.github.com/rest/migrations/source-imports#get-large-files"
+      }
+    ],
+    getStatusForAuthenticatedUser: ["GET /user/migrations/{migration_id}"],
+    getStatusForOrg: ["GET /orgs/{org}/migrations/{migration_id}"],
+    listForAuthenticatedUser: ["GET /user/migrations"],
+    listForOrg: ["GET /orgs/{org}/migrations"],
+    listReposForAuthenticatedUser: [
+      "GET /user/migrations/{migration_id}/repositories"
+    ],
+    listReposForOrg: ["GET /orgs/{org}/migrations/{migration_id}/repositories"],
+    listReposForUser: [
+      "GET /user/migrations/{migration_id}/repositories",
+      {},
+      { renamed: ["migrations", "listReposForAuthenticatedUser"] }
+    ],
+    mapCommitAuthor: [
+      "PATCH /repos/{owner}/{repo}/import/authors/{author_id}",
+      {},
+      {
+        deprecated: "octokit.rest.migrations.mapCommitAuthor() is deprecated, see https://docs.github.com/rest/migrations/source-imports#map-a-commit-author"
+      }
+    ],
+    setLfsPreference: [
+      "PATCH /repos/{owner}/{repo}/import/lfs",
+      {},
+      {
+        deprecated: "octokit.rest.migrations.setLfsPreference() is deprecated, see https://docs.github.com/rest/migrations/source-imports#update-git-lfs-preference"
+      }
+    ],
+    startForAuthenticatedUser: ["POST /user/migrations"],
+    startForOrg: ["POST /orgs/{org}/migrations"],
+    startImport: [
+      "PUT /repos/{owner}/{repo}/import",
+      {},
+      {
+        deprecated: "octokit.rest.migrations.startImport() is deprecated, see https://docs.github.com/rest/migrations/source-imports#start-an-import"
+      }
+    ],
+    unlockRepoForAuthenticatedUser: [
+      "DELETE /user/migrations/{migration_id}/repos/{repo_name}/lock"
+    ],
+    unlockRepoForOrg: [
+      "DELETE /orgs/{org}/migrations/{migration_id}/repos/{repo_name}/lock"
+    ],
+    updateImport: [
+      "PATCH /repos/{owner}/{repo}/import",
+      {},
+      {
+        deprecated: "octokit.rest.migrations.updateImport() is deprecated, see https://docs.github.com/rest/migrations/source-imports#update-an-import"
+      }
+    ]
+  },
+  oidc: {
+    getOidcCustomSubTemplateForOrg: [
+      "GET /orgs/{org}/actions/oidc/customization/sub"
+    ],
+    updateOidcCustomSubTemplateForOrg: [
+      "PUT /orgs/{org}/actions/oidc/customization/sub"
+    ]
+  },
+  orgs: {
+    addSecurityManagerTeam: [
+      "PUT /orgs/{org}/security-managers/teams/{team_slug}"
+    ],
+    assignTeamToOrgRole: [
+      "PUT /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}"
+    ],
+    assignUserToOrgRole: [
+      "PUT /orgs/{org}/organization-roles/users/{username}/{role_id}"
+    ],
+    blockUser: ["PUT /orgs/{org}/blocks/{username}"],
+    cancelInvitation: ["DELETE /orgs/{org}/invitations/{invitation_id}"],
+    checkBlockedUser: ["GET /orgs/{org}/blocks/{username}"],
+    checkMembershipForUser: ["GET /orgs/{org}/members/{username}"],
+    checkPublicMembershipForUser: ["GET /orgs/{org}/public_members/{username}"],
+    convertMemberToOutsideCollaborator: [
+      "PUT /orgs/{org}/outside_collaborators/{username}"
+    ],
+    createCustomOrganizationRole: ["POST /orgs/{org}/organization-roles"],
+    createInvitation: ["POST /orgs/{org}/invitations"],
+    createOrUpdateCustomProperties: ["PATCH /orgs/{org}/properties/schema"],
+    createOrUpdateCustomPropertiesValuesForRepos: [
+      "PATCH /orgs/{org}/properties/values"
+    ],
+    createOrUpdateCustomProperty: [
+      "PUT /orgs/{org}/properties/schema/{custom_property_name}"
+    ],
+    createWebhook: ["POST /orgs/{org}/hooks"],
+    delete: ["DELETE /orgs/{org}"],
+    deleteCustomOrganizationRole: [
+      "DELETE /orgs/{org}/organization-roles/{role_id}"
+    ],
+    deleteWebhook: ["DELETE /orgs/{org}/hooks/{hook_id}"],
+    enableOrDisableSecurityProductOnAllOrgRepos: [
+      "POST /orgs/{org}/{security_product}/{enablement}"
+    ],
+    get: ["GET /orgs/{org}"],
+    getAllCustomProperties: ["GET /orgs/{org}/properties/schema"],
+    getCustomProperty: [
+      "GET /orgs/{org}/properties/schema/{custom_property_name}"
+    ],
+    getMembershipForAuthenticatedUser: ["GET /user/memberships/orgs/{org}"],
+    getMembershipForUser: ["GET /orgs/{org}/memberships/{username}"],
+    getOrgRole: ["GET /orgs/{org}/organization-roles/{role_id}"],
+    getWebhook: ["GET /orgs/{org}/hooks/{hook_id}"],
+    getWebhookConfigForOrg: ["GET /orgs/{org}/hooks/{hook_id}/config"],
+    getWebhookDelivery: [
+      "GET /orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}"
+    ],
+    list: ["GET /organizations"],
+    listAppInstallations: ["GET /orgs/{org}/installations"],
+    listBlockedUsers: ["GET /orgs/{org}/blocks"],
+    listCustomPropertiesValuesForRepos: ["GET /orgs/{org}/properties/values"],
+    listFailedInvitations: ["GET /orgs/{org}/failed_invitations"],
+    listForAuthenticatedUser: ["GET /user/orgs"],
+    listForUser: ["GET /users/{username}/orgs"],
+    listInvitationTeams: ["GET /orgs/{org}/invitations/{invitation_id}/teams"],
+    listMembers: ["GET /orgs/{org}/members"],
+    listMembershipsForAuthenticatedUser: ["GET /user/memberships/orgs"],
+    listOrgRoleTeams: ["GET /orgs/{org}/organization-roles/{role_id}/teams"],
+    listOrgRoleUsers: ["GET /orgs/{org}/organization-roles/{role_id}/users"],
+    listOrgRoles: ["GET /orgs/{org}/organization-roles"],
+    listOrganizationFineGrainedPermissions: [
+      "GET /orgs/{org}/organization-fine-grained-permissions"
+    ],
+    listOutsideCollaborators: ["GET /orgs/{org}/outside_collaborators"],
+    listPatGrantRepositories: [
+      "GET /orgs/{org}/personal-access-tokens/{pat_id}/repositories"
+    ],
+    listPatGrantRequestRepositories: [
+      "GET /orgs/{org}/personal-access-token-requests/{pat_request_id}/repositories"
+    ],
+    listPatGrantRequests: ["GET /orgs/{org}/personal-access-token-requests"],
+    listPatGrants: ["GET /orgs/{org}/personal-access-tokens"],
+    listPendingInvitations: ["GET /orgs/{org}/invitations"],
+    listPublicMembers: ["GET /orgs/{org}/public_members"],
+    listSecurityManagerTeams: ["GET /orgs/{org}/security-managers"],
+    listWebhookDeliveries: ["GET /orgs/{org}/hooks/{hook_id}/deliveries"],
+    listWebhooks: ["GET /orgs/{org}/hooks"],
+    patchCustomOrganizationRole: [
+      "PATCH /orgs/{org}/organization-roles/{role_id}"
+    ],
+    pingWebhook: ["POST /orgs/{org}/hooks/{hook_id}/pings"],
+    redeliverWebhookDelivery: [
+      "POST /orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts"
+    ],
+    removeCustomProperty: [
+      "DELETE /orgs/{org}/properties/schema/{custom_property_name}"
+    ],
+    removeMember: ["DELETE /orgs/{org}/members/{username}"],
+    removeMembershipForUser: ["DELETE /orgs/{org}/memberships/{username}"],
+    removeOutsideCollaborator: [
+      "DELETE /orgs/{org}/outside_collaborators/{username}"
+    ],
+    removePublicMembershipForAuthenticatedUser: [
+      "DELETE /orgs/{org}/public_members/{username}"
+    ],
+    removeSecurityManagerTeam: [
+      "DELETE /orgs/{org}/security-managers/teams/{team_slug}"
+    ],
+    reviewPatGrantRequest: [
+      "POST /orgs/{org}/personal-access-token-requests/{pat_request_id}"
+    ],
+    reviewPatGrantRequestsInBulk: [
+      "POST /orgs/{org}/personal-access-token-requests"
+    ],
+    revokeAllOrgRolesTeam: [
+      "DELETE /orgs/{org}/organization-roles/teams/{team_slug}"
+    ],
+    revokeAllOrgRolesUser: [
+      "DELETE /orgs/{org}/organization-roles/users/{username}"
+    ],
+    revokeOrgRoleTeam: [
+      "DELETE /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}"
+    ],
+    revokeOrgRoleUser: [
+      "DELETE /orgs/{org}/organization-roles/users/{username}/{role_id}"
+    ],
+    setMembershipForUser: ["PUT /orgs/{org}/memberships/{username}"],
+    setPublicMembershipForAuthenticatedUser: [
+      "PUT /orgs/{org}/public_members/{username}"
+    ],
+    unblockUser: ["DELETE /orgs/{org}/blocks/{username}"],
+    update: ["PATCH /orgs/{org}"],
+    updateMembershipForAuthenticatedUser: [
+      "PATCH /user/memberships/orgs/{org}"
+    ],
+    updatePatAccess: ["POST /orgs/{org}/personal-access-tokens/{pat_id}"],
+    updatePatAccesses: ["POST /orgs/{org}/personal-access-tokens"],
+    updateWebhook: ["PATCH /orgs/{org}/hooks/{hook_id}"],
+    updateWebhookConfigForOrg: ["PATCH /orgs/{org}/hooks/{hook_id}/config"]
+  },
+  packages: {
+    deletePackageForAuthenticatedUser: [
+      "DELETE /user/packages/{package_type}/{package_name}"
+    ],
+    deletePackageForOrg: [
+      "DELETE /orgs/{org}/packages/{package_type}/{package_name}"
+    ],
+    deletePackageForUser: [
+      "DELETE /users/{username}/packages/{package_type}/{package_name}"
+    ],
+    deletePackageVersionForAuthenticatedUser: [
+      "DELETE /user/packages/{package_type}/{package_name}/versions/{package_version_id}"
+    ],
+    deletePackageVersionForOrg: [
+      "DELETE /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}"
+    ],
+    deletePackageVersionForUser: [
+      "DELETE /users/{username}/packages/{package_type}/{package_name}/versions/{package_version_id}"
+    ],
+    getAllPackageVersionsForAPackageOwnedByAnOrg: [
+      "GET /orgs/{org}/packages/{package_type}/{package_name}/versions",
+      {},
+      { renamed: ["packages", "getAllPackageVersionsForPackageOwnedByOrg"] }
+    ],
+    getAllPackageVersionsForAPackageOwnedByTheAuthenticatedUser: [
+      "GET /user/packages/{package_type}/{package_name}/versions",
+      {},
+      {
+        renamed: [
+          "packages",
+          "getAllPackageVersionsForPackageOwnedByAuthenticatedUser"
+        ]
+      }
+    ],
+    getAllPackageVersionsForPackageOwnedByAuthenticatedUser: [
+      "GET /user/packages/{package_type}/{package_name}/versions"
+    ],
+    getAllPackageVersionsForPackageOwnedByOrg: [
+      "GET /orgs/{org}/packages/{package_type}/{package_name}/versions"
+    ],
+    getAllPackageVersionsForPackageOwnedByUser: [
+      "GET /users/{username}/packages/{package_type}/{package_name}/versions"
+    ],
+    getPackageForAuthenticatedUser: [
+      "GET /user/packages/{package_type}/{package_name}"
+    ],
+    getPackageForOrganization: [
+      "GET /orgs/{org}/packages/{package_type}/{package_name}"
+    ],
+    getPackageForUser: [
+      "GET /users/{username}/packages/{package_type}/{package_name}"
+    ],
+    getPackageVersionForAuthenticatedUser: [
+      "GET /user/packages/{package_type}/{package_name}/versions/{package_version_id}"
+    ],
+    getPackageVersionForOrganization: [
+      "GET /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}"
+    ],
+    getPackageVersionForUser: [
+      "GET /users/{username}/packages/{package_type}/{package_name}/versions/{package_version_id}"
+    ],
+    listDockerMigrationConflictingPackagesForAuthenticatedUser: [
+      "GET /user/docker/conflicts"
+    ],
+    listDockerMigrationConflictingPackagesForOrganization: [
+      "GET /orgs/{org}/docker/conflicts"
+    ],
+    listDockerMigrationConflictingPackagesForUser: [
+      "GET /users/{username}/docker/conflicts"
+    ],
+    listPackagesForAuthenticatedUser: ["GET /user/packages"],
+    listPackagesForOrganization: ["GET /orgs/{org}/packages"],
+    listPackagesForUser: ["GET /users/{username}/packages"],
+    restorePackageForAuthenticatedUser: [
+      "POST /user/packages/{package_type}/{package_name}/restore{?token}"
+    ],
+    restorePackageForOrg: [
+      "POST /orgs/{org}/packages/{package_type}/{package_name}/restore{?token}"
+    ],
+    restorePackageForUser: [
+      "POST /users/{username}/packages/{package_type}/{package_name}/restore{?token}"
+    ],
+    restorePackageVersionForAuthenticatedUser: [
+      "POST /user/packages/{package_type}/{package_name}/versions/{package_version_id}/restore"
+    ],
+    restorePackageVersionForOrg: [
+      "POST /orgs/{org}/packages/{package_type}/{package_name}/versions/{package_version_id}/restore"
+    ],
+    restorePackageVersionForUser: [
+      "POST /users/{username}/packages/{package_type}/{package_name}/versions/{package_version_id}/restore"
+    ]
+  },
+  projects: {
+    addCollaborator: ["PUT /projects/{project_id}/collaborators/{username}"],
+    createCard: ["POST /projects/columns/{column_id}/cards"],
+    createColumn: ["POST /projects/{project_id}/columns"],
+    createForAuthenticatedUser: ["POST /user/projects"],
+    createForOrg: ["POST /orgs/{org}/projects"],
+    createForRepo: ["POST /repos/{owner}/{repo}/projects"],
+    delete: ["DELETE /projects/{project_id}"],
+    deleteCard: ["DELETE /projects/columns/cards/{card_id}"],
+    deleteColumn: ["DELETE /projects/columns/{column_id}"],
+    get: ["GET /projects/{project_id}"],
+    getCard: ["GET /projects/columns/cards/{card_id}"],
+    getColumn: ["GET /projects/columns/{column_id}"],
+    getPermissionForUser: [
+      "GET /projects/{project_id}/collaborators/{username}/permission"
+    ],
+    listCards: ["GET /projects/columns/{column_id}/cards"],
+    listCollaborators: ["GET /projects/{project_id}/collaborators"],
+    listColumns: ["GET /projects/{project_id}/columns"],
+    listForOrg: ["GET /orgs/{org}/projects"],
+    listForRepo: ["GET /repos/{owner}/{repo}/projects"],
+    listForUser: ["GET /users/{username}/projects"],
+    moveCard: ["POST /projects/columns/cards/{card_id}/moves"],
+    moveColumn: ["POST /projects/columns/{column_id}/moves"],
+    removeCollaborator: [
+      "DELETE /projects/{project_id}/collaborators/{username}"
+    ],
+    update: ["PATCH /projects/{project_id}"],
+    updateCard: ["PATCH /projects/columns/cards/{card_id}"],
+    updateColumn: ["PATCH /projects/columns/{column_id}"]
+  },
+  pulls: {
+    checkIfMerged: ["GET /repos/{owner}/{repo}/pulls/{pull_number}/merge"],
+    create: ["POST /repos/{owner}/{repo}/pulls"],
+    createReplyForReviewComment: [
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies"
+    ],
+    createReview: ["POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews"],
+    createReviewComment: [
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/comments"
+    ],
+    deletePendingReview: [
+      "DELETE /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}"
+    ],
+    deleteReviewComment: [
+      "DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}"
+    ],
+    dismissReview: [
+      "PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/dismissals"
+    ],
+    get: ["GET /repos/{owner}/{repo}/pulls/{pull_number}"],
+    getReview: [
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}"
+    ],
+    getReviewComment: ["GET /repos/{owner}/{repo}/pulls/comments/{comment_id}"],
+    list: ["GET /repos/{owner}/{repo}/pulls"],
+    listCommentsForReview: [
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments"
+    ],
+    listCommits: ["GET /repos/{owner}/{repo}/pulls/{pull_number}/commits"],
+    listFiles: ["GET /repos/{owner}/{repo}/pulls/{pull_number}/files"],
+    listRequestedReviewers: [
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers"
+    ],
+    listReviewComments: [
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/comments"
+    ],
+    listReviewCommentsForRepo: ["GET /repos/{owner}/{repo}/pulls/comments"],
+    listReviews: ["GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews"],
+    merge: ["PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge"],
+    removeRequestedReviewers: [
+      "DELETE /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers"
+    ],
+    requestReviewers: [
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers"
+    ],
+    submitReview: [
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/events"
+    ],
+    update: ["PATCH /repos/{owner}/{repo}/pulls/{pull_number}"],
+    updateBranch: [
+      "PUT /repos/{owner}/{repo}/pulls/{pull_number}/update-branch"
+    ],
+    updateReview: [
+      "PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}"
+    ],
+    updateReviewComment: [
+      "PATCH /repos/{owner}/{repo}/pulls/comments/{comment_id}"
+    ]
+  },
+  rateLimit: { get: ["GET /rate_limit"] },
+  reactions: {
+    createForCommitComment: [
+      "POST /repos/{owner}/{repo}/comments/{comment_id}/reactions"
+    ],
+    createForIssue: [
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/reactions"
+    ],
+    createForIssueComment: [
+      "POST /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions"
+    ],
+    createForPullRequestReviewComment: [
+      "POST /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions"
+    ],
+    createForRelease: [
+      "POST /repos/{owner}/{repo}/releases/{release_id}/reactions"
+    ],
+    createForTeamDiscussionCommentInOrg: [
+      "POST /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}/reactions"
+    ],
+    createForTeamDiscussionInOrg: [
+      "POST /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/reactions"
+    ],
+    deleteForCommitComment: [
+      "DELETE /repos/{owner}/{repo}/comments/{comment_id}/reactions/{reaction_id}"
+    ],
+    deleteForIssue: [
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/reactions/{reaction_id}"
+    ],
+    deleteForIssueComment: [
+      "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions/{reaction_id}"
+    ],
+    deleteForPullRequestComment: [
+      "DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions/{reaction_id}"
+    ],
+    deleteForRelease: [
+      "DELETE /repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}"
+    ],
+    deleteForTeamDiscussion: [
+      "DELETE /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/reactions/{reaction_id}"
+    ],
+    deleteForTeamDiscussionComment: [
+      "DELETE /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}/reactions/{reaction_id}"
+    ],
+    listForCommitComment: [
+      "GET /repos/{owner}/{repo}/comments/{comment_id}/reactions"
+    ],
+    listForIssue: ["GET /repos/{owner}/{repo}/issues/{issue_number}/reactions"],
+    listForIssueComment: [
+      "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions"
+    ],
+    listForPullRequestReviewComment: [
+      "GET /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions"
+    ],
+    listForRelease: [
+      "GET /repos/{owner}/{repo}/releases/{release_id}/reactions"
+    ],
+    listForTeamDiscussionCommentInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}/reactions"
+    ],
+    listForTeamDiscussionInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/reactions"
+    ]
+  },
+  repos: {
+    acceptInvitation: [
+      "PATCH /user/repository_invitations/{invitation_id}",
+      {},
+      { renamed: ["repos", "acceptInvitationForAuthenticatedUser"] }
+    ],
+    acceptInvitationForAuthenticatedUser: [
+      "PATCH /user/repository_invitations/{invitation_id}"
+    ],
+    addAppAccessRestrictions: [
+      "POST /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/apps",
+      {},
+      { mapToData: "apps" }
+    ],
+    addCollaborator: ["PUT /repos/{owner}/{repo}/collaborators/{username}"],
+    addStatusCheckContexts: [
+      "POST /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks/contexts",
+      {},
+      { mapToData: "contexts" }
+    ],
+    addTeamAccessRestrictions: [
+      "POST /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/teams",
+      {},
+      { mapToData: "teams" }
+    ],
+    addUserAccessRestrictions: [
+      "POST /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/users",
+      {},
+      { mapToData: "users" }
+    ],
+    cancelPagesDeployment: [
+      "POST /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}/cancel"
+    ],
+    checkAutomatedSecurityFixes: [
+      "GET /repos/{owner}/{repo}/automated-security-fixes"
+    ],
+    checkCollaborator: ["GET /repos/{owner}/{repo}/collaborators/{username}"],
+    checkVulnerabilityAlerts: [
+      "GET /repos/{owner}/{repo}/vulnerability-alerts"
+    ],
+    codeownersErrors: ["GET /repos/{owner}/{repo}/codeowners/errors"],
+    compareCommits: ["GET /repos/{owner}/{repo}/compare/{base}...{head}"],
+    compareCommitsWithBasehead: [
+      "GET /repos/{owner}/{repo}/compare/{basehead}"
+    ],
+    createAutolink: ["POST /repos/{owner}/{repo}/autolinks"],
+    createCommitComment: [
+      "POST /repos/{owner}/{repo}/commits/{commit_sha}/comments"
+    ],
+    createCommitSignatureProtection: [
+      "POST /repos/{owner}/{repo}/branches/{branch}/protection/required_signatures"
+    ],
+    createCommitStatus: ["POST /repos/{owner}/{repo}/statuses/{sha}"],
+    createDeployKey: ["POST /repos/{owner}/{repo}/keys"],
+    createDeployment: ["POST /repos/{owner}/{repo}/deployments"],
+    createDeploymentBranchPolicy: [
+      "POST /repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies"
+    ],
+    createDeploymentProtectionRule: [
+      "POST /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules"
+    ],
+    createDeploymentStatus: [
+      "POST /repos/{owner}/{repo}/deployments/{deployment_id}/statuses"
+    ],
+    createDispatchEvent: ["POST /repos/{owner}/{repo}/dispatches"],
+    createForAuthenticatedUser: ["POST /user/repos"],
+    createFork: ["POST /repos/{owner}/{repo}/forks"],
+    createInOrg: ["POST /orgs/{org}/repos"],
+    createOrUpdateCustomPropertiesValues: [
+      "PATCH /repos/{owner}/{repo}/properties/values"
+    ],
+    createOrUpdateEnvironment: [
+      "PUT /repos/{owner}/{repo}/environments/{environment_name}"
+    ],
+    createOrUpdateFileContents: ["PUT /repos/{owner}/{repo}/contents/{path}"],
+    createOrgRuleset: ["POST /orgs/{org}/rulesets"],
+    createPagesDeployment: ["POST /repos/{owner}/{repo}/pages/deployments"],
+    createPagesSite: ["POST /repos/{owner}/{repo}/pages"],
+    createRelease: ["POST /repos/{owner}/{repo}/releases"],
+    createRepoRuleset: ["POST /repos/{owner}/{repo}/rulesets"],
+    createTagProtection: ["POST /repos/{owner}/{repo}/tags/protection"],
+    createUsingTemplate: [
+      "POST /repos/{template_owner}/{template_repo}/generate"
+    ],
+    createWebhook: ["POST /repos/{owner}/{repo}/hooks"],
+    declineInvitation: [
+      "DELETE /user/repository_invitations/{invitation_id}",
+      {},
+      { renamed: ["repos", "declineInvitationForAuthenticatedUser"] }
+    ],
+    declineInvitationForAuthenticatedUser: [
+      "DELETE /user/repository_invitations/{invitation_id}"
+    ],
+    delete: ["DELETE /repos/{owner}/{repo}"],
+    deleteAccessRestrictions: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/restrictions"
+    ],
+    deleteAdminBranchProtection: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins"
+    ],
+    deleteAnEnvironment: [
+      "DELETE /repos/{owner}/{repo}/environments/{environment_name}"
+    ],
+    deleteAutolink: ["DELETE /repos/{owner}/{repo}/autolinks/{autolink_id}"],
+    deleteBranchProtection: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection"
+    ],
+    deleteCommitComment: ["DELETE /repos/{owner}/{repo}/comments/{comment_id}"],
+    deleteCommitSignatureProtection: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/required_signatures"
+    ],
+    deleteDeployKey: ["DELETE /repos/{owner}/{repo}/keys/{key_id}"],
+    deleteDeployment: [
+      "DELETE /repos/{owner}/{repo}/deployments/{deployment_id}"
+    ],
+    deleteDeploymentBranchPolicy: [
+      "DELETE /repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies/{branch_policy_id}"
+    ],
+    deleteFile: ["DELETE /repos/{owner}/{repo}/contents/{path}"],
+    deleteInvitation: [
+      "DELETE /repos/{owner}/{repo}/invitations/{invitation_id}"
+    ],
+    deleteOrgRuleset: ["DELETE /orgs/{org}/rulesets/{ruleset_id}"],
+    deletePagesSite: ["DELETE /repos/{owner}/{repo}/pages"],
+    deletePullRequestReviewProtection: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/required_pull_request_reviews"
+    ],
+    deleteRelease: ["DELETE /repos/{owner}/{repo}/releases/{release_id}"],
+    deleteReleaseAsset: [
+      "DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}"
+    ],
+    deleteRepoRuleset: ["DELETE /repos/{owner}/{repo}/rulesets/{ruleset_id}"],
+    deleteTagProtection: [
+      "DELETE /repos/{owner}/{repo}/tags/protection/{tag_protection_id}"
+    ],
+    deleteWebhook: ["DELETE /repos/{owner}/{repo}/hooks/{hook_id}"],
+    disableAutomatedSecurityFixes: [
+      "DELETE /repos/{owner}/{repo}/automated-security-fixes"
+    ],
+    disableDeploymentProtectionRule: [
+      "DELETE /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules/{protection_rule_id}"
+    ],
+    disablePrivateVulnerabilityReporting: [
+      "DELETE /repos/{owner}/{repo}/private-vulnerability-reporting"
+    ],
+    disableVulnerabilityAlerts: [
+      "DELETE /repos/{owner}/{repo}/vulnerability-alerts"
+    ],
+    downloadArchive: [
+      "GET /repos/{owner}/{repo}/zipball/{ref}",
+      {},
+      { renamed: ["repos", "downloadZipballArchive"] }
+    ],
+    downloadTarballArchive: ["GET /repos/{owner}/{repo}/tarball/{ref}"],
+    downloadZipballArchive: ["GET /repos/{owner}/{repo}/zipball/{ref}"],
+    enableAutomatedSecurityFixes: [
+      "PUT /repos/{owner}/{repo}/automated-security-fixes"
+    ],
+    enablePrivateVulnerabilityReporting: [
+      "PUT /repos/{owner}/{repo}/private-vulnerability-reporting"
+    ],
+    enableVulnerabilityAlerts: [
+      "PUT /repos/{owner}/{repo}/vulnerability-alerts"
+    ],
+    generateReleaseNotes: [
+      "POST /repos/{owner}/{repo}/releases/generate-notes"
+    ],
+    get: ["GET /repos/{owner}/{repo}"],
+    getAccessRestrictions: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/restrictions"
+    ],
+    getAdminBranchProtection: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins"
+    ],
+    getAllDeploymentProtectionRules: [
+      "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules"
+    ],
+    getAllEnvironments: ["GET /repos/{owner}/{repo}/environments"],
+    getAllStatusCheckContexts: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks/contexts"
+    ],
+    getAllTopics: ["GET /repos/{owner}/{repo}/topics"],
+    getAppsWithAccessToProtectedBranch: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/apps"
+    ],
+    getAutolink: ["GET /repos/{owner}/{repo}/autolinks/{autolink_id}"],
+    getBranch: ["GET /repos/{owner}/{repo}/branches/{branch}"],
+    getBranchProtection: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection"
+    ],
+    getBranchRules: ["GET /repos/{owner}/{repo}/rules/branches/{branch}"],
+    getClones: ["GET /repos/{owner}/{repo}/traffic/clones"],
+    getCodeFrequencyStats: ["GET /repos/{owner}/{repo}/stats/code_frequency"],
+    getCollaboratorPermissionLevel: [
+      "GET /repos/{owner}/{repo}/collaborators/{username}/permission"
+    ],
+    getCombinedStatusForRef: ["GET /repos/{owner}/{repo}/commits/{ref}/status"],
+    getCommit: ["GET /repos/{owner}/{repo}/commits/{ref}"],
+    getCommitActivityStats: ["GET /repos/{owner}/{repo}/stats/commit_activity"],
+    getCommitComment: ["GET /repos/{owner}/{repo}/comments/{comment_id}"],
+    getCommitSignatureProtection: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/required_signatures"
+    ],
+    getCommunityProfileMetrics: ["GET /repos/{owner}/{repo}/community/profile"],
+    getContent: ["GET /repos/{owner}/{repo}/contents/{path}"],
+    getContributorsStats: ["GET /repos/{owner}/{repo}/stats/contributors"],
+    getCustomDeploymentProtectionRule: [
+      "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules/{protection_rule_id}"
+    ],
+    getCustomPropertiesValues: ["GET /repos/{owner}/{repo}/properties/values"],
+    getDeployKey: ["GET /repos/{owner}/{repo}/keys/{key_id}"],
+    getDeployment: ["GET /repos/{owner}/{repo}/deployments/{deployment_id}"],
+    getDeploymentBranchPolicy: [
+      "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies/{branch_policy_id}"
+    ],
+    getDeploymentStatus: [
+      "GET /repos/{owner}/{repo}/deployments/{deployment_id}/statuses/{status_id}"
+    ],
+    getEnvironment: [
+      "GET /repos/{owner}/{repo}/environments/{environment_name}"
+    ],
+    getLatestPagesBuild: ["GET /repos/{owner}/{repo}/pages/builds/latest"],
+    getLatestRelease: ["GET /repos/{owner}/{repo}/releases/latest"],
+    getOrgRuleSuite: ["GET /orgs/{org}/rulesets/rule-suites/{rule_suite_id}"],
+    getOrgRuleSuites: ["GET /orgs/{org}/rulesets/rule-suites"],
+    getOrgRuleset: ["GET /orgs/{org}/rulesets/{ruleset_id}"],
+    getOrgRulesets: ["GET /orgs/{org}/rulesets"],
+    getPages: ["GET /repos/{owner}/{repo}/pages"],
+    getPagesBuild: ["GET /repos/{owner}/{repo}/pages/builds/{build_id}"],
+    getPagesDeployment: [
+      "GET /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}"
+    ],
+    getPagesHealthCheck: ["GET /repos/{owner}/{repo}/pages/health"],
+    getParticipationStats: ["GET /repos/{owner}/{repo}/stats/participation"],
+    getPullRequestReviewProtection: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/required_pull_request_reviews"
+    ],
+    getPunchCardStats: ["GET /repos/{owner}/{repo}/stats/punch_card"],
+    getReadme: ["GET /repos/{owner}/{repo}/readme"],
+    getReadmeInDirectory: ["GET /repos/{owner}/{repo}/readme/{dir}"],
+    getRelease: ["GET /repos/{owner}/{repo}/releases/{release_id}"],
+    getReleaseAsset: ["GET /repos/{owner}/{repo}/releases/assets/{asset_id}"],
+    getReleaseByTag: ["GET /repos/{owner}/{repo}/releases/tags/{tag}"],
+    getRepoRuleSuite: [
+      "GET /repos/{owner}/{repo}/rulesets/rule-suites/{rule_suite_id}"
+    ],
+    getRepoRuleSuites: ["GET /repos/{owner}/{repo}/rulesets/rule-suites"],
+    getRepoRuleset: ["GET /repos/{owner}/{repo}/rulesets/{ruleset_id}"],
+    getRepoRulesets: ["GET /repos/{owner}/{repo}/rulesets"],
+    getStatusChecksProtection: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks"
+    ],
+    getTeamsWithAccessToProtectedBranch: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/teams"
+    ],
+    getTopPaths: ["GET /repos/{owner}/{repo}/traffic/popular/paths"],
+    getTopReferrers: ["GET /repos/{owner}/{repo}/traffic/popular/referrers"],
+    getUsersWithAccessToProtectedBranch: [
+      "GET /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/users"
+    ],
+    getViews: ["GET /repos/{owner}/{repo}/traffic/views"],
+    getWebhook: ["GET /repos/{owner}/{repo}/hooks/{hook_id}"],
+    getWebhookConfigForRepo: [
+      "GET /repos/{owner}/{repo}/hooks/{hook_id}/config"
+    ],
+    getWebhookDelivery: [
+      "GET /repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}"
+    ],
+    listActivities: ["GET /repos/{owner}/{repo}/activity"],
+    listAutolinks: ["GET /repos/{owner}/{repo}/autolinks"],
+    listBranches: ["GET /repos/{owner}/{repo}/branches"],
+    listBranchesForHeadCommit: [
+      "GET /repos/{owner}/{repo}/commits/{commit_sha}/branches-where-head"
+    ],
+    listCollaborators: ["GET /repos/{owner}/{repo}/collaborators"],
+    listCommentsForCommit: [
+      "GET /repos/{owner}/{repo}/commits/{commit_sha}/comments"
+    ],
+    listCommitCommentsForRepo: ["GET /repos/{owner}/{repo}/comments"],
+    listCommitStatusesForRef: [
+      "GET /repos/{owner}/{repo}/commits/{ref}/statuses"
+    ],
+    listCommits: ["GET /repos/{owner}/{repo}/commits"],
+    listContributors: ["GET /repos/{owner}/{repo}/contributors"],
+    listCustomDeploymentRuleIntegrations: [
+      "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment_protection_rules/apps"
+    ],
+    listDeployKeys: ["GET /repos/{owner}/{repo}/keys"],
+    listDeploymentBranchPolicies: [
+      "GET /repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies"
+    ],
+    listDeploymentStatuses: [
+      "GET /repos/{owner}/{repo}/deployments/{deployment_id}/statuses"
+    ],
+    listDeployments: ["GET /repos/{owner}/{repo}/deployments"],
+    listForAuthenticatedUser: ["GET /user/repos"],
+    listForOrg: ["GET /orgs/{org}/repos"],
+    listForUser: ["GET /users/{username}/repos"],
+    listForks: ["GET /repos/{owner}/{repo}/forks"],
+    listInvitations: ["GET /repos/{owner}/{repo}/invitations"],
+    listInvitationsForAuthenticatedUser: ["GET /user/repository_invitations"],
+    listLanguages: ["GET /repos/{owner}/{repo}/languages"],
+    listPagesBuilds: ["GET /repos/{owner}/{repo}/pages/builds"],
+    listPublic: ["GET /repositories"],
+    listPullRequestsAssociatedWithCommit: [
+      "GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls"
+    ],
+    listReleaseAssets: [
+      "GET /repos/{owner}/{repo}/releases/{release_id}/assets"
+    ],
+    listReleases: ["GET /repos/{owner}/{repo}/releases"],
+    listTagProtection: ["GET /repos/{owner}/{repo}/tags/protection"],
+    listTags: ["GET /repos/{owner}/{repo}/tags"],
+    listTeams: ["GET /repos/{owner}/{repo}/teams"],
+    listWebhookDeliveries: [
+      "GET /repos/{owner}/{repo}/hooks/{hook_id}/deliveries"
+    ],
+    listWebhooks: ["GET /repos/{owner}/{repo}/hooks"],
+    merge: ["POST /repos/{owner}/{repo}/merges"],
+    mergeUpstream: ["POST /repos/{owner}/{repo}/merge-upstream"],
+    pingWebhook: ["POST /repos/{owner}/{repo}/hooks/{hook_id}/pings"],
+    redeliverWebhookDelivery: [
+      "POST /repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}/attempts"
+    ],
+    removeAppAccessRestrictions: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/apps",
+      {},
+      { mapToData: "apps" }
+    ],
+    removeCollaborator: [
+      "DELETE /repos/{owner}/{repo}/collaborators/{username}"
+    ],
+    removeStatusCheckContexts: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks/contexts",
+      {},
+      { mapToData: "contexts" }
+    ],
+    removeStatusCheckProtection: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks"
+    ],
+    removeTeamAccessRestrictions: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/teams",
+      {},
+      { mapToData: "teams" }
+    ],
+    removeUserAccessRestrictions: [
+      "DELETE /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/users",
+      {},
+      { mapToData: "users" }
+    ],
+    renameBranch: ["POST /repos/{owner}/{repo}/branches/{branch}/rename"],
+    replaceAllTopics: ["PUT /repos/{owner}/{repo}/topics"],
+    requestPagesBuild: ["POST /repos/{owner}/{repo}/pages/builds"],
+    setAdminBranchProtection: [
+      "POST /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins"
+    ],
+    setAppAccessRestrictions: [
+      "PUT /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/apps",
+      {},
+      { mapToData: "apps" }
+    ],
+    setStatusCheckContexts: [
+      "PUT /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks/contexts",
+      {},
+      { mapToData: "contexts" }
+    ],
+    setTeamAccessRestrictions: [
+      "PUT /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/teams",
+      {},
+      { mapToData: "teams" }
+    ],
+    setUserAccessRestrictions: [
+      "PUT /repos/{owner}/{repo}/branches/{branch}/protection/restrictions/users",
+      {},
+      { mapToData: "users" }
+    ],
+    testPushWebhook: ["POST /repos/{owner}/{repo}/hooks/{hook_id}/tests"],
+    transfer: ["POST /repos/{owner}/{repo}/transfer"],
+    update: ["PATCH /repos/{owner}/{repo}"],
+    updateBranchProtection: [
+      "PUT /repos/{owner}/{repo}/branches/{branch}/protection"
+    ],
+    updateCommitComment: ["PATCH /repos/{owner}/{repo}/comments/{comment_id}"],
+    updateDeploymentBranchPolicy: [
+      "PUT /repos/{owner}/{repo}/environments/{environment_name}/deployment-branch-policies/{branch_policy_id}"
+    ],
+    updateInformationAboutPagesSite: ["PUT /repos/{owner}/{repo}/pages"],
+    updateInvitation: [
+      "PATCH /repos/{owner}/{repo}/invitations/{invitation_id}"
+    ],
+    updateOrgRuleset: ["PUT /orgs/{org}/rulesets/{ruleset_id}"],
+    updatePullRequestReviewProtection: [
+      "PATCH /repos/{owner}/{repo}/branches/{branch}/protection/required_pull_request_reviews"
+    ],
+    updateRelease: ["PATCH /repos/{owner}/{repo}/releases/{release_id}"],
+    updateReleaseAsset: [
+      "PATCH /repos/{owner}/{repo}/releases/assets/{asset_id}"
+    ],
+    updateRepoRuleset: ["PUT /repos/{owner}/{repo}/rulesets/{ruleset_id}"],
+    updateStatusCheckPotection: [
+      "PATCH /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks",
+      {},
+      { renamed: ["repos", "updateStatusCheckProtection"] }
+    ],
+    updateStatusCheckProtection: [
+      "PATCH /repos/{owner}/{repo}/branches/{branch}/protection/required_status_checks"
+    ],
+    updateWebhook: ["PATCH /repos/{owner}/{repo}/hooks/{hook_id}"],
+    updateWebhookConfigForRepo: [
+      "PATCH /repos/{owner}/{repo}/hooks/{hook_id}/config"
+    ],
+    uploadReleaseAsset: [
+      "POST /repos/{owner}/{repo}/releases/{release_id}/assets{?name,label}",
+      { baseUrl: "https://uploads.github.com" }
+    ]
+  },
+  search: {
+    code: ["GET /search/code"],
+    commits: ["GET /search/commits"],
+    issuesAndPullRequests: ["GET /search/issues"],
+    labels: ["GET /search/labels"],
+    repos: ["GET /search/repositories"],
+    topics: ["GET /search/topics"],
+    users: ["GET /search/users"]
+  },
+  secretScanning: {
+    getAlert: [
+      "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}"
+    ],
+    listAlertsForEnterprise: [
+      "GET /enterprises/{enterprise}/secret-scanning/alerts"
+    ],
+    listAlertsForOrg: ["GET /orgs/{org}/secret-scanning/alerts"],
+    listAlertsForRepo: ["GET /repos/{owner}/{repo}/secret-scanning/alerts"],
+    listLocationsForAlert: [
+      "GET /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}/locations"
+    ],
+    updateAlert: [
+      "PATCH /repos/{owner}/{repo}/secret-scanning/alerts/{alert_number}"
+    ]
+  },
+  securityAdvisories: {
+    createFork: [
+      "POST /repos/{owner}/{repo}/security-advisories/{ghsa_id}/forks"
+    ],
+    createPrivateVulnerabilityReport: [
+      "POST /repos/{owner}/{repo}/security-advisories/reports"
+    ],
+    createRepositoryAdvisory: [
+      "POST /repos/{owner}/{repo}/security-advisories"
+    ],
+    createRepositoryAdvisoryCveRequest: [
+      "POST /repos/{owner}/{repo}/security-advisories/{ghsa_id}/cve"
+    ],
+    getGlobalAdvisory: ["GET /advisories/{ghsa_id}"],
+    getRepositoryAdvisory: [
+      "GET /repos/{owner}/{repo}/security-advisories/{ghsa_id}"
+    ],
+    listGlobalAdvisories: ["GET /advisories"],
+    listOrgRepositoryAdvisories: ["GET /orgs/{org}/security-advisories"],
+    listRepositoryAdvisories: ["GET /repos/{owner}/{repo}/security-advisories"],
+    updateRepositoryAdvisory: [
+      "PATCH /repos/{owner}/{repo}/security-advisories/{ghsa_id}"
+    ]
+  },
+  teams: {
+    addOrUpdateMembershipForUserInOrg: [
+      "PUT /orgs/{org}/teams/{team_slug}/memberships/{username}"
+    ],
+    addOrUpdateProjectPermissionsInOrg: [
+      "PUT /orgs/{org}/teams/{team_slug}/projects/{project_id}"
+    ],
+    addOrUpdateRepoPermissionsInOrg: [
+      "PUT /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}"
+    ],
+    checkPermissionsForProjectInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/projects/{project_id}"
+    ],
+    checkPermissionsForRepoInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}"
+    ],
+    create: ["POST /orgs/{org}/teams"],
+    createDiscussionCommentInOrg: [
+      "POST /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments"
+    ],
+    createDiscussionInOrg: ["POST /orgs/{org}/teams/{team_slug}/discussions"],
+    deleteDiscussionCommentInOrg: [
+      "DELETE /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}"
+    ],
+    deleteDiscussionInOrg: [
+      "DELETE /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}"
+    ],
+    deleteInOrg: ["DELETE /orgs/{org}/teams/{team_slug}"],
+    getByName: ["GET /orgs/{org}/teams/{team_slug}"],
+    getDiscussionCommentInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}"
+    ],
+    getDiscussionInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}"
+    ],
+    getMembershipForUserInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/memberships/{username}"
+    ],
+    list: ["GET /orgs/{org}/teams"],
+    listChildInOrg: ["GET /orgs/{org}/teams/{team_slug}/teams"],
+    listDiscussionCommentsInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments"
+    ],
+    listDiscussionsInOrg: ["GET /orgs/{org}/teams/{team_slug}/discussions"],
+    listForAuthenticatedUser: ["GET /user/teams"],
+    listMembersInOrg: ["GET /orgs/{org}/teams/{team_slug}/members"],
+    listPendingInvitationsInOrg: [
+      "GET /orgs/{org}/teams/{team_slug}/invitations"
+    ],
+    listProjectsInOrg: ["GET /orgs/{org}/teams/{team_slug}/projects"],
+    listReposInOrg: ["GET /orgs/{org}/teams/{team_slug}/repos"],
+    removeMembershipForUserInOrg: [
+      "DELETE /orgs/{org}/teams/{team_slug}/memberships/{username}"
+    ],
+    removeProjectInOrg: [
+      "DELETE /orgs/{org}/teams/{team_slug}/projects/{project_id}"
+    ],
+    removeRepoInOrg: [
+      "DELETE /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}"
+    ],
+    updateDiscussionCommentInOrg: [
+      "PATCH /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}"
+    ],
+    updateDiscussionInOrg: [
+      "PATCH /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}"
+    ],
+    updateInOrg: ["PATCH /orgs/{org}/teams/{team_slug}"]
+  },
+  users: {
+    addEmailForAuthenticated: [
+      "POST /user/emails",
+      {},
+      { renamed: ["users", "addEmailForAuthenticatedUser"] }
+    ],
+    addEmailForAuthenticatedUser: ["POST /user/emails"],
+    addSocialAccountForAuthenticatedUser: ["POST /user/social_accounts"],
+    block: ["PUT /user/blocks/{username}"],
+    checkBlocked: ["GET /user/blocks/{username}"],
+    checkFollowingForUser: ["GET /users/{username}/following/{target_user}"],
+    checkPersonIsFollowedByAuthenticated: ["GET /user/following/{username}"],
+    createGpgKeyForAuthenticated: [
+      "POST /user/gpg_keys",
+      {},
+      { renamed: ["users", "createGpgKeyForAuthenticatedUser"] }
+    ],
+    createGpgKeyForAuthenticatedUser: ["POST /user/gpg_keys"],
+    createPublicSshKeyForAuthenticated: [
+      "POST /user/keys",
+      {},
+      { renamed: ["users", "createPublicSshKeyForAuthenticatedUser"] }
+    ],
+    createPublicSshKeyForAuthenticatedUser: ["POST /user/keys"],
+    createSshSigningKeyForAuthenticatedUser: ["POST /user/ssh_signing_keys"],
+    deleteEmailForAuthenticated: [
+      "DELETE /user/emails",
+      {},
+      { renamed: ["users", "deleteEmailForAuthenticatedUser"] }
+    ],
+    deleteEmailForAuthenticatedUser: ["DELETE /user/emails"],
+    deleteGpgKeyForAuthenticated: [
+      "DELETE /user/gpg_keys/{gpg_key_id}",
+      {},
+      { renamed: ["users", "deleteGpgKeyForAuthenticatedUser"] }
+    ],
+    deleteGpgKeyForAuthenticatedUser: ["DELETE /user/gpg_keys/{gpg_key_id}"],
+    deletePublicSshKeyForAuthenticated: [
+      "DELETE /user/keys/{key_id}",
+      {},
+      { renamed: ["users", "deletePublicSshKeyForAuthenticatedUser"] }
+    ],
+    deletePublicSshKeyForAuthenticatedUser: ["DELETE /user/keys/{key_id}"],
+    deleteSocialAccountForAuthenticatedUser: ["DELETE /user/social_accounts"],
+    deleteSshSigningKeyForAuthenticatedUser: [
+      "DELETE /user/ssh_signing_keys/{ssh_signing_key_id}"
+    ],
+    follow: ["PUT /user/following/{username}"],
+    getAuthenticated: ["GET /user"],
+    getByUsername: ["GET /users/{username}"],
+    getContextForUser: ["GET /users/{username}/hovercard"],
+    getGpgKeyForAuthenticated: [
+      "GET /user/gpg_keys/{gpg_key_id}",
+      {},
+      { renamed: ["users", "getGpgKeyForAuthenticatedUser"] }
+    ],
+    getGpgKeyForAuthenticatedUser: ["GET /user/gpg_keys/{gpg_key_id}"],
+    getPublicSshKeyForAuthenticated: [
+      "GET /user/keys/{key_id}",
+      {},
+      { renamed: ["users", "getPublicSshKeyForAuthenticatedUser"] }
+    ],
+    getPublicSshKeyForAuthenticatedUser: ["GET /user/keys/{key_id}"],
+    getSshSigningKeyForAuthenticatedUser: [
+      "GET /user/ssh_signing_keys/{ssh_signing_key_id}"
+    ],
+    list: ["GET /users"],
+    listBlockedByAuthenticated: [
+      "GET /user/blocks",
+      {},
+      { renamed: ["users", "listBlockedByAuthenticatedUser"] }
+    ],
+    listBlockedByAuthenticatedUser: ["GET /user/blocks"],
+    listEmailsForAuthenticated: [
+      "GET /user/emails",
+      {},
+      { renamed: ["users", "listEmailsForAuthenticatedUser"] }
+    ],
+    listEmailsForAuthenticatedUser: ["GET /user/emails"],
+    listFollowedByAuthenticated: [
+      "GET /user/following",
+      {},
+      { renamed: ["users", "listFollowedByAuthenticatedUser"] }
+    ],
+    listFollowedByAuthenticatedUser: ["GET /user/following"],
+    listFollowersForAuthenticatedUser: ["GET /user/followers"],
+    listFollowersForUser: ["GET /users/{username}/followers"],
+    listFollowingForUser: ["GET /users/{username}/following"],
+    listGpgKeysForAuthenticated: [
+      "GET /user/gpg_keys",
+      {},
+      { renamed: ["users", "listGpgKeysForAuthenticatedUser"] }
+    ],
+    listGpgKeysForAuthenticatedUser: ["GET /user/gpg_keys"],
+    listGpgKeysForUser: ["GET /users/{username}/gpg_keys"],
+    listPublicEmailsForAuthenticated: [
+      "GET /user/public_emails",
+      {},
+      { renamed: ["users", "listPublicEmailsForAuthenticatedUser"] }
+    ],
+    listPublicEmailsForAuthenticatedUser: ["GET /user/public_emails"],
+    listPublicKeysForUser: ["GET /users/{username}/keys"],
+    listPublicSshKeysForAuthenticated: [
+      "GET /user/keys",
+      {},
+      { renamed: ["users", "listPublicSshKeysForAuthenticatedUser"] }
+    ],
+    listPublicSshKeysForAuthenticatedUser: ["GET /user/keys"],
+    listSocialAccountsForAuthenticatedUser: ["GET /user/social_accounts"],
+    listSocialAccountsForUser: ["GET /users/{username}/social_accounts"],
+    listSshSigningKeysForAuthenticatedUser: ["GET /user/ssh_signing_keys"],
+    listSshSigningKeysForUser: ["GET /users/{username}/ssh_signing_keys"],
+    setPrimaryEmailVisibilityForAuthenticated: [
+      "PATCH /user/email/visibility",
+      {},
+      { renamed: ["users", "setPrimaryEmailVisibilityForAuthenticatedUser"] }
+    ],
+    setPrimaryEmailVisibilityForAuthenticatedUser: [
+      "PATCH /user/email/visibility"
+    ],
+    unblock: ["DELETE /user/blocks/{username}"],
+    unfollow: ["DELETE /user/following/{username}"],
+    updateAuthenticated: ["PATCH /user"]
+  }
+};
+var endpoints_default = Endpoints;
+
+// pkg/dist-src/endpoints-to-methods.js
+var endpointMethodsMap = /* @__PURE__ */ new Map();
+for (const [scope, endpoints] of Object.entries(endpoints_default)) {
+  for (const [methodName, endpoint] of Object.entries(endpoints)) {
+    const [route, defaults, decorations] = endpoint;
+    const [method, url] = route.split(/ /);
+    const endpointDefaults = Object.assign(
+      {
+        method,
+        url
+      },
+      defaults
+    );
+    if (!endpointMethodsMap.has(scope)) {
+      endpointMethodsMap.set(scope, /* @__PURE__ */ new Map());
+    }
+    endpointMethodsMap.get(scope).set(methodName, {
+      scope,
+      methodName,
+      endpointDefaults,
+      decorations
+    });
+  }
+}
+var handler = {
+  has({ scope }, methodName) {
+    return endpointMethodsMap.get(scope).has(methodName);
+  },
+  getOwnPropertyDescriptor(target, methodName) {
+    return {
+      value: this.get(target, methodName),
+      // ensures method is in the cache
+      configurable: true,
+      writable: true,
+      enumerable: true
+    };
+  },
+  defineProperty(target, methodName, descriptor) {
+    Object.defineProperty(target.cache, methodName, descriptor);
+    return true;
+  },
+  deleteProperty(target, methodName) {
+    delete target.cache[methodName];
+    return true;
+  },
+  ownKeys({ scope }) {
+    return [...endpointMethodsMap.get(scope).keys()];
+  },
+  set(target, methodName, value) {
+    return target.cache[methodName] = value;
+  },
+  get({ octokit, scope, cache }, methodName) {
+    if (cache[methodName]) {
+      return cache[methodName];
+    }
+    const method = endpointMethodsMap.get(scope).get(methodName);
+    if (!method) {
+      return void 0;
+    }
+    const { endpointDefaults, decorations } = method;
+    if (decorations) {
+      cache[methodName] = decorate(
+        octokit,
+        scope,
+        methodName,
+        endpointDefaults,
+        decorations
+      );
+    } else {
+      cache[methodName] = octokit.request.defaults(endpointDefaults);
+    }
+    return cache[methodName];
+  }
+};
+function endpointsToMethods(octokit) {
+  const newMethods = {};
+  for (const scope of endpointMethodsMap.keys()) {
+    newMethods[scope] = new Proxy({ octokit, scope, cache: {} }, handler);
+  }
+  return newMethods;
+}
+function decorate(octokit, scope, methodName, defaults, decorations) {
+  const requestWithDefaults = octokit.request.defaults(defaults);
+  function withDecorations(...args) {
+    let options = requestWithDefaults.endpoint.merge(...args);
+    if (decorations.mapToData) {
+      options = Object.assign({}, options, {
+        data: options[decorations.mapToData],
+        [decorations.mapToData]: void 0
+      });
+      return requestWithDefaults(options);
+    }
+    if (decorations.renamed) {
+      const [newScope, newMethodName] = decorations.renamed;
+      octokit.log.warn(
+        `octokit.${scope}.${methodName}() has been renamed to octokit.${newScope}.${newMethodName}()`
+      );
+    }
+    if (decorations.deprecated) {
+      octokit.log.warn(decorations.deprecated);
+    }
+    if (decorations.renamedParameters) {
+      const options2 = requestWithDefaults.endpoint.merge(...args);
+      for (const [name, alias] of Object.entries(
+        decorations.renamedParameters
+      )) {
+        if (name in options2) {
+          octokit.log.warn(
+            `"${name}" parameter is deprecated for "octokit.${scope}.${methodName}()". Use "${alias}" instead`
+          );
+          if (!(alias in options2)) {
+            options2[alias] = options2[name];
+          }
+          delete options2[name];
+        }
+      }
+      return requestWithDefaults(options2);
+    }
+    return requestWithDefaults(...args);
+  }
+  return Object.assign(withDecorations, requestWithDefaults);
+}
+
+// pkg/dist-src/index.js
+function restEndpointMethods(octokit) {
+  const api = endpointsToMethods(octokit);
+  return {
+    rest: api
+  };
+}
+restEndpointMethods.VERSION = VERSION;
+function legacyRestEndpointMethods(octokit) {
+  const api = endpointsToMethods(octokit);
+  return {
+    ...api,
+    rest: api
+  };
+}
+legacyRestEndpointMethods.VERSION = VERSION;
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 537:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  RequestError: () => RequestError
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_deprecation = __nccwpck_require__(8932);
+var import_once = __toESM(__nccwpck_require__(1223));
+var logOnceCode = (0, import_once.default)((deprecation) => console.warn(deprecation));
+var logOnceHeaders = (0, import_once.default)((deprecation) => console.warn(deprecation));
+var RequestError = class extends Error {
+  constructor(message, statusCode, options) {
+    super(message);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+    this.name = "HttpError";
+    this.status = statusCode;
+    let headers;
+    if ("headers" in options && typeof options.headers !== "undefined") {
+      headers = options.headers;
+    }
+    if ("response" in options) {
+      this.response = options.response;
+      headers = options.response.headers;
+    }
+    const requestCopy = Object.assign({}, options.request);
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(
+          / .*$/,
+          " [REDACTED]"
+        )
+      });
+    }
+    requestCopy.url = requestCopy.url.replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]").replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy;
+    Object.defineProperty(this, "code", {
+      get() {
+        logOnceCode(
+          new import_deprecation.Deprecation(
+            "[@octokit/request-error] `error.code` is deprecated, use `error.status`."
+          )
+        );
+        return statusCode;
+      }
+    });
+    Object.defineProperty(this, "headers", {
+      get() {
+        logOnceHeaders(
+          new import_deprecation.Deprecation(
+            "[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."
+          )
+        );
+        return headers || {};
+      }
+    });
+  }
+};
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 6234:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  request: () => request
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_endpoint = __nccwpck_require__(9440);
+var import_universal_user_agent = __nccwpck_require__(1429);
+
+// pkg/dist-src/version.js
+var VERSION = "8.4.0";
+
+// pkg/dist-src/is-plain-object.js
+function isPlainObject(value) {
+  if (typeof value !== "object" || value === null)
+    return false;
+  if (Object.prototype.toString.call(value) !== "[object Object]")
+    return false;
+  const proto = Object.getPrototypeOf(value);
+  if (proto === null)
+    return true;
+  const Ctor = Object.prototype.hasOwnProperty.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor === "function" && Ctor instanceof Ctor && Function.prototype.call(Ctor) === Function.prototype.call(value);
+}
+
+// pkg/dist-src/fetch-wrapper.js
+var import_request_error = __nccwpck_require__(537);
+
+// pkg/dist-src/get-buffer-response.js
+function getBufferResponse(response) {
+  return response.arrayBuffer();
+}
+
+// pkg/dist-src/fetch-wrapper.js
+function fetchWrapper(requestOptions) {
+  var _a, _b, _c, _d;
+  const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
+  const parseSuccessResponseBody = ((_a = requestOptions.request) == null ? void 0 : _a.parseSuccessResponseBody) !== false;
+  if (isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
+    requestOptions.body = JSON.stringify(requestOptions.body);
+  }
+  let headers = {};
+  let status;
+  let url;
+  let { fetch } = globalThis;
+  if ((_b = requestOptions.request) == null ? void 0 : _b.fetch) {
+    fetch = requestOptions.request.fetch;
+  }
+  if (!fetch) {
+    throw new Error(
+      "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
+    );
+  }
+  return fetch(requestOptions.url, {
+    method: requestOptions.method,
+    body: requestOptions.body,
+    redirect: (_c = requestOptions.request) == null ? void 0 : _c.redirect,
+    headers: requestOptions.headers,
+    signal: (_d = requestOptions.request) == null ? void 0 : _d.signal,
+    // duplex must be set if request.body is ReadableStream or Async Iterables.
+    // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
+    ...requestOptions.body && { duplex: "half" }
+  }).then(async (response) => {
+    url = response.url;
+    status = response.status;
+    for (const keyAndValue of response.headers) {
+      headers[keyAndValue[0]] = keyAndValue[1];
+    }
+    if ("deprecation" in headers) {
+      const matches = headers.link && headers.link.match(/<([^>]+)>; rel="deprecation"/);
+      const deprecationLink = matches && matches.pop();
+      log.warn(
+        `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
+      );
+    }
+    if (status === 204 || status === 205) {
+      return;
+    }
+    if (requestOptions.method === "HEAD") {
+      if (status < 400) {
+        return;
+      }
+      throw new import_request_error.RequestError(response.statusText, status, {
+        response: {
+          url,
+          status,
+          headers,
+          data: void 0
+        },
+        request: requestOptions
+      });
+    }
+    if (status === 304) {
+      throw new import_request_error.RequestError("Not modified", status, {
+        response: {
+          url,
+          status,
+          headers,
+          data: await getResponseData(response)
+        },
+        request: requestOptions
+      });
+    }
+    if (status >= 400) {
+      const data = await getResponseData(response);
+      const error = new import_request_error.RequestError(toErrorMessage(data), status, {
+        response: {
+          url,
+          status,
+          headers,
+          data
+        },
+        request: requestOptions
+      });
+      throw error;
+    }
+    return parseSuccessResponseBody ? await getResponseData(response) : response.body;
+  }).then((data) => {
+    return {
+      status,
+      url,
+      headers,
+      data
+    };
+  }).catch((error) => {
+    if (error instanceof import_request_error.RequestError)
+      throw error;
+    else if (error.name === "AbortError")
+      throw error;
+    let message = error.message;
+    if (error.name === "TypeError" && "cause" in error) {
+      if (error.cause instanceof Error) {
+        message = error.cause.message;
+      } else if (typeof error.cause === "string") {
+        message = error.cause;
+      }
+    }
+    throw new import_request_error.RequestError(message, 500, {
+      request: requestOptions
+    });
+  });
+}
+async function getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (/application\/json/.test(contentType)) {
+    return response.json().catch(() => response.text()).catch(() => "");
+  }
+  if (!contentType || /^text\/|charset=utf-8$/.test(contentType)) {
+    return response.text();
+  }
+  return getBufferResponse(response);
+}
+function toErrorMessage(data) {
+  if (typeof data === "string")
+    return data;
+  let suffix;
+  if ("documentation_url" in data) {
+    suffix = ` - ${data.documentation_url}`;
+  } else {
+    suffix = "";
+  }
+  if ("message" in data) {
+    if (Array.isArray(data.errors)) {
+      return `${data.message}: ${data.errors.map(JSON.stringify).join(", ")}${suffix}`;
+    }
+    return `${data.message}${suffix}`;
+  }
+  return `Unknown error: ${JSON.stringify(data)}`;
+}
+
+// pkg/dist-src/with-defaults.js
+function withDefaults(oldEndpoint, newDefaults) {
+  const endpoint2 = oldEndpoint.defaults(newDefaults);
+  const newApi = function(route, parameters) {
+    const endpointOptions = endpoint2.merge(route, parameters);
+    if (!endpointOptions.request || !endpointOptions.request.hook) {
+      return fetchWrapper(endpoint2.parse(endpointOptions));
+    }
+    const request2 = (route2, parameters2) => {
+      return fetchWrapper(
+        endpoint2.parse(endpoint2.merge(route2, parameters2))
+      );
+    };
+    Object.assign(request2, {
+      endpoint: endpoint2,
+      defaults: withDefaults.bind(null, endpoint2)
+    });
+    return endpointOptions.request.hook(request2, endpointOptions);
+  };
+  return Object.assign(newApi, {
+    endpoint: endpoint2,
+    defaults: withDefaults.bind(null, endpoint2)
+  });
+}
+
+// pkg/dist-src/index.js
+var request = withDefaults(import_endpoint.endpoint, {
+  headers: {
+    "user-agent": `octokit-request.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
+  }
+});
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 3682:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var register = __nccwpck_require__(4670);
+var addHook = __nccwpck_require__(5549);
+var removeHook = __nccwpck_require__(6819);
+
+// bind with array of arguments: https://stackoverflow.com/a/21792913
+var bind = Function.bind;
+var bindable = bind.bind(bind);
+
+function bindApi(hook, state, name) {
+  var removeHookRef = bindable(removeHook, null).apply(
+    null,
+    name ? [state, name] : [state]
+  );
+  hook.api = { remove: removeHookRef };
+  hook.remove = removeHookRef;
+  ["before", "error", "after", "wrap"].forEach(function (kind) {
+    var args = name ? [state, kind, name] : [state, kind];
+    hook[kind] = hook.api[kind] = bindable(addHook, null).apply(null, args);
+  });
+}
+
+function HookSingular() {
+  var singularHookName = "h";
+  var singularHookState = {
+    registry: {},
+  };
+  var singularHook = register.bind(null, singularHookState, singularHookName);
+  bindApi(singularHook, singularHookState, singularHookName);
+  return singularHook;
+}
+
+function HookCollection() {
+  var state = {
+    registry: {},
+  };
+
+  var hook = register.bind(null, state);
+  bindApi(hook, state);
+
+  return hook;
+}
+
+var collectionHookDeprecationMessageDisplayed = false;
+function Hook() {
+  if (!collectionHookDeprecationMessageDisplayed) {
+    console.warn(
+      '[before-after-hook]: "Hook()" repurposing warning, use "Hook.Collection()". Read more: https://git.io/upgrade-before-after-hook-to-1.4'
+    );
+    collectionHookDeprecationMessageDisplayed = true;
+  }
+  return HookCollection();
+}
+
+Hook.Singular = HookSingular.bind();
+Hook.Collection = HookCollection.bind();
+
+module.exports = Hook;
+// expose constructors as a named property for TypeScript
+module.exports.Hook = Hook;
+module.exports.Singular = Hook.Singular;
+module.exports.Collection = Hook.Collection;
+
+
+/***/ }),
+
+/***/ 5549:
+/***/ ((module) => {
+
+module.exports = addHook;
+
+function addHook(state, kind, name, hook) {
+  var orig = hook;
+  if (!state.registry[name]) {
+    state.registry[name] = [];
+  }
+
+  if (kind === "before") {
+    hook = function (method, options) {
+      return Promise.resolve()
+        .then(orig.bind(null, options))
+        .then(method.bind(null, options));
+    };
+  }
+
+  if (kind === "after") {
+    hook = function (method, options) {
+      var result;
+      return Promise.resolve()
+        .then(method.bind(null, options))
+        .then(function (result_) {
+          result = result_;
+          return orig(result, options);
+        })
+        .then(function () {
+          return result;
+        });
+    };
+  }
+
+  if (kind === "error") {
+    hook = function (method, options) {
+      return Promise.resolve()
+        .then(method.bind(null, options))
+        .catch(function (error) {
+          return orig(error, options);
+        });
+    };
+  }
+
+  state.registry[name].push({
+    hook: hook,
+    orig: orig,
+  });
+}
+
+
+/***/ }),
+
+/***/ 4670:
+/***/ ((module) => {
+
+module.exports = register;
+
+function register(state, name, method, options) {
+  if (typeof method !== "function") {
+    throw new Error("method for before hook must be a function");
+  }
+
+  if (!options) {
+    options = {};
+  }
+
+  if (Array.isArray(name)) {
+    return name.reverse().reduce(function (callback, name) {
+      return register.bind(null, state, name, callback, options);
+    }, method)();
+  }
+
+  return Promise.resolve().then(function () {
+    if (!state.registry[name]) {
+      return method(options);
+    }
+
+    return state.registry[name].reduce(function (method, registered) {
+      return registered.hook.bind(null, method, options);
+    }, method)();
+  });
+}
+
+
+/***/ }),
+
+/***/ 6819:
+/***/ ((module) => {
+
+module.exports = removeHook;
+
+function removeHook(state, name, method) {
+  if (!state.registry[name]) {
+    return;
+  }
+
+  var index = state.registry[name]
+    .map(function (registered) {
+      return registered.orig;
+    })
+    .indexOf(method);
+
+  if (index === -1) {
+    return;
+  }
+
+  state.registry[name].splice(index, 1);
+}
+
+
+/***/ }),
+
+/***/ 8932:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+class Deprecation extends Error {
+  constructor(message) {
+    super(message); // Maintains proper stack trace (only available on V8)
+
+    /* istanbul ignore next */
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+
+    this.name = 'Deprecation';
+  }
+
+}
+
+exports.Deprecation = Deprecation;
+
+
+/***/ }),
+
+/***/ 1223:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var wrappy = __nccwpck_require__(2940)
+module.exports = wrappy(once)
+module.exports.strict = wrappy(onceStrict)
+
+once.proto = once(function () {
+  Object.defineProperty(Function.prototype, 'once', {
+    value: function () {
+      return once(this)
+    },
+    configurable: true
+  })
+
+  Object.defineProperty(Function.prototype, 'onceStrict', {
+    value: function () {
+      return onceStrict(this)
+    },
+    configurable: true
+  })
+})
+
+function once (fn) {
+  var f = function () {
+    if (f.called) return f.value
+    f.called = true
+    return f.value = fn.apply(this, arguments)
+  }
+  f.called = false
+  return f
+}
+
+function onceStrict (fn) {
+  var f = function () {
+    if (f.called)
+      throw new Error(f.onceError)
+    f.called = true
+    return f.value = fn.apply(this, arguments)
+  }
+  var name = fn.name || 'Function wrapped with `once`'
+  f.onceError = name + " shouldn't be called more than once"
+  f.called = false
+  return f
+}
+
+
+/***/ }),
+
+/***/ 8520:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LanguageUtils = exports.PeFileParser = void 0;
+var pe_file_parser_1 = __nccwpck_require__(243);
+Object.defineProperty(exports, "PeFileParser", ({ enumerable: true, get: function () { return pe_file_parser_1.PeFileParser; } }));
+var language_utils_1 = __nccwpck_require__(8408);
+Object.defineProperty(exports, "LanguageUtils", ({ enumerable: true, get: function () { return language_utils_1.LanguageUtils; } }));
+
+
+/***/ }),
+
+/***/ 243:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PeFileParser = void 0;
+var icon_1 = __nccwpck_require__(5030);
+var manifest_1 = __nccwpck_require__(6985);
+var structures_1 = __nccwpck_require__(7662);
+var data_types_1 = __nccwpck_require__(5686);
+var languages_1 = __nccwpck_require__(3199);
+var buffer_reader_1 = __nccwpck_require__(6413);
+var file_stream_reader_1 = __nccwpck_require__(4913);
+var optional_1 = __nccwpck_require__(6431);
+var PeFileParser = /** @class */ (function () {
+    function PeFileParser() {
+        this.imageDos = optional_1.Optional.empty();
+        this.buff = new buffer_reader_1.BufferReader(new Uint8Array());
+    }
+    PeFileParser.prototype.setDefaultLanguage = function (languageId) {
+        this.defaultLanguage = languageId;
+    };
+    PeFileParser.prototype.parseBytes = function (data) {
+        this.buff = new buffer_reader_1.BufferReader(new Uint8Array(data));
+        this.parse();
+    };
+    PeFileParser.prototype.parseFile = function (fd) {
+        this.buff = new file_stream_reader_1.FileStreamReader(fd);
+        this.parse();
+    };
+    PeFileParser.prototype.getImage = function () {
+        return this.imageDos;
+    };
+    PeFileParser.prototype.getDosHeader = function () {
+        return this.imageDos.getOrElseThrow().getDosHeader();
+    };
+    PeFileParser.prototype.getFileHeader = function () {
+        return this.imageDos.getOrElseThrow().getFileHeader();
+    };
+    PeFileParser.prototype.getOptionalHeader = function () {
+        return this.imageDos.getOrElseThrow().getOptionalHeader();
+    };
+    PeFileParser.prototype.getDataDirectory = function () {
+        return this.imageDos.getOrElseThrow().getOptionalHeader().getDataDirectory();
+    };
+    PeFileParser.prototype.getSectionHeaders = function () {
+        return this.imageDos.getOrElseThrow().getSections();
+    };
+    PeFileParser.prototype.getSectionHeader = function (sectionId) {
+        return this.getSectionHeaders().find(function (sec) { return sec.getName() === sectionId; });
+    };
+    PeFileParser.prototype.getDataDirectoryTypes = function () {
+        var _this = this;
+        return Object.entries(structures_1.IMAGE_DATA_DIRECTORY_TYPES).reduce(function (found, _a) {
+            var id = _a[0], value = _a[1];
+            if (id + '' in _this.imageDos.getOrElseThrow().getOptionalHeader().getDataDirectory().getEntries())
+                found.push(value + '');
+            return found;
+        }, []);
+    };
+    PeFileParser.prototype.getImportDirectoryTable = function () {
+        /**
+         * https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#the-idata-section
+         * https://aroundthemalware.wordpress.com/2022/02/06/parsing-pe-file-in-python-without-using-pefile-python-package/
+         */
+        var importDataDir = this.getDataDirectory().getEntry(structures_1.IMAGE_DATA_DIRECTORY_TYPES.IMPORT);
+        if (importDataDir != null) {
+            var importDataDirOffset = this.getOffsetFromRva(importDataDir.getStruct().dwVirtualAddress);
+            if (importDataDirOffset != null) {
+                this.buff.goto(importDataDirOffset);
+                var importDirectoryTable = new structures_1.ImageImportDirectoryTable();
+                var done = false;
+                while (!done) {
+                    var imageImportdirectoryTableEntry = (0, structures_1.IMAGE_IMPORT_DIRECTORY_TABLE_ENTRY)();
+                    imageImportdirectoryTableEntry.dwImportLookupTableRva = this.buff.readDWord();
+                    imageImportdirectoryTableEntry.dwTimeDateStamp = this.buff.readDWord();
+                    imageImportdirectoryTableEntry.dwForwarderChain = this.buff.readDWord();
+                    imageImportdirectoryTableEntry.dwModuleNameRva = this.buff.readDWord();
+                    imageImportdirectoryTableEntry.dwImportAddressTableRva = this.buff.readDWord();
+                    if (imageImportdirectoryTableEntry.dwModuleNameRva === 0x00000000) {
+                        done = true;
+                        break;
+                    }
+                    var dirEntry = new structures_1.ImageImportDirectoryTableEntry(imageImportdirectoryTableEntry);
+                    this.buff.pushOffset();
+                    var dwNameOffset = this.getOffsetFromRva(dirEntry.getStruct().dwModuleNameRva);
+                    if (dwNameOffset != null) {
+                        this.buff.goto(dwNameOffset);
+                        var szName = dwNameOffset != null ? this.buff.readByteStringZ() : '';
+                        dirEntry.setName(szName);
+                    }
+                    var dwImportLookupTableOffset = this.getOffsetFromRva(dirEntry.getStruct().dwImportLookupTableRva);
+                    var dwImportAddressTableOffset = this.getOffsetFromRva(dirEntry.getStruct().dwImportAddressTableRva);
+                    var nextOffset = dwImportLookupTableOffset != null ? dwImportLookupTableOffset : dwImportAddressTableOffset != null ? dwImportAddressTableOffset : null;
+                    if (nextOffset != null) {
+                        this.buff.goto(nextOffset);
+                        var done_1 = false;
+                        while (!done_1) {
+                            var block = this.buff.readDWord(); // TODO: 64bit?
+                            var importLookupTable = new structures_1.ImageImportLookupTable(block);
+                            var importEntry = new structures_1.ImageImportEntry();
+                            if (block === 0x00000000) {
+                                done_1 = true;
+                                break;
+                            }
+                            else if (importLookupTable.isOrdinal()) {
+                                importEntry.setOrdinal(importLookupTable.getOrdinalNumber());
+                            }
+                            else {
+                                var nameTableOffset = this.getOffsetFromRva(importLookupTable.getHintNameTableRva());
+                                if (nameTableOffset != null) {
+                                    this.buff.pushOffset();
+                                    this.buff.goto(nameTableOffset);
+                                    var hint = this.buff.readWord();
+                                    var szName = this.buff.readByteStringZ();
+                                    if (this.buff.getOffset() % 2 !== 0) {
+                                        this.buff.readByte();
+                                    }
+                                    importEntry.setHint(hint);
+                                    importEntry.setName(szName);
+                                    this.buff.popOffset();
+                                }
+                            }
+                            dirEntry.addImportEntry(importEntry);
+                        }
+                    }
+                    // const dwImportAddressTableOffset = this.getOffsetFromRva(dirEntry.getStruct().dwImportAddressTableRva);
+                    // if (dwImportAddressTableOffset != null) {
+                    //     this.buff.goto(dwImportAddressTableOffset);
+                    // }
+                    importDirectoryTable.addEntry(dirEntry);
+                    this.buff.popOffset();
+                }
+                return importDirectoryTable;
+            }
+        }
+        return undefined;
+    };
+    PeFileParser.prototype.getResourceDirectoryTable = function () {
+        return this.resources;
+    };
+    PeFileParser.prototype.getResourceTypes = function () {
+        var _a, _b;
+        return Object.keys((_b = (_a = this.resources) === null || _a === void 0 ? void 0 : _a.getEntries()) !== null && _b !== void 0 ? _b : []).map(function (key) { return key in structures_1.RT_RESOURCE_TYPES ? structures_1.RT_RESOURCE_TYPES[parseInt(key)] + '(' + key + ')' : key; });
+    };
+    PeFileParser.prototype.getResourcesOfType = function (resourceType) {
+        if (this.resources == null) {
+            return undefined;
+        }
+        if (typeof resourceType === 'string') {
+            var potentialRtResourceType = resourceType.split('(')[0];
+            if (potentialRtResourceType in structures_1.RT_RESOURCE_TYPES) {
+                resourceType = potentialRtResourceType;
+            }
+        }
+        switch (resourceType) {
+            case structures_1.RT_RESOURCE_TYPES.RT_STRING:
+            case structures_1.RT_RESOURCE_TYPES[structures_1.RT_RESOURCE_TYPES.RT_STRING]: {
+                return this.getStringTableResources();
+            }
+            case structures_1.RT_RESOURCE_TYPES.RT_GROUP_ICON:
+            case structures_1.RT_RESOURCE_TYPES[structures_1.RT_RESOURCE_TYPES.RT_GROUP_ICON]: {
+                return this.getGroupIconResources();
+            }
+            case structures_1.RT_RESOURCE_TYPES.RT_ICON:
+            case structures_1.RT_RESOURCE_TYPES[structures_1.RT_RESOURCE_TYPES.RT_ICON]: {
+                return this.getIconResources();
+            }
+            case structures_1.RT_RESOURCE_TYPES.RT_VERSION:
+            case structures_1.RT_RESOURCE_TYPES[structures_1.RT_RESOURCE_TYPES.RT_VERSION]: {
+                return this.getVersionInfoResources();
+            }
+            case structures_1.RT_RESOURCE_TYPES.RT_MANIFEST:
+            case structures_1.RT_RESOURCE_TYPES[structures_1.RT_RESOURCE_TYPES.RT_MANIFEST]: {
+                return this.getManifestResources();
+            }
+            default: {
+                return this.resources.getResourcesForKey(resourceType);
+            }
+        }
+    };
+    PeFileParser.prototype.getCursorResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_CURSOR);
+    };
+    PeFileParser.prototype.getBitmapResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_BITMAP);
+    };
+    PeFileParser.prototype.getIconResources = function (languageId) {
+        var _a;
+        if (languageId === void 0) { languageId = this.defaultLanguage; }
+        if (this.resources == null) {
+            return undefined;
+        }
+        var icons = {};
+        var resourceType = PeFileParser.RT_RESOURCE_TYPES.RT_ICON;
+        if (this.resources.hasResourcesForKey(resourceType)) {
+            var res = this.resources.getResourcesForKey(resourceType);
+            var entries1 = res.getEntries();
+            for (var resourceId in entries1) {
+                icons[resourceId] = {};
+                var entries2 = entries1[resourceId].getEntries();
+                for (var entryId in entries2) {
+                    if (languageId == null || (languageId != null && entryId.toString() === languageId.toString())) {
+                        var langId = (_a = languages_1.LanguagePack.valueOf(entryId)) === null || _a === void 0 ? void 0 : _a.id;
+                        var iconMetadata = this.getIconMetadataFromIconGroups(resourceId, langId);
+                        if (iconMetadata != null) {
+                            var fact = entries2[langId !== null && langId !== void 0 ? langId : entryId].getValue();
+                            var result = this.parseIconEntry(fact, iconMetadata);
+                            if (result != null) {
+                                icons[resourceId][langId !== null && langId !== void 0 ? langId : entryId] = result;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return icons;
+    };
+    PeFileParser.prototype.getMenuResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_MENU);
+    };
+    PeFileParser.prototype.getDialogResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_DIALOG);
+    };
+    PeFileParser.prototype.getStringTableResources = function (languageId) {
+        var _a;
+        if (languageId === void 0) { languageId = this.defaultLanguage; }
+        if (this.resources == null) {
+            return undefined;
+        }
+        var stringTables = {};
+        var resourceType = PeFileParser.RT_RESOURCE_TYPES.RT_STRING;
+        if (this.resources.hasResourcesForKey(resourceType)) {
+            var res = this.resources.getResourcesForKey(resourceType);
+            var entries1 = res.getEntries();
+            for (var resourceId in entries1) {
+                stringTables[resourceId] = {};
+                var entries2 = entries1[resourceId].getEntries();
+                for (var entryId in entries2) {
+                    if (languageId == null || (languageId != null && entryId.toString() === languageId.toString())) {
+                        var langId = (_a = languages_1.LanguagePack.valueOf(entryId)) === null || _a === void 0 ? void 0 : _a.id;
+                        var fact = entries2[entryId].getValue();
+                        try {
+                            var result = this.parseStringTableEntry(fact);
+                            if (result != null) {
+                                stringTables[resourceId][langId !== null && langId !== void 0 ? langId : entryId] = result;
+                            }
+                        }
+                        catch (e) {
+                            console.warn('[WARN]: ' + e.message);
+                        }
+                    }
+                }
+            }
+        }
+        return stringTables;
+    };
+    PeFileParser.prototype.getFontDirectoryResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_FONTDIR);
+    };
+    PeFileParser.prototype.getFontResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_FONT);
+    };
+    PeFileParser.prototype.getAcceleratorTableResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_ACCELERATOR);
+    };
+    PeFileParser.prototype.getRCDataResurces = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_RCDATA);
+    };
+    PeFileParser.prototype.getMessageTableResource = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_MESSAGETABLE);
+    };
+    PeFileParser.prototype.getGroupCursorResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_GROUP_CURSOR);
+    };
+    PeFileParser.prototype.getGroupIconResources = function (languageId) {
+        var _a;
+        if (languageId === void 0) { languageId = this.defaultLanguage; }
+        if (this.resources == null) {
+            return undefined;
+        }
+        var groups = {};
+        var resourceType = PeFileParser.RT_RESOURCE_TYPES.RT_GROUP_ICON;
+        var res = this.resources.getResourcesForKey(resourceType);
+        var entries1 = res.getEntries();
+        for (var resourceId in entries1) {
+            groups[resourceId] = {};
+            var entries2 = entries1[resourceId].getEntries();
+            for (var entryId in entries2) {
+                if (languageId == null || (languageId != null && entryId.toString() === languageId.toString())) {
+                    var langId = (_a = languages_1.LanguagePack.valueOf(entryId)) === null || _a === void 0 ? void 0 : _a.id;
+                    var fact = entries2[langId !== null && langId !== void 0 ? langId : entryId].getValue();
+                    var result = this.parseGroupIconEntry(fact);
+                    if (result != null) {
+                        groups[resourceId][langId !== null && langId !== void 0 ? langId : entryId] = result.getEntries();
+                    }
+                }
+            }
+        }
+        return groups;
+    };
+    PeFileParser.prototype.getVersionInfoResources = function (languageId) {
+        var _a;
+        if (languageId === void 0) { languageId = this.defaultLanguage; }
+        if (this.resources == null) {
+            return undefined;
+        }
+        var versionInfo = {};
+        var resourceType = PeFileParser.RT_RESOURCE_TYPES.RT_VERSION;
+        if (this.resources.hasResourcesForKey(resourceType)) {
+            var res = this.resources.getResourcesForKey(resourceType);
+            var entries1 = res.getEntries();
+            for (var resourceId in entries1) {
+                versionInfo[resourceId] = {};
+                var entries2 = entries1[resourceId].getEntries();
+                for (var entryId in entries2) {
+                    if (languageId == null || (languageId != null && entryId.toString() === languageId.toString())) {
+                        var langId = (_a = languages_1.LanguagePack.valueOf(entryId)) === null || _a === void 0 ? void 0 : _a.id;
+                        var fact = entries2[langId !== null && langId !== void 0 ? langId : entryId].getValue();
+                        var result = this.parseVsVersionInfo(fact);
+                        if (result != null) {
+                            versionInfo[resourceId][langId !== null && langId !== void 0 ? langId : entryId] = result;
+                        }
+                    }
+                }
+            }
+        }
+        return versionInfo;
+    };
+    PeFileParser.prototype.getDialogIncludeResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_DLGINCLUDE);
+    };
+    PeFileParser.prototype.getPlugAndPlayResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_PLUGPLAY);
+    };
+    PeFileParser.prototype.getVirtualDeviceResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_VXD);
+    };
+    PeFileParser.prototype.getAnimatedCursorResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_ANICURSOR);
+    };
+    PeFileParser.prototype.getAnimatedIconResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_ANIICON);
+    };
+    PeFileParser.prototype.getHTMLResources = function () {
+        return this.getResourcesOfType(PeFileParser.RT_RESOURCE_TYPES.RT_HTML);
+    };
+    PeFileParser.prototype.getManifestResources = function () {
+        var _a;
+        if (this.resources == null) {
+            return undefined;
+        }
+        var manifests = {};
+        var resourceType = PeFileParser.RT_RESOURCE_TYPES.RT_MANIFEST;
+        if (this.resources.hasResourcesForKey(resourceType)) {
+            var res = this.resources.getResourcesForKey(resourceType);
+            var entries1 = res.getEntries();
+            for (var resourceId in entries1) {
+                manifests[resourceId] = {};
+                var entries2 = entries1[resourceId].getEntries();
+                for (var entryId in entries2) {
+                    var langId = (_a = languages_1.LanguagePack.valueOf(entryId)) === null || _a === void 0 ? void 0 : _a.id;
+                    var fact = entries2[langId !== null && langId !== void 0 ? langId : entryId].getValue();
+                    var result = fact();
+                    if (result != null) {
+                        manifests[resourceId][entryId] = new manifest_1.Manifest(result);
+                    }
+                }
+            }
+        }
+        return manifests;
+    };
+    PeFileParser.prototype.parse = function () {
+        var dosHeader = this.parseDosHeader();
+        var fileHeader = this.parseFileHeader(dosHeader);
+        var optionalHeader = this.parseOptionalHeader();
+        var sections = this.parseSections(fileHeader);
+        this.imageDos = optional_1.Optional.of(new structures_1.ImageDos(dosHeader, fileHeader, optionalHeader, sections));
+        this.resources = this.parseResourceDirectories();
+    };
+    PeFileParser.prototype.parseDosHeader = function () {
+        this.buff.goto(0);
+        var imageDosHeader = (0, structures_1.IMAGE_DOS_HEADER)();
+        imageDosHeader.wMagic = this.buff.readBytes(data_types_1.DataSize.WORD);
+        imageDosHeader.wCblp = this.buff.readWord();
+        imageDosHeader.wCp = this.buff.readWord();
+        imageDosHeader.wCrlc = this.buff.readWord();
+        imageDosHeader.wCparHdr = this.buff.readWord();
+        imageDosHeader.wMinAlloc = this.buff.readWord();
+        imageDosHeader.wMaxAlloc = this.buff.readWord();
+        imageDosHeader.wSs = this.buff.readWord();
+        imageDosHeader.wSp = this.buff.readWord();
+        imageDosHeader.wCsum = this.buff.readWord();
+        imageDosHeader.wIp = this.buff.readWord();
+        imageDosHeader.wCs = this.buff.readWord();
+        imageDosHeader.wLfArlc = this.buff.readWord();
+        imageDosHeader.wOvNo = this.buff.readWord();
+        imageDosHeader.wRes = this.buff.readWords(4);
+        imageDosHeader.wOemId = this.buff.readWord();
+        imageDosHeader.wOemInfo = this.buff.readWord();
+        imageDosHeader.wRes2 = this.buff.readWords(10);
+        imageDosHeader.dwLfAnew = this.buff.readDWord();
+        return new structures_1.ImageDosHeader(imageDosHeader);
+    };
+    PeFileParser.prototype.parseFileHeader = function (imageDosHeader) {
+        this.buff.goto(imageDosHeader.getStruct().dwLfAnew);
+        var imageFileHeaderStruct = (0, structures_1.IMAGE_FILE_HEADER)();
+        imageFileHeaderStruct.ntSig = this.buff.readBytes(data_types_1.DataSize.DWORD);
+        imageFileHeaderStruct.wMachine = this.buff.readWord();
+        imageFileHeaderStruct.wNumberOfSections = this.buff.readWord();
+        imageFileHeaderStruct.dwTimeDateStamp = this.buff.readDWord();
+        imageFileHeaderStruct.dwPointerToSymbolTable = this.buff.readDWord();
+        imageFileHeaderStruct.dwNumberOfSymbols = this.buff.readDWord();
+        imageFileHeaderStruct.wSizeOfOptionalHeader = this.buff.readWord();
+        imageFileHeaderStruct.wCharacteristics = this.buff.readWord();
+        return new structures_1.ImageFileHeader(imageFileHeaderStruct);
+    };
+    PeFileParser.prototype.parseOptionalHeader = function () {
+        var imageOptionalHeaderStruct = (0, structures_1.IMAGE_OPTIONAL_HEADER)();
+        //
+        // Standard fields
+        //
+        imageOptionalHeaderStruct.wMagic = this.buff.readWord();
+        if (!structures_1.ImageOptionalHeader.isMagicNumberROM(imageOptionalHeaderStruct.wMagic) &&
+            !structures_1.ImageOptionalHeader.isMagicNumber32Bit(imageOptionalHeaderStruct.wMagic) &&
+            !structures_1.ImageOptionalHeader.isMagicNumber64Bit(imageOptionalHeaderStruct.wMagic)) {
+            throw new Error("While parsing optional header, the magic number was none of the allowable values ROM, PE32, or PE32+. Size: ".concat(imageOptionalHeaderStruct.wMagic, ", Offset: ").concat(this.buff.getOffset().toString(16)));
+        }
+        var is64Bit = structures_1.ImageOptionalHeader.isMagicNumber64Bit(imageOptionalHeaderStruct.wMagic);
+        imageOptionalHeaderStruct.bMajorLinkerVersion = this.buff.readByte();
+        imageOptionalHeaderStruct.bMinorLinkerVersion = this.buff.readByte();
+        imageOptionalHeaderStruct.dwSizeOfCode = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwSizeOfInitializedData = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwSizeOfUninitializedData = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwAddressOfEntryPoint = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwBaseOfCode = this.buff.readDWord();
+        // PE32 contains this additional field, which is absent in PE32+, following BaseOfCode.
+        if (!is64Bit) {
+            imageOptionalHeaderStruct.dwBaseOfData = this.buff.readDWord();
+        }
+        //
+        // NT additional fields
+        //
+        if (is64Bit) {
+            imageOptionalHeaderStruct.dwImageBase = this.buff.readQWord();
+        }
+        else {
+            imageOptionalHeaderStruct.dwImageBase = this.buff.readDWord();
+        }
+        imageOptionalHeaderStruct.dwSectionAlignment = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwFileAlignment = this.buff.readDWord();
+        imageOptionalHeaderStruct.wMajorOperatingSystemVersion = this.buff.readWord();
+        imageOptionalHeaderStruct.wMinorOperatingSystemVersion = this.buff.readWord();
+        imageOptionalHeaderStruct.wMajorImageVersion = this.buff.readWord();
+        imageOptionalHeaderStruct.wMinorImageVersion = this.buff.readWord();
+        imageOptionalHeaderStruct.wMajorSusbsystemVersion = this.buff.readWord();
+        imageOptionalHeaderStruct.wMinorSubsystemVersion = this.buff.readWord();
+        imageOptionalHeaderStruct.dwReserved1 = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwSizeOfImage = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwSizeOfHeaders = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwCheckSum = this.buff.readDWord();
+        imageOptionalHeaderStruct.wSubsystem = this.buff.readWord();
+        imageOptionalHeaderStruct.wDllCharacteristics = this.buff.readWord();
+        if (is64Bit) {
+            imageOptionalHeaderStruct.dwSizeOfStackReserve = this.buff.readQWord();
+            imageOptionalHeaderStruct.dwSizeOfStackCommit = this.buff.readQWord();
+            imageOptionalHeaderStruct.dwSizeOfHeapReserve = this.buff.readQWord();
+            imageOptionalHeaderStruct.dwSizeOfHeapCommit = this.buff.readQWord();
+        }
+        else {
+            imageOptionalHeaderStruct.dwSizeOfStackReserve = this.buff.readDWord();
+            imageOptionalHeaderStruct.dwSizeOfStackCommit = this.buff.readDWord();
+            imageOptionalHeaderStruct.dwSizeOfHeapReserve = this.buff.readDWord();
+            imageOptionalHeaderStruct.dwSizeOfHeapCommit = this.buff.readDWord();
+        }
+        imageOptionalHeaderStruct.dwLoaderFlags = this.buff.readDWord();
+        imageOptionalHeaderStruct.dwNumberOfRvaAndSizes = this.buff.readDWord();
+        var dataDirectory = new structures_1.ImageDataDirectoryTable();
+        for (var i = 0; i < imageOptionalHeaderStruct.dwNumberOfRvaAndSizes; i++) {
+            var imageDataDirectory = (0, structures_1.IMAGE_DATA_DIRECTORY_ENTRY)();
+            imageDataDirectory.dwVirtualAddress = this.buff.readDWord();
+            imageDataDirectory.dwSize = this.buff.readDWord();
+            if (imageDataDirectory.dwVirtualAddress !== 0x0) {
+                dataDirectory.addEntry(i, new structures_1.ImageDataDirectoryEntry(imageDataDirectory));
+            }
+        }
+        return new structures_1.ImageOptionalHeader(imageOptionalHeaderStruct, dataDirectory);
+    };
+    PeFileParser.prototype.parseSections = function (imageFileHeader) {
+        var sections = [];
+        for (var i = 0; i < imageFileHeader.getStruct().wNumberOfSections; i++) {
+            var imageSectionHeaderStruct = (0, structures_1.IMAGE_SECTION_HEADER)();
+            imageSectionHeaderStruct.szName = this.buff.readBytesAsString(data_types_1.DataSize.QWORD);
+            imageSectionHeaderStruct.dwPhysicalAddressUnionVirtualSize = this.buff.readDWord();
+            imageSectionHeaderStruct.dwVirtualAddress = this.buff.readDWord();
+            imageSectionHeaderStruct.dwSizeOfRawData = this.buff.readDWord();
+            imageSectionHeaderStruct.dwPointerToRawData = this.buff.readDWord();
+            imageSectionHeaderStruct.dwPointerToRelocations = this.buff.readDWord();
+            imageSectionHeaderStruct.dwPointerToLineNumbers = this.buff.readDWord();
+            imageSectionHeaderStruct.wNumberOfRelocations = this.buff.readWord();
+            imageSectionHeaderStruct.wNumberOfLineNumbers = this.buff.readWord();
+            imageSectionHeaderStruct.dwCharacteristics = this.buff.readDWord();
+            var imageSectionHeader = new structures_1.ImageSectionHeader(imageSectionHeaderStruct);
+            sections.push(imageSectionHeader);
+        }
+        return sections;
+    };
+    PeFileParser.prototype.parseResourceDirectories = function () {
+        var resourceDataDir = this.getDataDirectory().getEntry(structures_1.IMAGE_DATA_DIRECTORY_TYPES.RESOURCE);
+        if (resourceDataDir != null) {
+            var sectionHeader = this.getSectionOfRva(resourceDataDir.getStruct().dwVirtualAddress);
+            if (sectionHeader != null) {
+                // const bytes = Math.min(sectionHeader.dwPhysicalAddressUnionVirtualSize, sectionHeader.dwSizeOfRawData);
+                this.buff.pushOffset();
+                var dir = this.parseResourceDirectory(sectionHeader.getStruct().dwPointerToRawData);
+                var dirComplete = this.recurseResourceDirectory(sectionHeader, dir);
+                this.buff.popOffset();
+                return dirComplete;
+            }
+        }
+        return undefined;
+    };
+    PeFileParser.prototype.parseResourceDirectory = function (address) {
+        var imgResDir = (0, structures_1.IMAGE_RESOURCE_DIRECTORY)();
+        this.buff.goto(address);
+        imgResDir.dwCharacteristics = this.buff.readDWord();
+        imgResDir.dwTimeDateStamp = this.buff.readDWord();
+        imgResDir.wMajorVersion = this.buff.readWord();
+        imgResDir.wMinorVersion = this.buff.readWord();
+        imgResDir.wNumberOfNamedEntries = this.buff.readWord();
+        imgResDir.wNumberOfIdEntries = this.buff.readWord();
+        return new structures_1.ImageResourceDirectory(imgResDir);
+    };
+    /**
+     * https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
+     * @returns {ImageResourceDirectoryEntry}
+     */
+    PeFileParser.prototype.parseResourceDirectoryEntry = function (sectionHeader) {
+        var imgResDirEntry = (0, structures_1.IMAGE_RESOURCE_DIRECTORY_ENTRY)();
+        imgResDirEntry.dwName = this.buff.readDWord();
+        if (imgResDirEntry.dwName - 0x80000000 > 0) {
+            this.buff.pushOffset();
+            this.buff.goto(sectionHeader.getStruct().dwPointerToRawData + imgResDirEntry.dwName - 0x80000000);
+            var wCharCount = this.buff.readWord();
+            var wcChars = this.buff.readWordsAsString(wCharCount);
+            imgResDirEntry.dwName = wcChars; // TODO this is sometimes a number and then changed to a string
+            this.buff.popOffset();
+        }
+        imgResDirEntry.dwOffsetToData = this.buff.readDWord();
+        imgResDirEntry.dwOffsetToData += sectionHeader.getStruct().dwPointerToRawData;
+        return new structures_1.ImageResourceDirectoryEntry(imgResDirEntry);
+    };
+    /**
+    * https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
+    */
+    PeFileParser.prototype.parseResourceDirectoryDataEntry = function (sectionHeader) {
+        var _this = this;
+        var imgResDataEntry = (0, structures_1.IMAGE_RESOURCE_DIRECTORY_DATA_ENTRY)();
+        imgResDataEntry.dwOffsetToData = this.buff.readDWord();
+        imgResDataEntry.dwSize = this.buff.readDWord();
+        imgResDataEntry.dwCodePage = this.buff.readDWord();
+        imgResDataEntry.dwReserved = this.buff.readDWord();
+        var imageResourceDataEntry = new structures_1.ImageResourceDirectoryDataEntry(imgResDataEntry);
+        imageResourceDataEntry.setDataFactory(function () {
+            var virtual_address = sectionHeader.getStruct().dwPointerToRawData + imgResDataEntry.dwOffsetToData - sectionHeader.getStruct().dwVirtualAddress;
+            _this.buff.goto(virtual_address);
+            return _this.buff.readBytes(imgResDataEntry.dwSize);
+        });
+        return imageResourceDataEntry;
+    };
+    PeFileParser.prototype.recurseResourceDirectory = function (sectionHeader, parentDirectory) {
+        for (var i = 0; i < parentDirectory.getNumberOfNamedEntries(); i++) {
+            parentDirectory.addEntry(this.parseResourceDirectoryEntry(sectionHeader));
+        }
+        for (var i = 0; i < parentDirectory.getNumberOfIdEntries(); i++) {
+            parentDirectory.addEntry(this.parseResourceDirectoryEntry(sectionHeader));
+        }
+        for (var _i = 0, _a = Object.entries(parentDirectory.getEntries()); _i < _a.length; _i++) {
+            var _b = _a[_i], name = _b[0], entry = _b[1];
+            if (entry.isLeaf() === true) {
+                this.buff.goto(entry.getStruct().dwOffsetToData);
+                entry.setValue(this.parseResourceDirectoryDataEntry(sectionHeader).getDataFactory());
+            }
+            else {
+                var dir = this.parseResourceDirectory(entry.getStruct().dwOffsetToData);
+                var dirComplete = this.recurseResourceDirectory(sectionHeader, dir);
+                entry.setDir(dirComplete);
+            }
+        }
+        return parentDirectory;
+    };
+    /**
+     * https://devblogs.microsoft.com/oldnewthing/20120720-00/?p=7083
+     * @param groupIconDataFactory reads the array of group icon entries and returns the results
+     */
+    PeFileParser.prototype.parseGroupIconEntry = function (groupIconDataFactory) {
+        var buff = new buffer_reader_1.BufferReader(groupIconDataFactory());
+        var grpIconDir = (0, structures_1.GROUP_ICON_DIR)();
+        grpIconDir.wReserved = buff.readWord();
+        grpIconDir.wType = buff.readWord();
+        grpIconDir.wCount = buff.readWord();
+        var groupIconDir = new structures_1.GroupIconDir(grpIconDir);
+        for (var i = 0; i < grpIconDir.wCount; i++) {
+            var grpIconDirEntry = (0, structures_1.GROUP_ICON_DIR_ENTRY)();
+            grpIconDirEntry.bWidth = buff.readByte();
+            if (grpIconDirEntry.bWidth === 0x00) {
+                grpIconDirEntry.bWidth = 0x100;
+            }
+            grpIconDirEntry.bHeight = buff.readByte();
+            if (grpIconDirEntry.bHeight === 0x00) {
+                grpIconDirEntry.bHeight = 0x100;
+            }
+            grpIconDirEntry.bColorCount = buff.readByte();
+            grpIconDirEntry.bReserved = buff.readByte();
+            grpIconDirEntry.wPlanes = buff.readWord();
+            grpIconDirEntry.wBitCount = buff.readWord();
+            grpIconDirEntry.dwBytesInRes = buff.readDWord();
+            grpIconDirEntry.wId = buff.readWord();
+            var groupIconDirEntry = new structures_1.GroupIconDirEntry(grpIconDirEntry);
+            groupIconDir.addEntry(groupIconDirEntry);
+        }
+        return groupIconDir;
+    };
+    PeFileParser.prototype.parseStringTableEntry = function (stringTableDataFactory) {
+        var strings = [];
+        var buff = new buffer_reader_1.BufferReader(stringTableDataFactory());
+        while (buff.getOffset() < buff.getByteLength()) {
+            var wValueLength = buff.readWord();
+            var str = buff.readWordsAsString(wValueLength);
+            strings.push(str);
+        }
+        return strings;
+    };
+    PeFileParser.prototype.parseIconEntry = function (iconFactory, metadata) {
+        var data = iconFactory();
+        return new icon_1.Icon(data, metadata);
+    };
+    PeFileParser.prototype.getIconMetadataFromIconGroups = function (iconId, languageId) {
+        if (this.resources == null) {
+            return undefined;
+        }
+        var grpResources = this.getGroupIconResources(languageId);
+        for (var resourceId in grpResources) {
+            for (var languageId_1 in grpResources[resourceId]) {
+                var iconGroup = grpResources != null ? grpResources[resourceId][languageId_1] : [];
+                return iconGroup.find(function (entry) { return (entry.getId() + '') === ('' + iconId); });
+            }
+        }
+        return undefined;
+    };
+    PeFileParser.prototype.parseVsVersionInfo = function (vsVersionInfoFactory) {
+        var buff = new buffer_reader_1.BufferReader(vsVersionInfoFactory());
+        var vsVersionInfoStruct = (0, structures_1.VS_VERSIONINFO)();
+        vsVersionInfoStruct.wLength = buff.readWord();
+        vsVersionInfoStruct.wValueLength = buff.readWord();
+        vsVersionInfoStruct.wType = buff.readWord();
+        vsVersionInfoStruct.szKey = buff.readWordStringZ();
+        var vsVersionInfo = new structures_1.VsVersionInfo(vsVersionInfoStruct);
+        buff.seek32BitBoundary();
+        var fixedFileInfoStruct = (0, structures_1.VS_FIXED_FILE_INFO)();
+        fixedFileInfoStruct.dwSignature = buff.readBytes(data_types_1.DataSize.DWORD, true);
+        fixedFileInfoStruct.dwStrucVersion = buff.readWords(data_types_1.DataSize.DWORD / data_types_1.DataSize.WORD);
+        fixedFileInfoStruct.dwFileVersionMS = buff.readDWord();
+        fixedFileInfoStruct.dwFileVersionLS = buff.readDWord();
+        fixedFileInfoStruct.dwProductVersionMS = buff.readDWord();
+        fixedFileInfoStruct.dwProductVersionLS = buff.readDWord();
+        fixedFileInfoStruct.dwFileFlagsMask = buff.readDWord();
+        fixedFileInfoStruct.dwFileFlags = buff.readDWord();
+        fixedFileInfoStruct.dwFileOS = buff.readDWord();
+        fixedFileInfoStruct.dwFileType = buff.readDWord();
+        fixedFileInfoStruct.dwFileSubtype = buff.readDWord();
+        fixedFileInfoStruct.dwFileDateLS = buff.readDWord();
+        fixedFileInfoStruct.dwFileDateMS = buff.readDWord();
+        var fixedFileInfo = new structures_1.FixedFileInfo(fixedFileInfoStruct);
+        vsVersionInfo.setFixedFileInfo(fixedFileInfo);
+        buff.seek32BitBoundary();
+        var preStringFileInfoOffset = buff.getOffset();
+        var stringFileInfoStruct = (0, structures_1.STRING_FILE_INFO)();
+        stringFileInfoStruct.wLength = buff.readWord();
+        stringFileInfoStruct.wValueLength = buff.readWord();
+        stringFileInfoStruct.wType = buff.readWord();
+        stringFileInfoStruct.szKey = buff.readWordStringZ();
+        if (stringFileInfoStruct.szKey === 'StringFileInfo') {
+            var stringFileInfo = new structures_1.StringFileInfo(stringFileInfoStruct);
+            buff.seek32BitBoundary();
+            var preStringTableOffset = buff.getOffset();
+            while (buff.getOffset() < preStringFileInfoOffset + stringFileInfoStruct.wLength) {
+                var stringTableStruct = (0, structures_1.STRING_TABLE)();
+                stringTableStruct.wLength = buff.readWord();
+                stringTableStruct.wValueLength = buff.readWord();
+                stringTableStruct.wType = buff.readWord();
+                stringTableStruct.szKey = buff.readWordStringZ();
+                var stringTable = new structures_1.StringTable(stringTableStruct);
+                buff.seek32BitBoundary();
+                while (buff.getOffset() < preStringTableOffset + stringTable.getStruct().wLength) {
+                    var stringTableEntryStruct = (0, structures_1.STRING_TABLE_ENTRY)();
+                    stringTableEntryStruct.wLength = buff.readWord();
+                    stringTableEntryStruct.wValueLength = buff.readWord();
+                    stringTableEntryStruct.wType = buff.readWord();
+                    stringTableEntryStruct.szKey = buff.readWordStringZ().trim();
+                    var stringTableEntry = new structures_1.StringTableEntry(stringTableEntryStruct);
+                    buff.seek32BitBoundary();
+                    if (stringTableEntry.getLength() === 0) {
+                        break;
+                    }
+                    if (stringTableEntry.isValueBinary()) {
+                        stringTableEntry.setValue(stringTableEntry.getValueLength() > 0 ? buff.readWordsAsString(stringTableEntry.getValueLength() / data_types_1.DataSize.WORD).trim() : '');
+                    }
+                    else if (stringTableEntry.isValueUtf16()) {
+                        stringTableEntry.setValue(stringTableEntry.getValueLength() > 0 ? buff.readWordStringZ().trim() : '');
+                    }
+                    else {
+                        throw new Error("Invalid wType value ".concat(stringTableEntry.getType(), " for szKey '").concat(stringTableEntry.getKey(), "' in StringTable at offset ").concat(buff.getOffset().toString(16)));
+                    }
+                    buff.seek32BitBoundary();
+                    stringTable.addEntry(stringTableEntry);
+                }
+                stringFileInfo.addStringTable(stringTable);
+            }
+            vsVersionInfo.setStringFileInfo(stringFileInfo);
+        }
+        var preVarFileInfoOffset = buff.getOffset();
+        var varFileInfoStruct = (0, structures_1.VAR_FILE_INFO)();
+        varFileInfoStruct.wLength = buff.readWord();
+        varFileInfoStruct.wValueLength = buff.readWord();
+        varFileInfoStruct.wType = buff.readWord();
+        varFileInfoStruct.szKey = buff.readWordStringZ();
+        if (varFileInfoStruct.szKey === 'VarFileInfo') {
+            var varFileInfo = new structures_1.VarFileInfo(varFileInfoStruct);
+            buff.seek32BitBoundary();
+            var preVarFileInfoVarOffset = buff.getOffset();
+            while (buff.getOffset() < preVarFileInfoOffset + varFileInfo.getLength()) {
+                var varFileInfoVarStruct = (0, structures_1.VAR_FILE_INFO_VAR)();
+                varFileInfoVarStruct.wLength = buff.readWord();
+                varFileInfoVarStruct.wValueLength = buff.readWord();
+                varFileInfoVarStruct.wType = buff.readWord();
+                varFileInfoVarStruct.szKey = buff.readWordStringZ();
+                var varFileInfoVar = new structures_1.VarFileInfoVar(varFileInfoVarStruct);
+                buff.seek32BitBoundary();
+                if (varFileInfoVar.isDataBinary()) {
+                    for (var i = 0; i < varFileInfoVar.getValueLength(); i += data_types_1.DataSize.DWORD) {
+                        var languageId = buff.readWord();
+                        var codePageId = buff.readWord();
+                        varFileInfoVar.addVar(languageId, codePageId);
+                    }
+                }
+                else if (varFileInfoVar.isDataUtf16()) { // TODO: maybe if offset is still less than wValueLength continue reading strings?
+                    if (varFileInfoVar.getValueLength() > 0) {
+                        var languageId = parseInt(buff.readWordsAsString(4), 16); // TODO: this implementation is unverified, but I suspect it would be something like "0409" written out as utf-16 characters
+                        var codePageId = parseInt(buff.readWordsAsString(4), 16);
+                        varFileInfoVar.addVar(languageId, codePageId);
+                    }
+                }
+                else {
+                    throw new Error("Invalid wType value ".concat(varFileInfoVar.getType(), " for szKey '").concat(varFileInfoVar.getKey(), "' in VarFileInfo at offset ").concat(buff.getOffset().toString(16)));
+                }
+                varFileInfo.addEntry(varFileInfoVar);
+            }
+            vsVersionInfo.setVarFileInfo(varFileInfo);
+        }
+        return vsVersionInfo;
+    };
+    PeFileParser.prototype.getLanguageIds = function () {
+        var _a, _b;
+        var langs = [];
+        var versioninfo = this.getVersionInfoResources();
+        for (var resourceId in versioninfo) {
+            for (var langId in versioninfo[resourceId]) {
+                var vs = versioninfo[resourceId][langId];
+                var vars = (_b = (_a = vs === null || vs === void 0 ? void 0 : vs.getVarFileInfo()) === null || _a === void 0 ? void 0 : _a.getVar('Translation')) === null || _b === void 0 ? void 0 : _b.getVars();
+                if (vars != null) {
+                    for (var _i = 0, vars_1 = vars; _i < vars_1.length; _i++) {
+                        var v = vars_1[_i];
+                        langs.push(v.languageId);
+                    }
+                }
+            }
+        }
+        return langs;
+    };
+    PeFileParser.prototype.getSectionOfRva = function (rva) {
+        for (var _i = 0, _a = this.imageDos.getOrElseThrow().getSections(); _i < _a.length; _i++) {
+            var section = _a[_i];
+            if (rva >= section.getStruct().dwVirtualAddress && rva <= section.getStruct().dwVirtualAddress + section.getStruct().dwSizeOfRawData) {
+                return section;
+            }
+        }
+        return undefined;
+    };
+    PeFileParser.prototype.getOffsetFromRva = function (rva) {
+        var section = this.getSectionOfRva(rva);
+        if (section != null) {
+            return section.getStruct().dwPointerToRawData + (rva - section.getStruct().dwVirtualAddress);
+        }
+        return null;
+    };
+    PeFileParser.RT_RESOURCE_TYPES = structures_1.RT_RESOURCE_TYPES;
+    return PeFileParser;
+}());
+exports.PeFileParser = PeFileParser;
+
+
+/***/ }),
+
+/***/ 5030:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Icon = exports.ICON = void 0;
+var buffer_writer_1 = __nccwpck_require__(9076);
+var structures_1 = __nccwpck_require__(7662);
+var resource_1 = __nccwpck_require__(6734);
+function ICON(values) {
+    return __assign({ likelyFormat: null, ext: '', metadata: new structures_1.GroupIconDirEntry({}), data: new Uint8Array() }, values);
+}
+exports.ICON = ICON;
+var Icon = /** @class */ (function (_super) {
+    __extends(Icon, _super);
+    function Icon(data, metadata) {
+        var _this = _super.call(this, data) || this;
+        _this.metadata = metadata;
+        _this.likelyFormat = '';
+        _this.ext = '';
+        _this.parse();
+        return _this;
+    }
+    Icon.prototype.getMetadata = function () {
+        return this.metadata;
+    };
+    Icon.prototype.parse = function () {
+        if (this.metadata == null) {
+            return;
+        }
+        // PNG files always start with the following 8 bytes:
+        // 0x89  0x50  0x4e  0x47  0x0d  0x0a  0x1a  0x0a
+        // \211  P     N     G     \r    \n    \032  \n
+        var PNG_HEADER = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+        if (this.data.slice(0, 8).reduce(function (match, test, i) { return match && PNG_HEADER[i] === test; }, true)) {
+            this.likelyFormat = 'PNG';
+            this.ext = '.png';
+            // else probably an ico file
+        }
+        else if (this.data[0] === 0x28) {
+            this.likelyFormat = 'ICO';
+            this.ext = '.ico';
+        }
+    };
+    Icon.prototype.export = function () {
+        if (this.likelyFormat === 'ICO') {
+            return this.exportAsIco();
+        }
+        else {
+            return this.data;
+        }
+    };
+    Icon.prototype.exportAsIco = function () {
+        // Inside the exe resources, the ico files are broken up into individual resource entries, resulting
+        // in the ico file header information being stripped away.
+        // An ico file can contain multiple images at various resolutions, bit-depths, etc.. and when combined,
+        // all images share a common header, which lists each image, so that header wouldn't work once broken up
+        // for an individual file. So here we need to recreate an ico file header that only lists a single image.
+        // https://devblogs.microsoft.com/oldnewthing/20101018-00/?p=12513
+        var icoHeader = (0, structures_1.ICO_HEADER)();
+        var icoDirEntry = (0, structures_1.ICO_DIR_ENTRY)({
+            bWidth: this.metadata.getWidth(),
+            bHeight: this.metadata.getHeight(),
+            bColorCount: this.metadata.getColorCount(),
+            bReserved: this.metadata.getReservedByte(),
+            wPlanes: this.metadata.getPlanes(),
+            wBitcount: this.metadata.getBitCount(),
+            // dwBytesInRes: metadata.dwBytesInRes,
+            dwBytesInRes: this.data.length,
+            dwImageOffset: 0x00000016
+        });
+        var icoStruc = new buffer_writer_1.BufferWriter(new ArrayBuffer(0x16));
+        icoStruc.writeWord(icoHeader.wReserved);
+        icoStruc.writeWord(icoHeader.wType);
+        icoStruc.writeWord(icoHeader.wCount);
+        icoStruc.writeByte(icoDirEntry.bWidth);
+        icoStruc.writeByte(icoDirEntry.bHeight);
+        icoStruc.writeByte(icoDirEntry.bColorCount);
+        icoStruc.writeByte(icoDirEntry.bReserved);
+        icoStruc.writeWord(icoDirEntry.wPlanes);
+        icoStruc.writeWord(icoDirEntry.wBitcount);
+        icoStruc.writeDWord(icoDirEntry.dwBytesInRes);
+        icoStruc.writeDWord(icoDirEntry.dwImageOffset);
+        var icoData = new Uint8Array(icoStruc.byteLength() + this.data.length);
+        icoData.set(new Uint8Array(icoStruc.buffer()), 0);
+        icoData.set(this.data, icoStruc.byteLength());
+        return icoData;
+    };
+    return Icon;
+}(resource_1.Resource));
+exports.Icon = Icon;
+
+
+/***/ }),
+
+/***/ 6985:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Manifest = void 0;
+var resource_1 = __nccwpck_require__(6734);
+var Manifest = /** @class */ (function (_super) {
+    __extends(Manifest, _super);
+    function Manifest(data) {
+        return _super.call(this, data, '.xml') || this;
+    }
+    Manifest.prototype.export = function () {
+        return String.fromCharCode.apply(null, this.data);
+    };
+    return Manifest;
+}(resource_1.Resource));
+exports.Manifest = Manifest;
+
+
+/***/ }),
+
+/***/ 6734:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Resource = void 0;
+var Resource = /** @class */ (function () {
+    function Resource(data, ext) {
+        this.data = data;
+        this.ext = ext !== null && ext !== void 0 ? ext : '.json';
+    }
+    Resource.prototype.getData = function () {
+        return this.data;
+    };
+    Resource.prototype.getExtension = function () {
+        return this.ext;
+    };
+    return Resource;
+}());
+exports.Resource = Resource;
+
+
+/***/ }),
+
+/***/ 5686:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DataTypes = exports.DataSize = void 0;
+var DataSize;
+(function (DataSize) {
+    DataSize[DataSize["BYTE"] = 1] = "BYTE";
+    DataSize[DataSize["WORD"] = 2] = "WORD";
+    DataSize[DataSize["DWORD"] = 4] = "DWORD";
+    DataSize[DataSize["QWORD"] = 8] = "QWORD";
+    DataSize[DataSize["WCHAR"] = 2] = "WCHAR";
+})(DataSize = exports.DataSize || (exports.DataSize = {}));
+var DataTypes;
+(function (DataTypes) {
+    DataTypes.BYTE = "number";
+    DataTypes.WORD = "number";
+    DataTypes.DWORD = "number";
+    DataTypes.QWORD = "bigint";
+    DataTypes.WCHAR = "number";
+})(DataTypes = exports.DataTypes || (exports.DataTypes = {}));
+
+
+/***/ }),
+
+/***/ 3155:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Flags = void 0;
+/**
+ * A static utility for working with flags and flag parsing
+ */
+var Flags;
+(function (Flags) {
+    var VFT;
+    (function (VFT) {
+        /** The file contains an application. */
+        VFT[VFT["APP"] = 1] = "APP";
+        /** The file contains a DLL. */
+        VFT[VFT["DLL"] = 2] = "DLL";
+        /** The file contains a device driver. If `dwFileType` is `VFT_DRV`, `dwFileSubtype` contains a more specific description of the driver. */
+        VFT[VFT["DRV"] = 3] = "DRV";
+        /** The file contains a font. If `dwFileType` is `VFT_FONT`, `dwFileSubtype` contains a more specific description of the font file. */
+        VFT[VFT["FONT"] = 4] = "FONT";
+        /** The file contains a virtual device. */
+        VFT[VFT["VXD"] = 5] = "VXD";
+        /** The file contains a static-link library. */
+        VFT[VFT["STATIC_LIB"] = 7] = "STATIC_LIB";
+        /** The file type is unknown to the system. */
+        VFT[VFT["UNKNOWN"] = 0] = "UNKNOWN";
+    })(VFT = Flags.VFT || (Flags.VFT = {}));
+    var VS_FF;
+    (function (VS_FF) {
+        /** The file contains debugging information or is compiled with debugging features enabled. */
+        VS_FF[VS_FF["DEBUG"] = 1] = "DEBUG";
+        /** The file is a development version, not a commercially released product. */
+        VS_FF[VS_FF["PRERELEASE"] = 2] = "PRERELEASE";
+        /** The file has been modified and is not identical to the original shipping file of the same version number. */
+        VS_FF[VS_FF["PATCHED"] = 4] = "PATCHED";
+        /** The file was not built using standard release procedures. If this flag is set, the StringFileInfo structure should contain a PrivateBuild entry. */
+        VS_FF[VS_FF["PRIVATEBUILD"] = 8] = "PRIVATEBUILD";
+        /** The file's version structure was created dynamically; therefore, some of the members in this structure may be empty or incorrect. This flag should never be set in a file's VS_VERSIONINFO data. */
+        VS_FF[VS_FF["INFOINFERRED"] = 16] = "INFOINFERRED";
+        /** The file was built by the original company using standard release procedures but is a variation of the normal file of the same version number. If this flag is set, the StringFileInfo structure should contain a SpecialBuild entry. */
+        VS_FF[VS_FF["SPECIALBUILD"] = 32] = "SPECIALBUILD";
+    })(VS_FF = Flags.VS_FF || (Flags.VS_FF = {}));
+    var VOS;
+    (function (VOS) {
+        /** The file was designed for MS-DOS. */
+        VOS[VOS["DOS"] = 65536] = "DOS";
+        /** The file was designed for 16-bit OS/2. */
+        VOS[VOS["OS216"] = 131072] = "OS216";
+        /** The file was designed for 32-bit OS/2. */
+        VOS[VOS["OS232"] = 196608] = "OS232";
+        /** The file was designed for Windows NT. */
+        VOS[VOS["NT"] = 262144] = "NT";
+        /** The file was designed for 16-bit Windows. */
+        VOS[VOS["WINDOWS16"] = 1] = "WINDOWS16";
+        /** The file was designed for 16-bit Presentation Manager. */
+        VOS[VOS["PM16"] = 2] = "PM16";
+        /** The file was designed for 32-bit Presentation Manager. */
+        VOS[VOS["PM32"] = 3] = "PM32";
+        /** The file was designed for 32-bit Windows. */
+        VOS[VOS["WINDOWS32"] = 4] = "WINDOWS32";
+        /** The operating system for which the file was designed is unknown to the system. */
+        VOS[VOS["UNKNOWN"] = 0] = "UNKNOWN";
+    })(VOS = Flags.VOS || (Flags.VOS = {}));
+    var VFT2;
+    (function (VFT2) {
+        /** The file contains a printer driver. */
+        VFT2[VFT2["DRV_PRINTER"] = 1] = "DRV_PRINTER";
+        /** The file contains a raster font. */
+        VFT2[VFT2["FONT_RASTER"] = 1] = "FONT_RASTER";
+        /** The file contains a keyboard driver. */
+        VFT2[VFT2["DRV_KEYBOARD"] = 2] = "DRV_KEYBOARD";
+        /** The file contains a vector font. */
+        VFT2[VFT2["FONT_VECTOR"] = 2] = "FONT_VECTOR";
+        /** The file contains a language driver. */
+        VFT2[VFT2["DRV_LANGUAGE"] = 3] = "DRV_LANGUAGE";
+        /** The file contains a TrueType font. */
+        VFT2[VFT2["FONT_TRUETYPE"] = 3] = "FONT_TRUETYPE";
+        /** The file contains a display driver. */
+        VFT2[VFT2["DRV_DISPLAY"] = 4] = "DRV_DISPLAY";
+        /** The file contains a mouse driver. */
+        VFT2[VFT2["DRV_MOUSE"] = 5] = "DRV_MOUSE";
+        /** The file contains a network driver. */
+        VFT2[VFT2["DRV_NETWORK"] = 6] = "DRV_NETWORK";
+        /** The file contains a system driver. */
+        VFT2[VFT2["DRV_SYSTEM"] = 7] = "DRV_SYSTEM";
+        /** The file contains an installable driver. */
+        VFT2[VFT2["DRV_INSTALLABLE"] = 8] = "DRV_INSTALLABLE";
+        /** The file contains a sound driver. */
+        VFT2[VFT2["DRV_SOUND"] = 9] = "DRV_SOUND";
+        /** The file contains a communications driver. */
+        VFT2[VFT2["DRV_COMM"] = 10] = "DRV_COMM";
+        /** The file contains a versioned printer driver. */
+        VFT2[VFT2["DRV_VERSIONED_PRINTER"] = 12] = "DRV_VERSIONED_PRINTER";
+        /** The driver/font type is unknown by the system. */
+        VFT2[VFT2["UNKNOWN"] = 0] = "UNKNOWN";
+    })(VFT2 = Flags.VFT2 || (Flags.VFT2 = {}));
+    /**
+     * Parses a file flags value to an object describing its features.
+     *
+     * @param fileFlagsValue The dwFileFlags value
+     * @param fileFlagsMask The dwFileFlagsMask value
+     * @returns {FileFlags} The formatted descriptor table
+     */
+    function parseFileFlags(fileFlagsValue, fileFlagsMask) {
+        return {
+            debug: ((fileFlagsMask & fileFlagsValue) & Flags.VS_FF.DEBUG) != 0,
+            prerelease: ((fileFlagsMask & fileFlagsValue) & Flags.VS_FF.PRERELEASE) != 0,
+            patched: ((fileFlagsMask & fileFlagsValue) & Flags.VS_FF.PATCHED) != 0,
+            privatebuild: ((fileFlagsMask & fileFlagsValue) & Flags.VS_FF.PRIVATEBUILD) != 0,
+            infoinferred: ((fileFlagsMask & fileFlagsValue) & Flags.VS_FF.INFOINFERRED) != 0,
+            specialbuild: ((fileFlagsMask & fileFlagsValue) & Flags.VS_FF.SPECIALBUILD) != 0
+        };
+    }
+    Flags.parseFileFlags = parseFileFlags;
+    /**
+     * Parse a file os value to an object describing its features.
+     *
+     * @param fileOSValue The read dwFileOS value
+     * @returns {FileOSFlags} The formatted descriptor table
+     */
+    function parseFileOSFlags(fileOSValue) {
+        return {
+            dos: (fileOSValue & Flags.VOS.DOS) === Flags.VOS.DOS,
+            os216: (fileOSValue & Flags.VOS.OS216) === Flags.VOS.OS216,
+            os232: (fileOSValue & Flags.VOS.OS232) === Flags.VOS.OS232,
+            nt: (fileOSValue & Flags.VOS.NT) === Flags.VOS.NT,
+            windows16: (fileOSValue & Flags.VOS.WINDOWS16) === Flags.VOS.WINDOWS16,
+            pm16: (fileOSValue & Flags.VOS.PM16) === Flags.VOS.PM16,
+            pm32: (fileOSValue & Flags.VOS.PM32) === Flags.VOS.PM32,
+            windows32: (fileOSValue & Flags.VOS.WINDOWS32) === Flags.VOS.WINDOWS32,
+            unknown: fileOSValue === Flags.VOS.UNKNOWN
+        };
+    }
+    Flags.parseFileOSFlags = parseFileOSFlags;
+    /**
+     * Parse a file type to an object describing its features.
+     *
+     * @param fileTypeValue The read dwFileType value
+     * @returns {FileTypeFlags} The formatted descriptor table for the file type
+     */
+    function parseFileType(fileTypeValue) {
+        return {
+            app: fileTypeValue === Flags.VFT.APP,
+            dll: fileTypeValue === Flags.VFT.DLL,
+            drv: fileTypeValue === Flags.VFT.DRV,
+            font: fileTypeValue === Flags.VFT.FONT,
+            vxd: fileTypeValue === Flags.VFT.VXD,
+            staticLib: fileTypeValue === Flags.VFT.STATIC_LIB,
+            unknown: fileTypeValue === Flags.VFT.UNKNOWN
+        };
+    }
+    Flags.parseFileType = parseFileType;
+    /**
+     * Parse a file subtype to an object describing its features. The subtype depends on the
+     * fileType. For example, the same value for fileSubtype means something different depending on if the
+     * fileType is VFT.DRV or VFT.FONT
+     *
+     * @param fileTypeValue The read dwFileType value
+     * @param fileSubtypeValue The read dwFileSubtype value
+     * @returns {FileDriverSubType | FileFontSubType | FileVirtualDeviceSubType} The formatted descriptor table for the file subtype
+     */
+    function parseFileSubtype(fileTypeValue, fileSubtypeValue) {
+        var fileTypeInfo = Flags.parseFileType(fileTypeValue);
+        if (fileTypeInfo.drv === true) {
+            return {
+                printer: fileSubtypeValue === Flags.VFT2.DRV_PRINTER,
+                keyboard: fileSubtypeValue === Flags.VFT2.DRV_KEYBOARD,
+                language: fileSubtypeValue === Flags.VFT2.DRV_LANGUAGE,
+                display: fileSubtypeValue === Flags.VFT2.DRV_DISPLAY,
+                mouse: fileSubtypeValue === Flags.VFT2.DRV_MOUSE,
+                network: fileSubtypeValue === Flags.VFT2.DRV_NETWORK,
+                system: fileSubtypeValue === Flags.VFT2.DRV_SYSTEM,
+                installable: fileSubtypeValue === Flags.VFT2.DRV_INSTALLABLE,
+                sound: fileSubtypeValue === Flags.VFT2.DRV_SOUND,
+                comm: fileTypeValue === Flags.VFT2.DRV_COMM,
+                versionedPrinter: fileTypeValue === Flags.VFT2.DRV_VERSIONED_PRINTER,
+                unknown: fileTypeValue === Flags.VFT2.UNKNOWN
+            };
+        }
+        else if (fileTypeInfo.font === true) {
+            return {
+                raster: fileSubtypeValue === Flags.VFT2.FONT_RASTER,
+                vector: fileSubtypeValue === Flags.VFT2.FONT_VECTOR,
+                truetype: fileSubtypeValue === Flags.VFT2.FONT_TRUETYPE,
+                unknown: fileSubtypeValue === Flags.VFT2.UNKNOWN
+            };
+        }
+        else if (fileTypeInfo.vxd === true) {
+            return fileSubtypeValue;
+        }
+        else {
+            return Flags.VFT2.UNKNOWN;
+        }
+    }
+    Flags.parseFileSubtype = parseFileSubtype;
+})(Flags = exports.Flags || (exports.Flags = {}));
+
+
+/***/ }),
+
+/***/ 2988:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GroupIconDirEntry = exports.GROUP_ICON_DIR_ENTRY = void 0;
+function GROUP_ICON_DIR_ENTRY(values) {
+    return __assign({ bWidth: 0x00, bHeight: 0x00, bColorCount: 0x00, bReserved: 0x00, wPlanes: 0x0000, wBitCount: 0x0000, dwBytesInRes: 0x00000000, wId: 0x0000 }, values);
+}
+exports.GROUP_ICON_DIR_ENTRY = GROUP_ICON_DIR_ENTRY;
+var GroupIconDirEntry = /** @class */ (function () {
+    function GroupIconDirEntry(values) {
+        this.struct = GROUP_ICON_DIR_ENTRY(values);
+    }
+    GroupIconDirEntry.prototype.getWidth = function () {
+        return this.struct.bWidth;
+    };
+    GroupIconDirEntry.prototype.getHeight = function () {
+        return this.struct.bHeight;
+    };
+    GroupIconDirEntry.prototype.getColorCount = function () {
+        return this.struct.bColorCount === 0 ? 256 : this.struct.bColorCount;
+    };
+    GroupIconDirEntry.prototype.getReservedByte = function () {
+        return this.struct.bReserved;
+    };
+    GroupIconDirEntry.prototype.getPlanes = function () {
+        return this.struct.wPlanes;
+    };
+    GroupIconDirEntry.prototype.getBitCount = function () {
+        return this.struct.wBitCount;
+    };
+    GroupIconDirEntry.prototype.getByteLength = function () {
+        return this.struct.dwBytesInRes;
+    };
+    GroupIconDirEntry.prototype.getId = function () {
+        return this.struct.wId;
+    };
+    GroupIconDirEntry.prototype.getStruct = function () {
+        return this.struct;
+    };
+    GroupIconDirEntry.prototype.toObject = function () {
+        return {
+            id: this.getId(),
+            size: this.getByteLength(),
+            width: this.getWidth(),
+            height: this.getHeight(),
+            colorCount: this.getColorCount(),
+            planes: this.getPlanes(),
+            bitCount: this.getBitCount()
+        };
+    };
+    return GroupIconDirEntry;
+}());
+exports.GroupIconDirEntry = GroupIconDirEntry;
+
+
+/***/ }),
+
+/***/ 7478:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GroupIconDir = exports.GROUP_ICON_DIR = void 0;
+function GROUP_ICON_DIR(values) {
+    return __assign({ wReserved: 0x0000, wType: 0x0000, wCount: 0x0000 }, values);
+}
+exports.GROUP_ICON_DIR = GROUP_ICON_DIR;
+var GroupIconDir = /** @class */ (function () {
+    function GroupIconDir(values) {
+        this.struct = GROUP_ICON_DIR(values);
+        this.entries = [];
+    }
+    GroupIconDir.prototype.addEntry = function (entry) {
+        this.entries.push(entry);
+    };
+    GroupIconDir.prototype.getEntries = function () {
+        return this.entries;
+    };
+    GroupIconDir.prototype.getStruct = function () {
+        return this.struct;
+    };
+    return GroupIconDir;
+}());
+exports.GroupIconDir = GroupIconDir;
+
+
+/***/ }),
+
+/***/ 4441:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ICO_DIR_ENTRY = exports.ICO_HEADER = void 0;
+function ICO_HEADER() {
+    return {
+        wReserved: 0x0000,
+        wType: 0x0001,
+        wCount: 0x0001
+    };
+}
+exports.ICO_HEADER = ICO_HEADER;
+function ICO_DIR_ENTRY(values) {
+    return __assign({ bWidth: 0x00, bHeight: 0x00, bColorCount: 0x00, bReserved: 0x00, wPlanes: 0x0000, wBitcount: 0x0000, dwBytesInRes: 0x00000000, dwImageOffset: 0x00000000 }, values);
+}
+exports.ICO_DIR_ENTRY = ICO_DIR_ENTRY;
+
+
+/***/ }),
+
+/***/ 764:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageDataDirectoryEntry = exports.IMAGE_DATA_DIRECTORY_ENTRY = void 0;
+function IMAGE_DATA_DIRECTORY_ENTRY(values) {
+    return __assign({ dwVirtualAddress: 0x00000000, dwSize: 0x00000000 }, values);
+}
+exports.IMAGE_DATA_DIRECTORY_ENTRY = IMAGE_DATA_DIRECTORY_ENTRY;
+var ImageDataDirectoryEntry = /** @class */ (function () {
+    function ImageDataDirectoryEntry(struct) {
+        this.struct = IMAGE_DATA_DIRECTORY_ENTRY(struct);
+    }
+    ImageDataDirectoryEntry.prototype.getVirtualAddress = function () {
+        return this.struct.dwVirtualAddress.toString(16).padStart(8, "0");
+    };
+    ImageDataDirectoryEntry.prototype.getSize = function () {
+        return this.struct.dwSize;
+    };
+    ImageDataDirectoryEntry.prototype.getStruct = function () {
+        return this.struct;
+    };
+    ImageDataDirectoryEntry.prototype.toObject = function () {
+        return {
+            virtualAddress: this.getVirtualAddress(),
+            size: this.getSize()
+        };
+    };
+    return ImageDataDirectoryEntry;
+}());
+exports.ImageDataDirectoryEntry = ImageDataDirectoryEntry;
+
+
+/***/ }),
+
+/***/ 2596:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.IMAGE_DATA_DIRECTORY_TYPES = exports.ImageDataDirectoryTable = void 0;
+var image_data_directory_entry_1 = __nccwpck_require__(764);
+var ImageDataDirectoryTable = /** @class */ (function () {
+    function ImageDataDirectoryTable() {
+        this.entries = {};
+        for (var type in IMAGE_DATA_DIRECTORY_TYPES) {
+            if (typeof type === 'number') {
+                this.entries[type] = new image_data_directory_entry_1.ImageDataDirectoryEntry((0, image_data_directory_entry_1.IMAGE_DATA_DIRECTORY_ENTRY)());
+            }
+        }
+    }
+    ImageDataDirectoryTable.prototype.addEntry = function (type, entry) {
+        this.entries[type] = entry;
+    };
+    ImageDataDirectoryTable.prototype.getEntries = function () {
+        return this.entries;
+    };
+    ImageDataDirectoryTable.prototype.getEntry = function (type) {
+        return this.entries[type];
+    };
+    ImageDataDirectoryTable.prototype.toObject = function () {
+        var obj = {};
+        for (var type in this.entries) {
+            var int_type = parseInt(type);
+            obj[IMAGE_DATA_DIRECTORY_TYPES[int_type]] = this.entries[int_type].toObject();
+        }
+        return obj;
+    };
+    return ImageDataDirectoryTable;
+}());
+exports.ImageDataDirectoryTable = ImageDataDirectoryTable;
+var IMAGE_DATA_DIRECTORY_TYPES;
+(function (IMAGE_DATA_DIRECTORY_TYPES) {
+    /** Export table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["EXPORT"] = 0] = "EXPORT";
+    /** Import table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["IMPORT"] = 1] = "IMPORT";
+    /** Resource table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["RESOURCE"] = 2] = "RESOURCE";
+    /** Exception table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["EXCEPTION"] = 3] = "EXCEPTION";
+    /** Attribute authentication table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["SECURITY"] = 4] = "SECURITY";
+    /** Base relocation table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["BASERELOC"] = 5] = "BASERELOC";
+    /** Debug data */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["DEBUG"] = 6] = "DEBUG";
+    /** Architecture-specific data */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["COPYRIGHT"] = 7] = "COPYRIGHT";
+    /** Global pointer register */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["GLOBALPTR"] = 8] = "GLOBALPTR";
+    /** Thread local storage table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["TLS"] = 9] = "TLS";
+    /** Load configuration table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["LOAD_CONFIG"] = 10] = "LOAD_CONFIG";
+    /** Bound import table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["BOUND_IMPORT"] = 11] = "BOUND_IMPORT";
+    /** Import Address Table */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["IMPORT_ADDR"] = 12] = "IMPORT_ADDR";
+    /** Delay import descriptor */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["DID"] = 13] = "DID";
+    /** Reserve */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["RES1"] = 14] = "RES1";
+    /** Reserve */
+    IMAGE_DATA_DIRECTORY_TYPES[IMAGE_DATA_DIRECTORY_TYPES["RES2"] = 15] = "RES2";
+})(IMAGE_DATA_DIRECTORY_TYPES = exports.IMAGE_DATA_DIRECTORY_TYPES || (exports.IMAGE_DATA_DIRECTORY_TYPES = {}));
+
+
+/***/ }),
+
+/***/ 6660:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageDosHeader = exports.IMAGE_DOS_HEADER = void 0;
+var hex_utils_1 = __nccwpck_require__(2898);
+function IMAGE_DOS_HEADER(values) {
+    return __assign({ wMagic: new Uint8Array([0x00, 0x00]), wCblp: 0x0000, wCp: 0x0000, wCrlc: 0x0000, wCparHdr: 0x0000, wMinAlloc: 0x0000, wMaxAlloc: 0x0000, wSs: 0x0000, wSp: 0x0000, wCsum: 0x0000, wIp: 0x0000, wCs: 0x0000, wLfArlc: 0x0000, wOvNo: 0x0000, wRes: new Uint16Array([0x0000, 0x0000, 0x0000, 0x0000]), wOemId: 0x0000, wOemInfo: 0x0000, wRes2: new Uint16Array([0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000]), dwLfAnew: 0x00000000 }, values);
+}
+exports.IMAGE_DOS_HEADER = IMAGE_DOS_HEADER;
+var ImageDosHeader = /** @class */ (function () {
+    function ImageDosHeader(values) {
+        this.struct = IMAGE_DOS_HEADER(values);
+    }
+    ImageDosHeader.prototype.getMagic = function () {
+        return hex_utils_1.HexUtils.uintArrayToHex(this.struct.wMagic).join('');
+    };
+    ImageDosHeader.prototype.getCountBytesLastPage = function () {
+        return this.struct.wCblp;
+    };
+    ImageDosHeader.prototype.getCountPages = function () {
+        return this.struct.wCp;
+    };
+    ImageDosHeader.prototype.getCountRelocations = function () {
+        return this.struct.wCrlc;
+    };
+    ImageDosHeader.prototype.getCountHeaderParagraphs = function () {
+        return this.struct.wCparHdr;
+    };
+    ImageDosHeader.prototype.getMinimumAllocation = function () {
+        return this.struct.wMinAlloc;
+    };
+    ImageDosHeader.prototype.getMaximumAllocation = function () {
+        return this.struct.wMaxAlloc;
+    };
+    ImageDosHeader.prototype.getInitialSS = function () {
+        return this.struct.wSs.toString(16).padStart(4, "0");
+    };
+    ImageDosHeader.prototype.getInitialSP = function () {
+        return this.struct.wSp.toString(16).padStart(4, "0");
+    };
+    ImageDosHeader.prototype.getChecksum = function () {
+        return this.struct.wCsum.toString(16).padStart(4, "0");
+    };
+    ImageDosHeader.prototype.getInitialIP = function () {
+        return this.struct.wIp.toString(16).padStart(4, "0");
+    };
+    ImageDosHeader.prototype.getInitialCS = function () {
+        return this.struct.wCs.toString(16).padStart(4, "0");
+    };
+    ImageDosHeader.prototype.getFileAddressOfRelocationTable = function () {
+        return this.struct.wLfArlc.toString(16).padStart(4, "0");
+    };
+    ImageDosHeader.prototype.getOverlayNumber = function () {
+        return this.struct.wOvNo;
+    };
+    ImageDosHeader.prototype.getReservedWords1 = function () {
+        return hex_utils_1.HexUtils.uintArrayToHex(this.struct.wRes);
+    };
+    ImageDosHeader.prototype.getOemIdentifer = function () {
+        return this.struct.wOemId.toString(16).padStart(4, "0");
+    };
+    ImageDosHeader.prototype.getOemInformation = function () {
+        return this.struct.wOemInfo.toString(16).padStart(4, "0");
+    };
+    ImageDosHeader.prototype.getReservedWords2 = function () {
+        return hex_utils_1.HexUtils.uintArrayToHex(this.struct.wRes2);
+    };
+    ImageDosHeader.prototype.getFileAddressOfNewExeHeader = function () {
+        return this.struct.dwLfAnew.toString(16).padStart(8, "0");
+    };
+    ImageDosHeader.prototype.getStruct = function () {
+        return this.struct;
+    };
+    ImageDosHeader.prototype.toObject = function () {
+        return {
+            magic: this.getMagic(),
+            countBytesLastPage: this.getCountBytesLastPage(),
+            countPages: this.getCountPages(),
+            countRelocations: this.getCountRelocations(),
+            countHeaderParagraphs: this.getCountHeaderParagraphs(),
+            minimumAllocation: this.getMinimumAllocation(),
+            maximumAllocation: this.getMaximumAllocation(),
+            initialSS: this.getInitialSS(),
+            initialSP: this.getInitialSP(),
+            checksum: this.getChecksum(),
+            initialIP: this.getInitialIP(),
+            initialCS: this.getInitialCS(),
+            fileAddressRelocationTable: this.getFileAddressOfRelocationTable(),
+            overlayNumber: this.getOverlayNumber(),
+            reservedWords1: this.getReservedWords1(),
+            owmIdentifier: this.getOemIdentifer(),
+            oemInformation: this.getOemInformation(),
+            reservedWords2: this.getReservedWords2(),
+            fileAddressOfNewExeHeader: this.getFileAddressOfNewExeHeader()
+        };
+    };
+    return ImageDosHeader;
+}());
+exports.ImageDosHeader = ImageDosHeader;
+
+
+/***/ }),
+
+/***/ 1958:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageDos = void 0;
+var image_dos_header_1 = __nccwpck_require__(6660);
+var image_file_header_1 = __nccwpck_require__(7963);
+var image_optional_header_1 = __nccwpck_require__(4637);
+function IMAGE_DOS(values) {
+    return __assign({ dosHeader: (0, image_dos_header_1.IMAGE_DOS_HEADER)(), fileHeader: (0, image_file_header_1.IMAGE_FILE_HEADER)(), optionalHeader: (0, image_optional_header_1.IMAGE_OPTIONAL_HEADER)(), sections: [] }, values);
+}
+var ImageDos = /** @class */ (function () {
+    function ImageDos(dosHeader, fileHeader, optionalHeader, sections) {
+        this.dosHeader = dosHeader;
+        this.fileHeader = fileHeader;
+        this.optionalHeader = optionalHeader;
+        this.sections = sections;
+    }
+    ImageDos.prototype.getDosHeader = function () {
+        return this.dosHeader;
+    };
+    ImageDos.prototype.getFileHeader = function () {
+        return this.fileHeader;
+    };
+    ImageDos.prototype.getOptionalHeader = function () {
+        return this.optionalHeader;
+    };
+    ImageDos.prototype.getSections = function () {
+        return this.sections;
+    };
+    ImageDos.prototype.toObject = function () {
+        return {
+            dosHeader: this.dosHeader.toObject(),
+            fileHeader: this.fileHeader.toObject(),
+            optionalHeader: this.optionalHeader.toObject(),
+            sections: this.sections.map(function (section) { return section.toObject(); })
+        };
+    };
+    return ImageDos;
+}());
+exports.ImageDos = ImageDos;
+
+
+/***/ }),
+
+/***/ 7963:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageFileHeader = exports.IMAGE_FILE_HEADER = exports.IMAGE_OPTIONAL_HEADER_SIZE = exports.IMAGE_SIGNATURE = exports.FileHeaderImageCharacteristicsLookup = exports.MachineLookup = void 0;
+/**
+ * https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#characteristics
+ */
+exports.MachineLookup = {
+    0x0000: 'The content of this field is assumed to be applicable to any machine typ',
+    0x014d: 'Intel i860',
+    0x014c: 'Intel i386, i486, i586, or later processors and compatible processors',
+    0x0162: 'MIPS R3000',
+    0x0166: 'MIPS R4000 LE',
+    0x0183: 'DEC Alpha AXP',
+    0x01c0: 'ARM little endian',
+    0xaa64: 'ARM64 little endian',
+    0x8664: 'x64'
+};
+/**
+ * https://www.aldeid.com/wiki/PE-Portable-executable#Image_Characteristics
+ */
+exports.FileHeaderImageCharacteristicsLookup = {
+    /** Image only, Windows CE, and Microsoft Windows NT and later.
+     * This indicates that the file does not contain base relocations and must therefore
+     * be loaded at its preferred base address. If the base address is not available,
+     * the loader reports an error. The default behavior of the linker is to strip
+     * base relocations from executable (EXE) files.
+     */
+    0x0001: 'RELOCS_STRIPPED - There are no relocations in this file.',
+    /** Image only. This indicates that the image file is valid and can be run.
+     * If this flag is not set, it indicates a linker error.
+     */
+    0x0002: 'EXECUTABLE_IMAGE - File is an executable image (not a OBJ or LIB).',
+    /**
+     * COFF line numbers have been removed.
+     * This flag is deprecated and should be zero.
+     */
+    0x0004: 'LINE_NUMS_STRIPPED - COFF line numbers have been removed (deprecated).',
+    /**
+     * COFF symbol table entries for local symbols have been removed.
+     * This flag is deprecated and should be zero.
+     */
+    0x0008: 'LOCAL_SYMS_STRIPPED - COFF symbol table entries for local symbols have been removed (deprecated).',
+    /**
+     * Obsolete. Aggressively trim working set.
+     * This flag is deprecated for Windows 2000 and later and must be zero.
+     */
+    0x0010: 'AGGRESSIVE_WS_TRIM - Aggressively trim working set (deprecated).',
+    /** Application can handle > 2-GB addresses. */
+    0x0020: 'LARGE_ADDRESS_AWARE - Application can handle > 2-GB addresses.',
+    /** This flag is reserved for future use. */
+    0x0040: 'RESERVED - This flag is reserved for future use.',
+    /**
+     * Little endian: the least significant bit (LSB) precedes the most significant bit (MSB) in memory.
+     * This flag is deprecated and should be zero.
+     */
+    0x0080: 'BYTES_REVERSED_LO - Little endian: the least significant bit (LSB) precedes the most significant bit (MSB) in memory (deprecated).',
+    /** Machine is based on a 32-bit-word architecture. */
+    0x0100: '32BIT_MACHINE - Machine is based on a 32-bit-word architecture.',
+    /** Debugging information is removed from the image file. */
+    0x0200: 'DEBUG_STRIPPED - Debugging information is removed from the image file.',
+    /** If the image is on removable media, fully load it and copy it to the swap file. */
+    0x0400: 'REMOVABLE_RUN_FROM_SWAP - If the image is on removable media, fully load it and copy it to the swap file.',
+    /** If the image is on network media, fully load it and copy it to the swap file. */
+    0x0800: 'NET_RUN_FROM_SWAP - If the image is on network media, fully load it and copy it to the swap file.',
+    /** The image file is a system file, not a user program. */
+    0x1000: 'SYSTEM - The image file is a system file, not a user program.',
+    /**
+     * The image file is a dynamic-link library (DLL).
+     * Such files are considered executable files for almost all purposes,
+     * although they cannot be directly run.
+     */
+    0x2000: 'DLL - File is a dynamic-link library (DLL), not a program',
+    /** The file should be run only on a uniprocessor machine. */
+    0x4000: 'UP_SYSTEM_ONLY - The file should be run only on a uniprocessor machine.',
+    /** Big endian: the MSB precedes the LSB in memory. This flag is deprecated and should be zero. */
+    0x8000: 'BYTES_REVERSED_HI - Big endian: the MSB precedes the LSB in memory. (deprecated)'
+};
+var IMAGE_SIGNATURE;
+(function (IMAGE_SIGNATURE) {
+    /** 0x4D5A = MZ */
+    IMAGE_SIGNATURE[IMAGE_SIGNATURE["DOS_SIGNATURE"] = 1297743872] = "DOS_SIGNATURE";
+    /** 0x4E45 = NE */
+    IMAGE_SIGNATURE[IMAGE_SIGNATURE["OS2_SIGNATURE"] = 1313144832] = "OS2_SIGNATURE";
+    /** 0x4C45 = NE LE */
+    IMAGE_SIGNATURE[IMAGE_SIGNATURE["OS2_LE_SIGNATURE"] = 1279590400] = "OS2_LE_SIGNATURE";
+    /** 0x5045 = PE00 */
+    IMAGE_SIGNATURE[IMAGE_SIGNATURE["NT_SIGNATURE"] = 1346699264] = "NT_SIGNATURE";
+})(IMAGE_SIGNATURE = exports.IMAGE_SIGNATURE || (exports.IMAGE_SIGNATURE = {}));
+var IMAGE_OPTIONAL_HEADER_SIZE;
+(function (IMAGE_OPTIONAL_HEADER_SIZE) {
+    /** 0x00E0 = 224 for 32bit */
+    IMAGE_OPTIONAL_HEADER_SIZE[IMAGE_OPTIONAL_HEADER_SIZE["$32_BIT"] = 224] = "$32_BIT";
+    /** 0x00F0 = 240 for 64bit */
+    IMAGE_OPTIONAL_HEADER_SIZE[IMAGE_OPTIONAL_HEADER_SIZE["$64_BIT"] = 240] = "$64_BIT";
+})(IMAGE_OPTIONAL_HEADER_SIZE = exports.IMAGE_OPTIONAL_HEADER_SIZE || (exports.IMAGE_OPTIONAL_HEADER_SIZE = {}));
+function IMAGE_FILE_HEADER(values) {
+    return __assign({ ntSig: Uint8Array.from([0x00, 0x00]), wMachine: 0x0000, wNumberOfSections: 0x0000, dwTimeDateStamp: 0x00000000, dwPointerToSymbolTable: 0x00000000, dwNumberOfSymbols: 0x00000000, wSizeOfOptionalHeader: 0x0000, wCharacteristics: 0x0000 }, values);
+}
+exports.IMAGE_FILE_HEADER = IMAGE_FILE_HEADER;
+var ImageFileHeader = /** @class */ (function () {
+    function ImageFileHeader(struct) {
+        this.struct = IMAGE_FILE_HEADER(struct);
+    }
+    ImageFileHeader.prototype.getSignature = function () {
+        return this.struct.ntSig.reduce(function (str, b) { return str + b.toString(16).padStart(2, "0"); }, '');
+    };
+    ImageFileHeader.prototype.getMachine = function () {
+        var meaning = this.struct.wMachine in exports.MachineLookup ? exports.MachineLookup[this.struct.wMachine] : 'Unknown';
+        return { value: this.struct.wMachine.toString(16).padStart(4, "0"), meaning: meaning };
+    };
+    ImageFileHeader.prototype.getNumberOfSections = function () {
+        return this.struct.wNumberOfSections;
+    };
+    ImageFileHeader.prototype.getTimeDateStamp = function () {
+        return new Date(this.struct.dwTimeDateStamp * 1000).toISOString();
+    };
+    ImageFileHeader.prototype.getPointerToSymbolTable = function () {
+        return this.struct.dwPointerToSymbolTable.toString(16).padStart(8, "0");
+    };
+    ImageFileHeader.prototype.getNumberOfSymbols = function () {
+        return this.struct.dwNumberOfSymbols;
+    };
+    ImageFileHeader.prototype.getSizeOfOptionalHeader = function () {
+        return this.struct.wSizeOfOptionalHeader;
+    };
+    ImageFileHeader.prototype.getCharacteristics = function () {
+        var value = this.struct.wCharacteristics.toString(16).padStart(4, "0");
+        var meaning = [];
+        for (var key in exports.FileHeaderImageCharacteristicsLookup) {
+            if ((this.struct.wCharacteristics & parseInt(key)) !== 0) {
+                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(4, "0"), ") ").concat(exports.FileHeaderImageCharacteristicsLookup[key]));
+            }
+        }
+        return { value: value, meaning: meaning };
+    };
+    ImageFileHeader.prototype.is32Bit = function () {
+        return this.struct.wSizeOfOptionalHeader === IMAGE_OPTIONAL_HEADER_SIZE.$32_BIT;
+    };
+    ImageFileHeader.prototype.is64Bit = function () {
+        return this.struct.wSizeOfOptionalHeader === IMAGE_OPTIONAL_HEADER_SIZE.$64_BIT;
+    };
+    ImageFileHeader.prototype.getStruct = function () {
+        return this.struct;
+    };
+    ImageFileHeader.prototype.toObject = function () {
+        return {
+            ntSignature: this.getSignature(),
+            machine: this.getMachine(),
+            numberOfSections: this.getNumberOfSections(),
+            timeDateStamp: this.getTimeDateStamp(),
+            pointerToSymbolTable: this.getPointerToSymbolTable(),
+            numberOfSymbols: this.getNumberOfSymbols(),
+            sizeOfOptionalHeader: this.getSizeOfOptionalHeader(),
+            characteristics: this.getCharacteristics()
+        };
+    };
+    return ImageFileHeader;
+}());
+exports.ImageFileHeader = ImageFileHeader;
+
+
+/***/ }),
+
+/***/ 2727:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageImportEntry = exports.ImageImportDirectoryTableEntry = exports.IMAGE_IMPORT_DIRECTORY_TABLE_ENTRY = void 0;
+function IMAGE_IMPORT_DIRECTORY_TABLE_ENTRY(values) {
+    return __assign({ dwImportLookupTableRva: 0x00000000, dwTimeDateStamp: 0x00000000, dwForwarderChain: 0x00000000, dwModuleNameRva: 0x00000000, dwImportAddressTableRva: 0x00000000 }, values);
+}
+exports.IMAGE_IMPORT_DIRECTORY_TABLE_ENTRY = IMAGE_IMPORT_DIRECTORY_TABLE_ENTRY;
+var ImageImportDirectoryTableEntry = /** @class */ (function () {
+    function ImageImportDirectoryTableEntry(values) {
+        this.struct = IMAGE_IMPORT_DIRECTORY_TABLE_ENTRY(values);
+        this.name = '';
+        this.imports = [];
+    }
+    ImageImportDirectoryTableEntry.prototype.getModuleNameRva = function () {
+        return this.struct.dwModuleNameRva;
+    };
+    ImageImportDirectoryTableEntry.prototype.getImportLookupTableRva = function () {
+        return this.struct.dwImportLookupTableRva;
+    };
+    ImageImportDirectoryTableEntry.prototype.setName = function (name) {
+        this.name = name;
+    };
+    ImageImportDirectoryTableEntry.prototype.getName = function () {
+        return this.name;
+    };
+    ImageImportDirectoryTableEntry.prototype.addImportEntry = function (importEntry) {
+        this.imports.push(importEntry);
+    };
+    ImageImportDirectoryTableEntry.prototype.getImports = function () {
+        return this.imports;
+    };
+    ImageImportDirectoryTableEntry.prototype.getStruct = function () {
+        return this.struct;
+    };
+    ImageImportDirectoryTableEntry.prototype.toObject = function () {
+        return { name: this.name, imports: this.imports.map(function (i) { return i.toObject(); }) };
+    };
+    return ImageImportDirectoryTableEntry;
+}());
+exports.ImageImportDirectoryTableEntry = ImageImportDirectoryTableEntry;
+var ImageImportEntry = /** @class */ (function () {
+    function ImageImportEntry() {
+    }
+    ImageImportEntry.prototype.setName = function (name) {
+        this.name = name;
+    };
+    ImageImportEntry.prototype.getName = function () {
+        return this.name;
+    };
+    ImageImportEntry.prototype.setHint = function (hint) {
+        this.hint = hint;
+    };
+    ImageImportEntry.prototype.getHint = function () {
+        return this.hint;
+    };
+    ImageImportEntry.prototype.setOrdinal = function (ordinal) {
+        this.ordinal = ordinal;
+    };
+    ImageImportEntry.prototype.getOrdinal = function () {
+        return this.ordinal;
+    };
+    ImageImportEntry.prototype.toObject = function () {
+        return {
+            name: this.getName(),
+            hint: this.getHint(),
+            ordinal: this.getOrdinal()
+        };
+    };
+    return ImageImportEntry;
+}());
+exports.ImageImportEntry = ImageImportEntry;
+function IMAGE_IMPORT_ENTRY(values) {
+    return __assign({ name: undefined, hint: undefined, ordinal: undefined }, values);
+}
+
+
+/***/ }),
+
+/***/ 4586:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageImportDirectoryTable = void 0;
+var ImageImportDirectoryTable = /** @class */ (function () {
+    function ImageImportDirectoryTable() {
+        this.entries = [];
+    }
+    ImageImportDirectoryTable.prototype.addEntry = function (entry) {
+        this.entries.push(entry);
+    };
+    ImageImportDirectoryTable.prototype.getEntries = function () {
+        return this.entries;
+    };
+    ImageImportDirectoryTable.prototype.toObject = function () {
+        return this.entries.map(function (e) { return e.toObject(); });
+    };
+    return ImageImportDirectoryTable;
+}());
+exports.ImageImportDirectoryTable = ImageImportDirectoryTable;
+
+
+/***/ }),
+
+/***/ 2029:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageImportLookupTable = void 0;
+function IMAGE_IMPORT_LOOKUP_TABLE(values) {
+    return __assign({ ordinalNameFlag: false, ordinalNumber: 0x0000, hintNameTableRva: 0x00000000 }, values);
+}
+var ImageImportLookupTable = /** @class */ (function () {
+    function ImageImportLookupTable(value) {
+        this.value = value;
+    }
+    ImageImportLookupTable.prototype.isOrdinal = function () {
+        return this.value - 0x80000000 > 0;
+    };
+    ImageImportLookupTable.prototype.getOrdinalNumber = function () {
+        return this.value - 0x80000000;
+    };
+    ImageImportLookupTable.prototype.getHintNameTableRva = function () {
+        return this.value;
+    };
+    ImageImportLookupTable.prototype.getStruct = function () {
+        return this.value;
+    };
+    ImageImportLookupTable.prototype.toObject = function () {
+        return {
+            ordinalNameFlag: this.isOrdinal(),
+            ordinalNumber: this.isOrdinal() ? this.getOrdinalNumber() : 0,
+            hintNameTableRva: this.isOrdinal() ? 0 : this.getHintNameTableRva()
+        };
+    };
+    return ImageImportLookupTable;
+}());
+exports.ImageImportLookupTable = ImageImportLookupTable;
+
+
+/***/ }),
+
+/***/ 4637:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageOptionalHeader = exports.IMAGE_OPTIONAL_HEADER = exports.LoaderFlagsLookup = exports.DllCharacteristicsLookup = exports.SubsystemLookup = exports.OptionalHeaderMagicNumberLookup = exports.OptionalHeaderCpuArchitectureLookup = exports.OptionalHeaderMagicNumber = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+var OptionalHeaderMagicNumber;
+(function (OptionalHeaderMagicNumber) {
+    OptionalHeaderMagicNumber[OptionalHeaderMagicNumber["ROM"] = 263] = "ROM";
+    OptionalHeaderMagicNumber[OptionalHeaderMagicNumber["PE32"] = 267] = "PE32";
+    OptionalHeaderMagicNumber[OptionalHeaderMagicNumber["PE32Plus"] = 523] = "PE32Plus";
+})(OptionalHeaderMagicNumber = exports.OptionalHeaderMagicNumber || (exports.OptionalHeaderMagicNumber = {}));
+exports.OptionalHeaderCpuArchitectureLookup = (_a = {},
+    _a[OptionalHeaderMagicNumber.PE32] = 'x86',
+    _a[OptionalHeaderMagicNumber.PE32Plus] = 'x64',
+    _a);
+exports.OptionalHeaderMagicNumberLookup = (_b = {},
+    _b[OptionalHeaderMagicNumber.ROM] = 'Identifies as a ROM image.',
+    _b[OptionalHeaderMagicNumber.PE32] = 'Identifies as a PE32 (32bit) executable file.',
+    _b[OptionalHeaderMagicNumber.PE32Plus] = 'Identifies as a PE32+ (64bit) executable.',
+    _b);
+exports.SubsystemLookup = {
+    0x0000: 'UNKNOWN - An unknown subsystem',
+    0x0001: 'NATIVE - Doesn\'t require a subsystem (such as a device driver)',
+    0x0002: 'WINDOWS_GUI - Runs in the Windows GUI subsystem',
+    0x0003: 'WINDOWS_CUI - Runs in the Windows character subsystem (a console app)',
+    0x0005: 'OS2_CUI - Runs in the OS/2 character subsystem (OS/2 1.x apps only)',
+    0x0007: 'POSIX_CUI - Runs in the Posix character subsystem',
+    0x0008: 'NATIVE_WINDOWS - Native Win9x driver',
+    0x0009: 'WINDOWS_CE_GUI - Windows CE',
+    0x000A: 'EFI_APPLICATION - An Extensible Firmware Interface (EFI) application',
+    0x000B: 'EFI_BOOT_SERVICE_DRIVER - An EFI driver with boot services',
+    0x000C: 'EFI_RUNTIME_DRIVER - An EFI driver with run-time services',
+    0x000D: 'EFI_ROM - An EFI ROM image',
+    0x000E: 'XBOX - XBOX',
+    0x0010: 'WINDOWS_BOOT_APPLICATION - Windows boot application'
+};
+/**
+ * https://www.aldeid.com/wiki/PE-Portable-executable#DLL_Characteristics
+ * https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-image_optional_header32
+ */
+exports.DllCharacteristicsLookup = {
+    0x0000: 'None',
+    0x0001: 'RESERVED - must be zero.',
+    0x0002: 'RESERVED - must be zero.',
+    0x0004: 'RESERVED - must be zero.',
+    0x0008: 'RESERVED - must be zero.',
+    0x0020: 'HIGH_ENTROPY_VA - ASLR with 64 bit address space.',
+    0x0040: 'DYNAMIC_BASE - DLL can be relocated at load time.',
+    0x0080: 'FORCE_INTEGRITY - Code integrity checks are enforced.',
+    0x0100: 'NX_COMPAT - Image is NX compatible.',
+    0x0200: 'NO_ISOLATION - Isolation aware, but do not isolate the image.',
+    0x0400: 'NO_SEH - Does not use structured exception (SE) handling. No SE handler may be called in this image.',
+    0x0800: 'NO_BIND - Do not bind the image.',
+    0x1000: 'RESERVED - must be zero.',
+    0x2000: 'WDM_DRIVER - A WDM driver.',
+    0x4000: 'GUARD_CF - Image supports Control Flow Guard.',
+    0x8000: 'TERMINAL_SERVER_AWARE - Terminal Server aware.'
+    // 0x0001: 'Call when DLL is first loaded into a process\'s address space',
+    // 0x0002: 'Call when a thread terminates',
+    // 0x0004: 'Call when a thread starts up',
+    // 0x0008: 'Call when DLL exits'
+};
+exports.LoaderFlagsLookup = {
+    0x0001: 'Invoke a breakpoint instruction before starting the process',
+    0x0002: 'Invoke a debugger on the process after it\'s been loaded'
+};
+function IMAGE_OPTIONAL_HEADER(values) {
+    return __assign({ 
+        //////////////////////////
+        // Standard fields
+        //////////////////////////
+        wMagic: 0x0000, bMajorLinkerVersion: 0x00, bMinorLinkerVersion: 0x00, dwSizeOfCode: 0x00000000, dwSizeOfInitializedData: 0x00000000, dwSizeOfUninitializedData: 0x00000000, dwAddressOfEntryPoint: 0x00000000, dwBaseOfCode: 0x00000000, dwBaseOfData: 0x00000000, 
+        //////////////////////////
+        // NT additional fields
+        //////////////////////////
+        dwImageBase: 0x00000000, dwSectionAlignment: 0x00000000, dwFileAlignment: 0x00000000, wMajorOperatingSystemVersion: 0x0000, wMinorOperatingSystemVersion: 0x0000, wMajorImageVersion: 0x0000, wMinorImageVersion: 0x0000, wMajorSusbsystemVersion: 0x0000, wMinorSubsystemVersion: 0x0000, dwReserved1: 0x00000000, dwSizeOfImage: 0x00000000, dwSizeOfHeaders: 0x00000000, dwCheckSum: 0x00000000, wSubsystem: 0x0000, wDllCharacteristics: 0x0000, 
+        ////////////////////////////
+        // 32 or 64 bit stack and heap reserve values
+        ///////////////////////////
+        dwSizeOfStackReserve: 0x00000000, dwSizeOfStackCommit: 0x00000000, dwSizeOfHeapReserve: 0x00000000, dwSizeOfHeapCommit: 0x00000000, dwLoaderFlags: 0x00000000, dwNumberOfRvaAndSizes: 0x00000000 }, values);
+}
+exports.IMAGE_OPTIONAL_HEADER = IMAGE_OPTIONAL_HEADER;
+var ImageOptionalHeader = /** @class */ (function () {
+    function ImageOptionalHeader(struct, dataDirectory) {
+        this.struct = IMAGE_OPTIONAL_HEADER(struct);
+        this.DataDirectory = dataDirectory;
+    }
+    ImageOptionalHeader.isMagicNumberROM = function (wMagic) {
+        return wMagic === OptionalHeaderMagicNumber.ROM;
+    };
+    ImageOptionalHeader.isMagicNumber32Bit = function (wMagic) {
+        return wMagic === OptionalHeaderMagicNumber.PE32;
+    };
+    ImageOptionalHeader.isMagicNumber64Bit = function (wMagic) {
+        return wMagic === OptionalHeaderMagicNumber.PE32Plus;
+    };
+    ImageOptionalHeader.prototype.getCpuArchitecture = function () {
+        if (this.struct.wMagic in exports.OptionalHeaderCpuArchitectureLookup) {
+            return exports.OptionalHeaderCpuArchitectureLookup[this.struct.wMagic];
+        }
+        else {
+            return 'Unknown';
+        }
+    };
+    ImageOptionalHeader.prototype.getMagic = function () {
+        var value = this.struct.wMagic.toString(16).padStart(4, "0");
+        var meaning = this.struct.wMagic in exports.OptionalHeaderMagicNumberLookup ? exports.OptionalHeaderMagicNumberLookup[this.struct.wMagic] : 'Unknown';
+        return { value: value, meaning: meaning };
+    };
+    ImageOptionalHeader.prototype.getMajorLinkerVersion = function () {
+        return this.struct.bMajorLinkerVersion;
+    };
+    ImageOptionalHeader.prototype.getMinorLinkerVersion = function () {
+        return this.struct.bMinorLinkerVersion;
+    };
+    ImageOptionalHeader.prototype.getSizeOfCode = function () {
+        return this.struct.dwSizeOfCode;
+    };
+    ImageOptionalHeader.prototype.getSizeOfInitializedData = function () {
+        return this.struct.dwSizeOfInitializedData;
+    };
+    ImageOptionalHeader.prototype.getSizeOfUninitializedData = function () {
+        return this.struct.dwSizeOfUninitializedData;
+    };
+    ImageOptionalHeader.prototype.getAddressOfEntryPoint = function () {
+        return this.struct.dwAddressOfEntryPoint.toString(16).padStart(8, "0");
+    };
+    ImageOptionalHeader.prototype.getBaseOfCode = function () {
+        return this.struct.dwBaseOfCode.toString(16).padStart(8, "0");
+    };
+    ImageOptionalHeader.prototype.getBaseOfData = function () {
+        return this.struct.dwBaseOfData.toString(16).padStart(8, "0");
+    };
+    ImageOptionalHeader.prototype.getImageBase = function () {
+        if (typeof this.struct.dwImageBase === data_types_1.DataTypes.QWORD) {
+            return this.struct.dwImageBase.toString(16).padStart(16, "0");
+        }
+        else {
+            return this.struct.dwImageBase.toString(16).padStart(8, "0");
+        }
+    };
+    ImageOptionalHeader.prototype.getSectionAlignment = function () {
+        return this.struct.dwSectionAlignment;
+    };
+    ImageOptionalHeader.prototype.getFileAlignment = function () {
+        return this.struct.dwFileAlignment;
+    };
+    ImageOptionalHeader.prototype.getMajorOperatingSystemVersion = function () {
+        return this.struct.wMajorOperatingSystemVersion;
+    };
+    ImageOptionalHeader.prototype.getMinorOperatingSystemVersion = function () {
+        return this.struct.wMinorOperatingSystemVersion;
+    };
+    ImageOptionalHeader.prototype.getMajorImageVersion = function () {
+        return this.struct.wMajorImageVersion;
+    };
+    ImageOptionalHeader.prototype.getMinorImageVersion = function () {
+        return this.struct.wMinorImageVersion;
+    };
+    ImageOptionalHeader.prototype.getMajorSubsystemVersion = function () {
+        return this.struct.wMajorSusbsystemVersion;
+    };
+    ImageOptionalHeader.prototype.getMinorSubsystemVersion = function () {
+        return this.struct.wMinorSubsystemVersion;
+    };
+    ImageOptionalHeader.prototype.getSizeOfImage = function () {
+        return this.struct.dwSizeOfImage;
+    };
+    ImageOptionalHeader.prototype.getSizeOfHeaders = function () {
+        return this.struct.dwSizeOfHeaders;
+    };
+    ImageOptionalHeader.prototype.getChecksum = function () {
+        return this.struct.dwCheckSum.toString(16).padStart(8, "0");
+    };
+    ImageOptionalHeader.prototype.getSubsystem = function () {
+        var value = this.struct.wSubsystem.toString(16).padStart(4, "0");
+        var meaning = this.struct.wSubsystem in exports.SubsystemLookup ? exports.SubsystemLookup[this.struct.wSubsystem] : 'Unknown';
+        return { value: value, meaning: meaning };
+    };
+    ImageOptionalHeader.prototype.getDllCharacteristics = function () {
+        var value = this.struct.wDllCharacteristics.toString(16).padStart(4, "0");
+        var meaning = [];
+        for (var key in exports.DllCharacteristicsLookup) {
+            if ((this.struct.wDllCharacteristics & parseInt(key)) !== 0) {
+                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(4, "0"), ") ").concat(exports.DllCharacteristicsLookup[key]));
+            }
+        }
+        return { value: value, meaning: meaning };
+    };
+    ImageOptionalHeader.prototype.getSizeOfStackReserve = function () {
+        if (typeof this.struct.dwSizeOfStackReserve === 'bigint') {
+            return this.struct.dwSizeOfStackReserve.toString(16).padStart(16, "0");
+        }
+        else {
+            return this.struct.dwSizeOfStackReserve.toString(16).padStart(8, "0");
+        }
+    };
+    ImageOptionalHeader.prototype.getSizeOfStackCommit = function () {
+        if (typeof this.struct.dwSizeOfStackCommit === 'bigint') {
+            return this.struct.dwSizeOfStackCommit.toString(16).padStart(16, "0");
+        }
+        else {
+            return this.struct.dwSizeOfStackCommit.toString(16).padStart(8, "0");
+        }
+    };
+    ImageOptionalHeader.prototype.getSizeOfHeapReserve = function () {
+        if (typeof this.struct.dwSizeOfHeapReserve === 'bigint') {
+            return this.struct.dwSizeOfHeapReserve.toString(16).padStart(16, "0");
+        }
+        else {
+            return this.struct.dwSizeOfHeapReserve.toString(16).padStart(8, "0");
+        }
+    };
+    ImageOptionalHeader.prototype.getSizeOfHeapCommit = function () {
+        if (typeof this.struct.dwSizeOfHeapCommit === 'bigint') {
+            return this.struct.dwSizeOfHeapCommit.toString(16).padStart(16, "0");
+        }
+        else {
+            return this.struct.dwSizeOfHeapCommit.toString(16).padStart(8, "0");
+        }
+    };
+    ImageOptionalHeader.prototype.getLoaderFlags = function () {
+        var value = this.struct.dwLoaderFlags.toString(16).padStart(8, "0");
+        var meaning = this.struct.dwLoaderFlags in exports.LoaderFlagsLookup ? exports.LoaderFlagsLookup[this.struct.dwLoaderFlags] : 'None';
+        return { value: value, meaning: meaning };
+    };
+    ImageOptionalHeader.prototype.getNumberOfRvaAndSizes = function () {
+        return this.struct.dwNumberOfRvaAndSizes;
+    };
+    ImageOptionalHeader.prototype.getDataDirectory = function () {
+        return this.DataDirectory;
+    };
+    ImageOptionalHeader.prototype.formattedDataDirectory = function () {
+        return this.getDataDirectory().toObject();
+    };
+    ImageOptionalHeader.prototype.getStruct = function () {
+        return this.struct;
+    };
+    ImageOptionalHeader.prototype.toObject = function () {
+        return {
+            magic: this.getMagic(),
+            majorLinkerVersion: this.getMajorLinkerVersion(),
+            minorLinkerVersion: this.getMinorLinkerVersion(),
+            sizeOfCode: this.getSizeOfCode(),
+            sizeOfInitializedData: this.getSizeOfInitializedData(),
+            sizeOfUninitializedData: this.getSizeOfUninitializedData(),
+            addressOfEntryPoint: this.getAddressOfEntryPoint(),
+            baseOfCode: this.getBaseOfCode(),
+            baseOfData: this.getBaseOfData(),
+            /////
+            imageBase: this.getImageBase(),
+            sectionAlignment: this.getSectionAlignment(),
+            fileAlignment: this.getFileAlignment(),
+            majorOperatingSystemVersion: this.getMajorOperatingSystemVersion(),
+            minorOperatingSystemVersion: this.getMinorOperatingSystemVersion(),
+            majorImageVersion: this.getMajorImageVersion(),
+            minorImageVersion: this.getMinorImageVersion(),
+            majorSubsystemVersion: this.getMajorSubsystemVersion(),
+            minorSubsystemVersion: this.getMinorSubsystemVersion(),
+            sizeOfImage: this.getSizeOfImage(),
+            sizeOfHeaders: this.getSizeOfHeaders(),
+            checksum: this.getChecksum(),
+            subsystem: this.getSubsystem(),
+            dllCharacteristics: this.getDllCharacteristics(),
+            sizeOfStackReserve: this.getSizeOfStackReserve(),
+            sizeOfStackCommit: this.getSizeOfStackCommit(),
+            sizeOfHeapReserve: this.getSizeOfHeapReserve(),
+            sizeOfHeapCommit: this.getSizeOfHeapCommit(),
+            loaderFlags: this.getLoaderFlags(),
+            numberOfRvaAndSizes: this.getNumberOfRvaAndSizes(),
+            DataDirectory: this.formattedDataDirectory()
+        };
+    };
+    return ImageOptionalHeader;
+}());
+exports.ImageOptionalHeader = ImageOptionalHeader;
+
+
+/***/ }),
+
+/***/ 1531:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageResourceDirectoryDataEntry = exports.IMAGE_RESOURCE_DIRECTORY_DATA_ENTRY = void 0;
+function IMAGE_RESOURCE_DIRECTORY_DATA_ENTRY(values) {
+    return __assign({ dwOffsetToData: 0x00000000, dwSize: 0x00000000, dwCodePage: 0x00000000, dwReserved: 0x00000000 }, values);
+}
+exports.IMAGE_RESOURCE_DIRECTORY_DATA_ENTRY = IMAGE_RESOURCE_DIRECTORY_DATA_ENTRY;
+var ImageResourceDirectoryDataEntry = /** @class */ (function () {
+    function ImageResourceDirectoryDataEntry(values) {
+        this.struct = IMAGE_RESOURCE_DIRECTORY_DATA_ENTRY(values);
+        this.dataFactory = function () { return new Uint8Array(); };
+    }
+    ImageResourceDirectoryDataEntry.prototype.setDataFactory = function (data) {
+        this.dataFactory = data;
+    };
+    ImageResourceDirectoryDataEntry.prototype.getDataFactory = function () {
+        return this.dataFactory;
+    };
+    ImageResourceDirectoryDataEntry.prototype.getData = function () {
+        return this.dataFactory();
+    };
+    ImageResourceDirectoryDataEntry.prototype.getStruct = function () {
+        return this.struct;
+    };
+    return ImageResourceDirectoryDataEntry;
+}());
+exports.ImageResourceDirectoryDataEntry = ImageResourceDirectoryDataEntry;
+
+
+/***/ }),
+
+/***/ 5830:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageResourceDirectoryEntry = exports.IMAGE_RESOURCE_DIRECTORY_ENTRY = void 0;
+var image_resource_directory_1 = __nccwpck_require__(4862);
+function IMAGE_RESOURCE_DIRECTORY_ENTRY(values) {
+    return __assign({ dwName: 0x00000000, dwOffsetToData: 0x00000000 }, values);
+}
+exports.IMAGE_RESOURCE_DIRECTORY_ENTRY = IMAGE_RESOURCE_DIRECTORY_ENTRY;
+var ImageResourceDirectoryEntry = /** @class */ (function () {
+    function ImageResourceDirectoryEntry(values) {
+        this.struct = IMAGE_RESOURCE_DIRECTORY_ENTRY(values);
+        this._isLeaf = false;
+        if (this.struct.dwOffsetToData - 0x80000000 > 0) {
+            this.struct.dwOffsetToData -= 0x80000000;
+        }
+        else {
+            this._isLeaf = true;
+        }
+    }
+    ImageResourceDirectoryEntry.prototype.isLeaf = function () {
+        return this._isLeaf;
+    };
+    ImageResourceDirectoryEntry.prototype.setDir = function (dir) {
+        this.value = dir;
+    };
+    ImageResourceDirectoryEntry.prototype.setValue = function (value) {
+        this.value = value;
+    };
+    ImageResourceDirectoryEntry.prototype.getValue = function () {
+        return this.value;
+    };
+    ImageResourceDirectoryEntry.prototype.getEntries = function () {
+        var obj = {};
+        if (this.value instanceof image_resource_directory_1.ImageResourceDirectory) {
+            Object.assign(obj, this.value.getEntries());
+        }
+        else {
+            return this.value;
+        }
+        return obj;
+    };
+    ImageResourceDirectoryEntry.prototype.getOffsetToData = function () {
+        return this.struct.dwOffsetToData.toString(16).padStart(8, "0");
+    };
+    ImageResourceDirectoryEntry.prototype.getName = function () {
+        return this.struct.dwName + '';
+    };
+    ImageResourceDirectoryEntry.prototype.getStruct = function () {
+        return this.struct;
+    };
+    ImageResourceDirectoryEntry.prototype.toObject = function () {
+        if (this.value instanceof image_resource_directory_1.ImageResourceDirectory) {
+            return this.value.toObject();
+        }
+        else {
+            return {
+                offsetToData: this.getOffsetToData(),
+                isDirectory: !this.isLeaf(),
+                value: 'Uint8Array(' + this.value().length + ')'
+            };
+        }
+    };
+    return ImageResourceDirectoryEntry;
+}());
+exports.ImageResourceDirectoryEntry = ImageResourceDirectoryEntry;
+
+
+/***/ }),
+
+/***/ 4862:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RT_RESOURCE_TYPES = exports.ImageResourceDirectory = exports.IMAGE_RESOURCE_DIRECTORY = void 0;
+var image_resource_directory_entry_1 = __nccwpck_require__(5830);
+function IMAGE_RESOURCE_DIRECTORY(values) {
+    return __assign({ dwCharacteristics: 0x00000000, dwTimeDateStamp: 0x00000000, wMajorVersion: 0x0000, wMinorVersion: 0x0000, wNumberOfNamedEntries: 0x0000, wNumberOfIdEntries: 0x0000 }, values);
+}
+exports.IMAGE_RESOURCE_DIRECTORY = IMAGE_RESOURCE_DIRECTORY;
+var ImageResourceDirectory = /** @class */ (function () {
+    function ImageResourceDirectory(values) {
+        this.struct = IMAGE_RESOURCE_DIRECTORY(values);
+        this.entries = {};
+    }
+    ImageResourceDirectory.prototype.getNumberOfNamedEntries = function () {
+        return this.struct.wNumberOfNamedEntries;
+    };
+    ImageResourceDirectory.prototype.getNumberOfIdEntries = function () {
+        return this.struct.wNumberOfIdEntries;
+    };
+    ImageResourceDirectory.prototype.addEntry = function (entry) {
+        this.entries[entry.getStruct().dwName] = entry;
+    };
+    ImageResourceDirectory.prototype.getEntries = function () {
+        return this.entries;
+    };
+    ImageResourceDirectory.prototype.hasResourcesForKey = function (key) {
+        return key in this.entries;
+    };
+    ImageResourceDirectory.prototype.getResourcesForKey = function (key) {
+        return this.entries[key];
+    };
+    ImageResourceDirectory.prototype.getStruct = function () {
+        return this.struct;
+    };
+    // @ts-ignore
+    ImageResourceDirectory.prototype.toObject = function () {
+        // @ts-ignore
+        var obj = {};
+        for (var id1 in this.entries) {
+            var entry1 = this.entries[id1];
+            var entries2 = entry1.getEntries();
+            if (typeof entries2 === 'object') {
+                obj[id1] = {};
+                for (var id2 in entries2) {
+                    var entry2 = entries2[id2];
+                    if (entry2 instanceof image_resource_directory_entry_1.ImageResourceDirectoryEntry) {
+                        var entryObj = entry2.toObject();
+                        obj[id1][id2] = entryObj;
+                    }
+                }
+            }
+            else {
+                obj[id1] = entries2;
+            }
+        }
+        return obj;
+    };
+    return ImageResourceDirectory;
+}());
+exports.ImageResourceDirectory = ImageResourceDirectory;
+/**
+ * https://lief-project.github.io/doc/latest/api/python/pe.html#resource-types
+ */
+var RT_RESOURCE_TYPES;
+(function (RT_RESOURCE_TYPES) {
+    /** Hardware-dependent cursor resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_CURSOR"] = 1] = "RT_CURSOR";
+    /** Bitmap resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_BITMAP"] = 2] = "RT_BITMAP";
+    /** Hardware-dependent icon resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_ICON"] = 3] = "RT_ICON";
+    /** Menu resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_MENU"] = 4] = "RT_MENU";
+    /** Dialog box. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_DIALOG"] = 5] = "RT_DIALOG";
+    /** String-table entry. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_STRING"] = 6] = "RT_STRING";
+    /** Font directory resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_FONTDIR"] = 7] = "RT_FONTDIR";
+    /** Font resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_FONT"] = 8] = "RT_FONT";
+    /** Accelerator table. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_ACCELERATOR"] = 9] = "RT_ACCELERATOR";
+    /** Application-defined resource (raw data). */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_RCDATA"] = 10] = "RT_RCDATA";
+    /** Message-table entry. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_MESSAGETABLE"] = 11] = "RT_MESSAGETABLE";
+    /** Hardware-independent cursor resource. RT_CURSOR + 11 */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_GROUP_CURSOR"] = 12] = "RT_GROUP_CURSOR";
+    /** Hardware-independent cursor resource. RT_ICON + 11 */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_GROUP_ICON"] = 14] = "RT_GROUP_ICON";
+    /** Version resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_VERSION"] = 16] = "RT_VERSION";
+    /** Allows a resource editing tool to associate a string with an .rc file.
+     * Typically, the string is the name of the header file that provides symbolic names.
+     * The resource compiler parses the string but otherwise ignores the value. For example, `1 DLGINCLUDE "MyFile.h"` */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_DLGINCLUDE"] = 17] = "RT_DLGINCLUDE";
+    /** Plug and Play resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_PLUGPLAY"] = 19] = "RT_PLUGPLAY";
+    /** VXD. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_VXD"] = 20] = "RT_VXD";
+    /** Animated cursor. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_ANICURSOR"] = 21] = "RT_ANICURSOR";
+    /** Animated icon. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_ANIICON"] = 22] = "RT_ANIICON";
+    /** HTML resource. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_HTML"] = 23] = "RT_HTML";
+    /** Side-by-Side Assembly Manifest. */
+    RT_RESOURCE_TYPES[RT_RESOURCE_TYPES["RT_MANIFEST"] = 24] = "RT_MANIFEST";
+})(RT_RESOURCE_TYPES = exports.RT_RESOURCE_TYPES || (exports.RT_RESOURCE_TYPES = {}));
+;
+
+
+/***/ }),
+
+/***/ 2179:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ImageSectionHeader = exports.IMAGE_SECTION_HEADER = exports.SectionHeaderCharacteristicsLookup = void 0;
+exports.SectionHeaderCharacteristicsLookup = {
+    0x00000020: "This section contains code. Usually set in conjunction with the executable flag (0x80000000).",
+    0x00000040: "This section contains initialized data. Almost all sections except executable and the .bss section have this flag set.",
+    0x00000080: "This section contains uninitialized data. (for example, the .bss section).",
+    0x00000200: "This section contains comments or some other type of information. \n\
+A typical use of this section is the .drectve section emitted by the compiler, which contains commands for the linker.",
+    0x00000800: "This section's contents shouldn't be put in the final EXE file. \n\
+These sections are used by the compiler/assembler to pass information to the linker.",
+    0x02000000: "This section can be discarded. It's not needed by the process once it's been loaded. \n\
+The most common discardable section is the base relocations (.reloc).",
+    0x10000000: "This section is shareable. When used with a DLL, the data in this section will be shared among all processes using the DLL. \n\
+The default is for data sections to be nonshared, meaning that each process using a DLL gets its own copy of this section's data. \n\
+In more technical terms, a shared section tells the memory manager to set the page mappings for this section such that all processes \n\
+using the DLL refer to the same physical page in memory. To make a section shareable, use the SHARED attribute at link time. \n\
+For example: `LINK /SECTION:MYDATA,RWS ...` tells the linker that the section called MYDATA should be readable, writeable, and shared.",
+    0x20000000: "This section is executable. This flag is usually set whenever the \"contains code\" flag (0x00000020) is set.",
+    0x40000000: "This section is readable. This flag is almost always set for sections in EXE files.",
+    0x80000000: "The section is writeable. If this flag isn't set in an EXE's section, the loader should mark the memory mapped pages as read-only or execute-only. \n\
+Typical sections with this attribute are .data and .bss. Interestingly, the .idata section also has this attribute set."
+};
+function IMAGE_SECTION_HEADER(values) {
+    return __assign({ szName: '', dwPhysicalAddressUnionVirtualSize: 0x00000000, dwVirtualAddress: 0x00000000, dwSizeOfRawData: 0x00000000, dwPointerToRawData: 0x00000000, dwPointerToRelocations: 0x00000000, dwPointerToLineNumbers: 0x00000000, wNumberOfRelocations: 0x0000, wNumberOfLineNumbers: 0x0000, dwCharacteristics: 0x00000000 }, values);
+}
+exports.IMAGE_SECTION_HEADER = IMAGE_SECTION_HEADER;
+var ImageSectionHeader = /** @class */ (function () {
+    function ImageSectionHeader(values) {
+        this.struct = IMAGE_SECTION_HEADER(values);
+    }
+    ImageSectionHeader.prototype.getName = function () {
+        return this.struct.szName;
+    };
+    ImageSectionHeader.prototype.getVirtualAddress = function () {
+        return this.struct.dwVirtualAddress.toString(16).padStart(8, "0");
+    };
+    ImageSectionHeader.prototype.getSizeOfRawData = function () {
+        return this.struct.dwSizeOfRawData;
+    };
+    ImageSectionHeader.prototype.getPointerToRawData = function () {
+        return this.struct.dwPointerToRawData.toString(16).padStart(8, "0");
+    };
+    ImageSectionHeader.prototype.getPointerToRelocations = function () {
+        return this.struct.dwPointerToRelocations.toString(16).padStart(8, "0");
+    };
+    ImageSectionHeader.prototype.getPointerToLineNumbers = function () {
+        return this.struct.dwPointerToLineNumbers.toString(16).padStart(8, "0");
+    };
+    ImageSectionHeader.prototype.getNumberOfRelocations = function () {
+        return this.struct.wNumberOfRelocations;
+    };
+    ImageSectionHeader.prototype.getNumberOfLineNumbers = function () {
+        return this.struct.wNumberOfLineNumbers;
+    };
+    ImageSectionHeader.prototype.getCharacteristics = function () {
+        var meaning = [];
+        for (var key in exports.SectionHeaderCharacteristicsLookup) {
+            if ((this.struct.dwCharacteristics & parseInt(key)) !== 0) {
+                meaning.push("(0x".concat(parseInt(key).toString(16).padStart(8, '0'), ") ").concat(exports.SectionHeaderCharacteristicsLookup[key]));
+            }
+        }
+        return { value: this.struct.dwCharacteristics.toString(16).padStart(8, "0"), meaning: meaning };
+    };
+    ImageSectionHeader.prototype.getStruct = function () {
+        return this.struct;
+    };
+    ImageSectionHeader.prototype.toObject = function () {
+        return {
+            name: this.struct.szName,
+            virtualAddress: this.getVirtualAddress(),
+            pointerToRawData: this.getPointerToRawData(),
+            sizeOfRawData: this.getSizeOfRawData(),
+            pointerToRelocations: this.getPointerToRelocations(),
+            pointerToLineNumbers: this.getPointerToLineNumbers(),
+            numberOfRelocations: this.getNumberOfRelocations(),
+            numberOfLineNumbers: this.getNumberOfLineNumbers(),
+            characteristics: this.getCharacteristics()
+        };
+    };
+    return ImageSectionHeader;
+}());
+exports.ImageSectionHeader = ImageSectionHeader;
+
+
+/***/ }),
+
+/***/ 7662:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__nccwpck_require__(7478), exports);
+__exportStar(__nccwpck_require__(2988), exports);
+__exportStar(__nccwpck_require__(4441), exports);
+__exportStar(__nccwpck_require__(764), exports);
+__exportStar(__nccwpck_require__(2596), exports);
+__exportStar(__nccwpck_require__(1958), exports);
+__exportStar(__nccwpck_require__(6660), exports);
+__exportStar(__nccwpck_require__(7963), exports);
+__exportStar(__nccwpck_require__(4586), exports);
+__exportStar(__nccwpck_require__(2727), exports);
+__exportStar(__nccwpck_require__(2029), exports);
+__exportStar(__nccwpck_require__(4637), exports);
+__exportStar(__nccwpck_require__(1531), exports);
+__exportStar(__nccwpck_require__(4862), exports);
+__exportStar(__nccwpck_require__(5830), exports);
+__exportStar(__nccwpck_require__(2179), exports);
+__exportStar(__nccwpck_require__(4199), exports);
+__exportStar(__nccwpck_require__(2309), exports);
+__exportStar(__nccwpck_require__(2459), exports);
+__exportStar(__nccwpck_require__(4514), exports);
+__exportStar(__nccwpck_require__(2103), exports);
+__exportStar(__nccwpck_require__(9801), exports);
+__exportStar(__nccwpck_require__(7338), exports);
+__exportStar(__nccwpck_require__(9462), exports);
+__exportStar(__nccwpck_require__(5676), exports);
+
+
+/***/ }),
+
+/***/ 3199:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LanguagePack = exports.LanguageId = void 0;
+/**
+ * Enumerated language identifiers
+ *
+ * https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/available-language-packs-for-windows
+ */
+var LanguageId;
+(function (LanguageId) {
+    /** 0x0401 / 1025 */
+    LanguageId[LanguageId["ar_SA"] = 1025] = "ar_SA";
+    /** 0x042D / 1069 */
+    LanguageId[LanguageId["eu_ES"] = 1069] = "eu_ES";
+    /** 0x0402 / 1026 */
+    LanguageId[LanguageId["bg_BG"] = 1026] = "bg_BG";
+    /** 0x0403 / 1027 */
+    LanguageId[LanguageId["ca_ES"] = 1027] = "ca_ES";
+    /** 0x0C04 / 3076
+     * Note: No longer used. See zh-TW. */
+    LanguageId[LanguageId["zh_HK"] = 3076] = "zh_HK";
+    /** 0x0804 / 2052 */
+    LanguageId[LanguageId["zh_CN"] = 2052] = "zh_CN";
+    /** 0x0404 / 1028 */
+    LanguageId[LanguageId["zh_TW"] = 1028] = "zh_TW";
+    /** 0x041A / 1050 */
+    LanguageId[LanguageId["hr_HR"] = 1050] = "hr_HR";
+    /** 0x0405 / 1029 */
+    LanguageId[LanguageId["cs_CZ"] = 1029] = "cs_CZ";
+    /** 0x0406 / 1030 */
+    LanguageId[LanguageId["da_DK"] = 1030] = "da_DK";
+    /** 0x0413 / 1043 */
+    LanguageId[LanguageId["nl_NL"] = 1043] = "nl_NL";
+    /** 0x0409 / 1033 */
+    LanguageId[LanguageId["en_US"] = 1033] = "en_US";
+    /** 0x0809 / 2057 */
+    LanguageId[LanguageId["en_GB"] = 2057] = "en_GB";
+    /** 0x0425 / 1061 */
+    LanguageId[LanguageId["et_EE"] = 1061] = "et_EE";
+    /** 0x040B / 1035 */
+    LanguageId[LanguageId["fi_FI"] = 1035] = "fi_FI";
+    /** 0x0C0C / 3084 */
+    LanguageId[LanguageId["fr_CA"] = 3084] = "fr_CA";
+    /** 0x040C / 1036 */
+    LanguageId[LanguageId["fr_FR"] = 1036] = "fr_FR";
+    /** 0x0456 / 1110 */
+    LanguageId[LanguageId["gl_ES"] = 1110] = "gl_ES";
+    /** 0x0407 / 1031 */
+    LanguageId[LanguageId["de_DE"] = 1031] = "de_DE";
+    /** 0x0408 / 1032 */
+    LanguageId[LanguageId["el_GR"] = 1032] = "el_GR";
+    /** 0x040D / 1037 */
+    LanguageId[LanguageId["he_IL"] = 1037] = "he_IL";
+    /** 0x040E / 1038 */
+    LanguageId[LanguageId["hu_HU"] = 1038] = "hu_HU";
+    /** 0x0421 / 1057 */
+    LanguageId[LanguageId["id_ID"] = 1057] = "id_ID";
+    /** 0x0410 / 1040 */
+    LanguageId[LanguageId["it_IT"] = 1040] = "it_IT";
+    /** 0x0411 / 1041 */
+    LanguageId[LanguageId["ja_JP"] = 1041] = "ja_JP";
+    /** 0x0412 / 1042 */
+    LanguageId[LanguageId["ko_KR"] = 1042] = "ko_KR";
+    /** 0x0426 / 1062 */
+    LanguageId[LanguageId["lv_LV"] = 1062] = "lv_LV";
+    /** 0x0427 / 1063 */
+    LanguageId[LanguageId["lt_LT"] = 1063] = "lt_LT";
+    /** 0x0414 / 1044 */
+    LanguageId[LanguageId["nb_NO"] = 1044] = "nb_NO";
+    /** 0x0415 / 1045 */
+    LanguageId[LanguageId["pl_PL"] = 1045] = "pl_PL";
+    /** 0x0416 / 1046 */
+    LanguageId[LanguageId["pt_BR"] = 1046] = "pt_BR";
+    /** 0x0816 / 2070 */
+    LanguageId[LanguageId["pt_PT"] = 2070] = "pt_PT";
+    /** 0x0418 / 1048 */
+    LanguageId[LanguageId["ro_RO"] = 1048] = "ro_RO";
+    /** 0x0419 / 1049 */
+    LanguageId[LanguageId["ru_RU"] = 1049] = "ru_RU";
+    /** 0x081A / 2074
+     * Note: No longer used. See sr-Latn-RS. */
+    LanguageId[LanguageId["sr_Latn_CS"] = 2074] = "sr_Latn_CS";
+    /** 0x241A / 9242 */
+    LanguageId[LanguageId["sr_Latn_RS"] = 9242] = "sr_Latn_RS";
+    /** 0x041B / 1051 */
+    LanguageId[LanguageId["sk_SK"] = 1051] = "sk_SK";
+    /** 0x0424 / 1060 */
+    LanguageId[LanguageId["sl_SI"] = 1060] = "sl_SI";
+    /** 0x080A / 2058 */
+    LanguageId[LanguageId["es_MX"] = 2058] = "es_MX";
+    /** 0x040A / 1034 */
+    LanguageId[LanguageId["es_ES"] = 1034] = "es_ES";
+    /** 0x041D / 1053 */
+    LanguageId[LanguageId["sv_SE"] = 1053] = "sv_SE";
+    /** 0x041E / 1054 */
+    LanguageId[LanguageId["th_TH"] = 1054] = "th_TH";
+    /** 0x041F / 1055 */
+    LanguageId[LanguageId["tr_TR"] = 1055] = "tr_TR";
+    /** 0x0422 / 1058 */
+    LanguageId[LanguageId["uk_UA"] = 1058] = "uk_UA";
+    /** 0x042A / 1066 */
+    LanguageId[LanguageId["vi_VN"] = 1066] = "vi_VN";
+})(LanguageId = exports.LanguageId || (exports.LanguageId = {}));
+/**
+ * Language Identifier information
+ */
+var LanguagePack = /** @class */ (function () {
+    function LanguagePack(id, language_region, tag, localized) {
+        this.id = id;
+        this.language_region = language_region;
+        this.tag = tag;
+        this.localized = localized;
+        LanguagePack.VALUES.push(this);
+    }
+    LanguagePack.values = function () {
+        return LanguagePack.VALUES;
+    };
+    LanguagePack.valueOf = function (value) {
+        var names = Object.keys(this);
+        var normalized = value.toString().toLowerCase().replace('-', '_');
+        for (var i = 0; i < names.length; i++) {
+            if (this[names[i]] instanceof LanguagePack && (normalized === names[i].toLowerCase() || value.toString() === this[names[i]].id.toString())) {
+                return this[names[i]];
+            }
+        }
+        return undefined;
+    };
+    LanguagePack.VALUES = [];
+    /** Arabic (Saudi Arabia) */
+    LanguagePack.ar_SA = new LanguagePack(LanguageId.ar_SA, 'Arabic (Saudi Arabia)', 'ar-SA', false);
+    /** Basque (Basque) */
+    LanguagePack.eu_ES = new LanguagePack(LanguageId.eu_ES, 'Basque (Basque)', 'eu-ES', false);
+    /** Bulgarian (Bulgaria) */
+    LanguagePack.bg_BG = new LanguagePack(LanguageId.bg_BG, 'Bulgarian (Bulgaria)', 'bg-BG', false);
+    /** Catalan */
+    LanguagePack.ca_ES = new LanguagePack(LanguageId.ca_ES, 'Catalan', 'ca-ES', false);
+    /** Chinese (Traditional, Hong Kong SAR)
+     * Note: No longer used. See zh-TW. */
+    LanguagePack.zh_HK = new LanguagePack(LanguageId.zh_HK, 'Chinese (Traditional, Hong Kong SAR)', 'zh-HK', false);
+    /** Chinese (Simplified, China) */
+    LanguagePack.zh_CN = new LanguagePack(LanguageId.zh_CN, 'Chinese (Simplified, China)', 'zh-CN', true);
+    /** Chinese (Traditional, Taiwan) */
+    LanguagePack.zh_TW = new LanguagePack(LanguageId.zh_TW, 'Chinese (Traditional, Taiwan)', 'zh-TW', true);
+    /** Croatian (Croatia) */
+    LanguagePack.hr_HR = new LanguagePack(LanguageId.hr_HR, 'Croatian (Croatia)', 'hr-HR', false);
+    /** Czech (Czech Republic) */
+    LanguagePack.cs_CZ = new LanguagePack(LanguageId.cs_CZ, 'Czech (Czech Republic)', 'cs-CZ', true);
+    /** Danish (Denmark) */
+    LanguagePack.da_DK = new LanguagePack(LanguageId.da_DK, 'Danish (Denmark)', 'da-DK', false);
+    /** Dutch (Netherlands) */
+    LanguagePack.nl_NL = new LanguagePack(LanguageId.nl_NL, 'Dutch (Netherlands)', 'nl-NL', true);
+    /** English (United States) */
+    LanguagePack.en_US = new LanguagePack(LanguageId.en_US, 'English (United States)', 'en-US', true);
+    /** English (United Kingdom) */
+    LanguagePack.en_GB = new LanguagePack(LanguageId.en_GB, 'English (United Kingdom)', 'en-GB', false);
+    /** Estonian (Estonia) */
+    LanguagePack.et_EE = new LanguagePack(LanguageId.et_EE, 'Estonian (Estonia)', 'et-EE', false);
+    /** Finnish (Finland) */
+    LanguagePack.fi_FI = new LanguagePack(LanguageId.fi_FI, 'Finnish (Finland)', 'fi-FI', false);
+    /** French (Canada) */
+    LanguagePack.fr_CA = new LanguagePack(LanguageId.fr_CA, 'French (Canada)', 'fr-CA', false);
+    /** French (France) */
+    LanguagePack.fr_FR = new LanguagePack(LanguageId.fr_FR, 'French (France)', 'fr-FR', true);
+    /** Galician */
+    LanguagePack.gl_ES = new LanguagePack(LanguageId.gl_ES, 'Galician', 'gl-ES', false);
+    /** German (Germany) */
+    LanguagePack.de_DE = new LanguagePack(LanguageId.de_DE, 'German (Germany)', 'de-DE', true);
+    /** Greek (Greece) */
+    LanguagePack.el_GR = new LanguagePack(LanguageId.el_GR, 'Greek (Greece)', 'el-GR', false);
+    /** Hebrew (Israel) */
+    LanguagePack.he_IL = new LanguagePack(LanguageId.he_IL, 'Hebrew (Israel)', 'he-IL', false);
+    /** Hungarian (Hungary) */
+    LanguagePack.hu_HU = new LanguagePack(LanguageId.hu_HU, 'Hungarian (Hungary)', 'hu-HU', true);
+    /** Indonesian (Indonesia) */
+    LanguagePack.id_ID = new LanguagePack(LanguageId.id_ID, 'Indonesian (Indonesia)', 'id-ID', false);
+    /** Italian (Italy) */
+    LanguagePack.it_IT = new LanguagePack(LanguageId.it_IT, 'Italian (Italy)', 'it-IT', true);
+    /** Japanese (Japan) */
+    LanguagePack.ja_JP = new LanguagePack(LanguageId.ja_JP, 'Japanese (Japan)', 'ja-JP', true);
+    /** Korean (Korea) */
+    LanguagePack.ko_KR = new LanguagePack(LanguageId.ko_KR, 'Korean (Korea)', 'ko-KR', true);
+    /** Latvian (Latvia) */
+    LanguagePack.lv_LV = new LanguagePack(LanguageId.lv_LV, 'Latvian (Latvia)', 'lv-LV', false);
+    /** Lithuanian (Lithuania) */
+    LanguagePack.lt_LT = new LanguagePack(LanguageId.lt_LT, 'Lithuanian (Lithuania)', 'lt-LT', false);
+    /** Norwegian, Bokmål (Norway) */
+    LanguagePack.nb_NO = new LanguagePack(LanguageId.nb_NO, 'Norwegian, Bokmål (Norway)', 'nb-NO', false);
+    /** Polish (Poland) */
+    LanguagePack.pl_PL = new LanguagePack(LanguageId.pl_PL, 'Polish (Poland)', 'pl-PL', true);
+    /** Portuguese (Brazil) */
+    LanguagePack.pt_BR = new LanguagePack(LanguageId.pt_BR, 'Portuguese (Brazil)', 'pt-BR', true);
+    /** Portuguese (Portugal) */
+    LanguagePack.pt_PT = new LanguagePack(LanguageId.pt_PT, 'Portuguese (Portugal)', 'pt-PT', true);
+    /** Romanian (Romania) */
+    LanguagePack.ro_RO = new LanguagePack(LanguageId.ro_RO, 'Romanian (Romania)', 'ro-RO', false);
+    /** Russian (Russia) */
+    LanguagePack.ru_RU = new LanguagePack(LanguageId.ru_RU, 'Russian (Russia)', 'ru-RU', true);
+    /** Serbian (Latin, Serbia)
+     * Note: No longer used. See sr-Latn-RS. */
+    LanguagePack.sr_Latn_CS = new LanguagePack(LanguageId.sr_Latn_CS, 'Serbian (Latin, Serbia)', 'sr-Latn-CS', false);
+    /** Serbian (Latin, Serbia) */
+    LanguagePack.sr_Latn_RS = new LanguagePack(LanguageId.sr_Latn_RS, 'Serbian (Latin, Serbia)', 'sr-Latn-RS', false);
+    /** Slovak (Slovakia) */
+    LanguagePack.sk_SK = new LanguagePack(LanguageId.sk_SK, 'Slovak (Slovakia)', 'sk-SK', false);
+    /** Slovenian (Slovenia) */
+    LanguagePack.sl_SI = new LanguagePack(LanguageId.sl_SI, 'Slovenian (Slovenia)', 'sl-SI', false);
+    /** Spanish (Mexico) */
+    LanguagePack.es_MX = new LanguagePack(LanguageId.es_MX, 'Spanish (Mexico)', 'es-MX', false);
+    /** Spanish (Spain) */
+    LanguagePack.es_ES = new LanguagePack(LanguageId.es_ES, 'Spanish (Spain)', 'es-ES', true);
+    /** Swedish (Sweden) */
+    LanguagePack.sv_SE = new LanguagePack(LanguageId.sv_SE, 'Swedish (Sweden)', 'sv-SE', true);
+    /** Thai (Thailand) */
+    LanguagePack.th_TH = new LanguagePack(LanguageId.th_TH, 'Thai (Thailand)', 'th-TH', false);
+    /** Turkish (Turkey) */
+    LanguagePack.tr_TR = new LanguagePack(LanguageId.tr_TR, 'Turkish (Turkey)', 'tr-TR', true);
+    /** Ukrainian (Ukraine) */
+    LanguagePack.uk_UA = new LanguagePack(LanguageId.uk_UA, 'Ukrainian (Ukraine)', 'uk-UA', false);
+    /** Vietnamese */
+    LanguagePack.vi_VN = new LanguagePack(LanguageId.vi_VN, 'Vietnamese', 'vi-VN', false);
+    return LanguagePack;
+}());
+exports.LanguagePack = LanguagePack;
+
+
+/***/ }),
+
+/***/ 2309:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StringTableEntry = exports.STRING_TABLE_ENTRY = void 0;
+function STRING_TABLE_ENTRY(values) {
+    return __assign({ wLength: 0x0000, wValueLength: 0x0000, wType: 0x0000, szKey: '' }, values);
+}
+exports.STRING_TABLE_ENTRY = STRING_TABLE_ENTRY;
+var StringTableEntry = /** @class */ (function () {
+    function StringTableEntry(values) {
+        this.struct = STRING_TABLE_ENTRY(values);
+        this.key = this.struct.szKey;
+        this.value = '';
+    }
+    StringTableEntry.prototype.getLength = function () {
+        return this.struct.wLength;
+    };
+    StringTableEntry.prototype.getType = function () {
+        return this.struct.wType;
+    };
+    StringTableEntry.prototype.isValueBinary = function () {
+        return this.struct.wType === 0;
+    };
+    StringTableEntry.prototype.isValueUtf16 = function () {
+        return this.struct.wType === 1;
+    };
+    StringTableEntry.prototype.getValueLength = function () {
+        return this.struct.wValueLength;
+    };
+    StringTableEntry.prototype.getKey = function () {
+        return this.key;
+    };
+    StringTableEntry.prototype.setValue = function (value) {
+        this.value = value;
+    };
+    StringTableEntry.prototype.getValue = function () {
+        return this.value;
+    };
+    StringTableEntry.prototype.getStruct = function () {
+        return this.struct;
+    };
+    return StringTableEntry;
+}());
+exports.StringTableEntry = StringTableEntry;
+
+
+/***/ }),
+
+/***/ 4199:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StringTable = exports.STRING_TABLE = void 0;
+function STRING_TABLE(values) {
+    return __assign({ wLength: 0x0000, wValueLength: 0x0000, wType: 0x0000, szKey: '' }, values);
+}
+exports.STRING_TABLE = STRING_TABLE;
+var StringTable = /** @class */ (function () {
+    function StringTable(values) {
+        this.struct = STRING_TABLE(values);
+        this.entries = [];
+    }
+    StringTable.prototype.getKey = function () {
+        return this.struct.szKey;
+    };
+    StringTable.prototype.getLength = function () {
+        return this.struct.wLength;
+    };
+    StringTable.prototype.addEntry = function (entry) {
+        this.entries.push(entry);
+    };
+    StringTable.prototype.getEntries = function () {
+        return this.entries;
+    };
+    StringTable.prototype.getStruct = function () {
+        return this.struct;
+    };
+    StringTable.prototype.toObject = function () {
+        return this.entries.reduce(function (map, entry) { map[entry.getKey()] = entry.getValue(); return map; }, {});
+    };
+    return StringTable;
+}());
+exports.StringTable = StringTable;
+
+
+/***/ }),
+
+/***/ 2459:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FixedFileInfo = exports.VS_FIXED_FILE_INFO = exports.VS_FIXEDFILEINFO_structure = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+var flags_1 = __nccwpck_require__(3155);
+/**
+ * The VS_FIXEDFILEINFO structure defined here: https://docs.microsoft.com/en-us/windows/win32/api/verrsrc/ns-verrsrc-vs_fixedfileinfo
+ */
+exports.VS_FIXEDFILEINFO_structure = {
+    dwSignature: {
+        byteSize: data_types_1.DataSize.DWORD,
+        value: Uint8Array.of(0xbd, 0x04, 0xef, 0xfe)
+    },
+    dwStrucVersion: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileVersionMS: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileVersionLS: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwProductVersionMS: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwProductVersionLS: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileFlagsMask: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileFlags: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileOS: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileType: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileSubtype: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileDateMS: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    dwFileDateLS: {
+        byteSize: data_types_1.DataSize.DWORD
+    }
+};
+function VS_FIXED_FILE_INFO(values) {
+    return __assign({ dwSignature: new Uint8Array([0x00, 0x00, 0x00, 0x00]), dwStrucVersion: new Uint16Array([0x0000, 0x0000]), dwFileVersionLS: 0x00000000, dwFileVersionMS: 0x00000000, dwProductVersionLS: 0x00000000, dwProductVersionMS: 0x00000000, dwFileFlagsMask: 0x00000000, dwFileFlags: 0x00000000, dwFileOS: 0x00000000, dwFileType: 0x00000000, dwFileSubtype: 0x00000000, dwFileDateLS: 0x00000000, dwFileDateMS: 0x00000000 }, values);
+}
+exports.VS_FIXED_FILE_INFO = VS_FIXED_FILE_INFO;
+var FixedFileInfo = /** @class */ (function () {
+    function FixedFileInfo(values) {
+        this.struct = VS_FIXED_FILE_INFO(values);
+    }
+    FixedFileInfo.prototype.getSignature = function () {
+        return this.struct.dwSignature.reduce(function (str, b) { return str + b.toString(16).padStart(2, "0"); }, '');
+    };
+    FixedFileInfo.prototype.getStruct = function () {
+        return this.struct;
+    };
+    FixedFileInfo.prototype.toObject = function () {
+        return {
+            signature: this.getSignature(),
+            strucVersion: this.struct.dwStrucVersion.join('.'),
+            fileVersionLS: this.struct.dwFileVersionLS,
+            fileVersionMS: this.struct.dwFileVersionMS,
+            productVersionLS: this.struct.dwProductVersionLS,
+            productVersionMS: this.struct.dwProductVersionMS,
+            fileFlagsMask: this.struct.dwFileFlagsMask,
+            fileFlags: flags_1.Flags.parseFileFlags(this.struct.dwFileFlags, this.struct.dwFileFlagsMask),
+            fileOS: flags_1.Flags.parseFileOSFlags(this.struct.dwFileOS),
+            fileType: flags_1.Flags.parseFileType(this.struct.dwFileType),
+            fileSubtype: flags_1.Flags.parseFileSubtype(this.struct.dwFileType, this.struct.dwFileSubtype),
+            fileDateLS: this.struct.dwFileDateLS,
+            fileDateMS: this.struct.dwFileDateMS
+        };
+    };
+    return FixedFileInfo;
+}());
+exports.FixedFileInfo = FixedFileInfo;
+
+
+/***/ }),
+
+/***/ 4514:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.String_structure = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+/**
+* The String structure defined here: https://docs.microsoft.com/en-us/windows/win32/menurc/string-str
+*/
+exports.String_structure = {
+    wLength: {
+        byteSize: data_types_1.DataSize.DWORD
+    },
+    wValueLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wType: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    szKey: {
+        byteSize: data_types_1.DataSize.WCHAR,
+        value: ''
+    },
+    Padding: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    Value: {
+        byteSize: data_types_1.DataSize.WORD
+    }
+};
+
+
+/***/ }),
+
+/***/ 2103:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StringFileInfo = exports.STRING_FILE_INFO = exports.StringFileInfo_structure = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+var vs_stringtable_1 = __nccwpck_require__(9801);
+/**
+ * The StringFileInfo structure defined here: https://docs.microsoft.com/en-us/windows/win32/menurc/stringfileinfo
+ */
+exports.StringFileInfo_structure = {
+    wLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wValueLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wType: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    szKey: {
+        byteSize: data_types_1.DataSize.WCHAR,
+        value: 'StringFileInfo'
+    },
+    Padding: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    Children: {
+        byteSize: vs_stringtable_1.StringTable_structure
+    }
+};
+function STRING_FILE_INFO(values) {
+    return __assign({ wLength: 0x0000, wValueLength: 0x0000, wType: 0x0000, szKey: '' }, values);
+}
+exports.STRING_FILE_INFO = STRING_FILE_INFO;
+var StringFileInfo = /** @class */ (function () {
+    function StringFileInfo(values) {
+        this.struct = STRING_FILE_INFO(values);
+        this.stringTables = {};
+    }
+    StringFileInfo.prototype.addStringTable = function (stringTable) {
+        this.stringTables[stringTable.getKey()] = stringTable;
+    };
+    StringFileInfo.prototype.getStringTables = function () {
+        return this.stringTables;
+    };
+    StringFileInfo.prototype.getStruct = function () {
+        return this.struct;
+    };
+    StringFileInfo.prototype.toObject = function () {
+        var obj = {};
+        for (var key in this.stringTables) {
+            obj[key] = this.stringTables[key].getEntries().reduce(function (record, entry) { record[entry.getKey()] = entry.getValue(); return record; }, {});
+        }
+        return obj;
+    };
+    return StringFileInfo;
+}());
+exports.StringFileInfo = StringFileInfo;
+
+
+/***/ }),
+
+/***/ 9801:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StringTable_structure = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+var vs_string_1 = __nccwpck_require__(4514);
+/**
+ * The StringTable structure defined here: https://docs.microsoft.com/en-us/windows/win32/menurc/stringtable
+ */
+exports.StringTable_structure = {
+    wLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wValueLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wType: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    szKey: {
+        byteSize: data_types_1.DataSize.WCHAR,
+        value: ''
+    },
+    Padding: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    Children: {
+        byteSize: vs_string_1.String_structure
+    }
+};
+
+
+/***/ }),
+
+/***/ 7338:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VarFileInfoVar = exports.VAR_FILE_INFO_VAR = exports.Var_structure = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+/**
+ * The Var structure defined here: https://docs.microsoft.com/en-us/windows/win32/menurc/var-str
+ */
+exports.Var_structure = {
+    wLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wValueLength: {
+        byteSize: data_types_1.DataSize.WORD,
+    },
+    wType: {
+        byteSize: data_types_1.DataSize.WORD,
+    },
+    szKey: {
+        byteSize: data_types_1.DataSize.WCHAR,
+        value: 'Translation'
+    },
+    Padding: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    Value: {
+        byteSize: data_types_1.DataSize.DWORD
+    }
+};
+function VAR_FILE_INFO_VAR(values) {
+    return __assign({ wLength: 0x0000, wValueLength: 0x0000, wType: 0x0000, szKey: '' }, values);
+}
+exports.VAR_FILE_INFO_VAR = VAR_FILE_INFO_VAR;
+var VarFileInfoVar = /** @class */ (function () {
+    function VarFileInfoVar(values) {
+        this.struct = VAR_FILE_INFO_VAR(values);
+        this.vars = [];
+    }
+    VarFileInfoVar.prototype.getValueLength = function () {
+        return this.struct.wValueLength;
+    };
+    VarFileInfoVar.prototype.getType = function () {
+        return this.struct.wType;
+    };
+    VarFileInfoVar.prototype.isDataBinary = function () {
+        return this.struct.wType === 0;
+    };
+    VarFileInfoVar.prototype.isDataUtf16 = function () {
+        return this.struct.wType === 1;
+    };
+    VarFileInfoVar.prototype.getKey = function () {
+        return this.struct.szKey;
+    };
+    VarFileInfoVar.prototype.addVar = function (languageId, codePageId) {
+        this.vars.push({ languageId: languageId, codePageId: codePageId });
+    };
+    VarFileInfoVar.prototype.getVars = function () {
+        return this.vars;
+    };
+    VarFileInfoVar.prototype.toObject = function () {
+        var _a;
+        return _a = {}, _a[this.getKey()] = this.vars.map(function (e) { return ({ languageId: e.languageId.toString(16).padStart(4, "0"), codePageId: e.codePageId.toString(16).padStart(4, "0") }); }), _a;
+    };
+    return VarFileInfoVar;
+}());
+exports.VarFileInfoVar = VarFileInfoVar;
+
+
+/***/ }),
+
+/***/ 9462:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VarFileInfo = exports.VAR_FILE_INFO = exports.VarFileInfo_structure = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+var vs_var_1 = __nccwpck_require__(7338);
+/**
+ * The VarFileInfo structure defined here: https://docs.microsoft.com/en-us/windows/win32/menurc/varfileinfo
+ */
+exports.VarFileInfo_structure = {
+    wLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wValueLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wType: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    szKey: {
+        byteSize: data_types_1.DataSize.WCHAR,
+        value: 'VarFileInfo'
+    },
+    Padding: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    Children: {
+        byteSize: vs_var_1.Var_structure
+    }
+};
+function VAR_FILE_INFO(values) {
+    return __assign({ wLength: 0x0000, wValueLength: 0x0000, wType: 0x0000, szKey: '' }, values);
+}
+exports.VAR_FILE_INFO = VAR_FILE_INFO;
+var VarFileInfo = /** @class */ (function () {
+    function VarFileInfo(values) {
+        this.struct = VAR_FILE_INFO(values);
+        this.entries = [];
+    }
+    VarFileInfo.prototype.getKey = function () {
+        return this.struct.szKey;
+    };
+    VarFileInfo.prototype.getLength = function () {
+        return this.struct.wLength;
+    };
+    VarFileInfo.prototype.addEntry = function (entry) {
+        this.entries.push(entry);
+    };
+    VarFileInfo.prototype.getEntries = function () {
+        return this.entries;
+    };
+    VarFileInfo.prototype.getVar = function (name) {
+        return this.entries.find(function (entry) { return entry.getKey() === name; });
+    };
+    VarFileInfo.prototype.getStruct = function () {
+        return this.struct;
+    };
+    VarFileInfo.prototype.toObject = function () {
+        var varTable = {};
+        for (var _i = 0, _a = this.entries; _i < _a.length; _i++) {
+            var entry = _a[_i];
+            var obj = entry.toObject();
+            Object.assign(varTable, obj);
+        }
+        return varTable;
+    };
+    return VarFileInfo;
+}());
+exports.VarFileInfo = VarFileInfo;
+
+
+/***/ }),
+
+/***/ 5676:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VsVersionInfo = exports.VS_VERSIONINFO = exports.VS_VERSIONINFO_structure = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+var vs_fixedfileinfo_1 = __nccwpck_require__(2459);
+var vs_stringfileinfo_1 = __nccwpck_require__(2103);
+var vs_varfileinfo_1 = __nccwpck_require__(9462);
+/**
+ * The VS_VERSIONINFO structure defined here: https://docs.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo
+ */
+exports.VS_VERSIONINFO_structure = {
+    wLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wValueLength: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    wType: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    szKey: {
+        byteSize: data_types_1.DataSize.WCHAR,
+        value: 'VS_VERSION_INFO'
+    },
+    Padding1: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    Value: {
+        byteSize: vs_fixedfileinfo_1.VS_FIXEDFILEINFO_structure
+    },
+    Padding2: {
+        byteSize: data_types_1.DataSize.WORD
+    },
+    Children: {
+        byteSize: data_types_1.DataSize.WORD,
+        StringFileInfo: vs_stringfileinfo_1.StringFileInfo_structure,
+        VarFileInfo: vs_varfileinfo_1.VarFileInfo_structure
+    }
+};
+function VS_VERSIONINFO(values) {
+    return __assign({ wLength: 0x0000, wValueLength: 0x0000, wType: 0x0000, szKey: '' }, values);
+}
+exports.VS_VERSIONINFO = VS_VERSIONINFO;
+var VsVersionInfo = /** @class */ (function () {
+    function VsVersionInfo(values) {
+        this.struct = VS_VERSIONINFO(values);
+    }
+    VsVersionInfo.prototype.setFixedFileInfo = function (fixedFileInfo) {
+        this.fixedFileInfo = fixedFileInfo;
+    };
+    VsVersionInfo.prototype.getFixedFileInfo = function () {
+        return this.fixedFileInfo;
+    };
+    VsVersionInfo.prototype.setStringFileInfo = function (stringFileInfo) {
+        this.stringFileInfo = stringFileInfo;
+    };
+    VsVersionInfo.prototype.getStringFileInfo = function () {
+        return this.stringFileInfo;
+    };
+    VsVersionInfo.prototype.setVarFileInfo = function (varFileInfo) {
+        this.varFileInfo = varFileInfo;
+    };
+    VsVersionInfo.prototype.getVarFileInfo = function () {
+        return this.varFileInfo;
+    };
+    VsVersionInfo.prototype.getStruct = function () {
+        return this.struct;
+    };
+    VsVersionInfo.prototype.toObject = function () {
+        var _a, _b, _c;
+        return {
+            fixedFileInfo: (_a = this.fixedFileInfo) === null || _a === void 0 ? void 0 : _a.toObject(),
+            stringFileInfo: (_b = this.stringFileInfo) === null || _b === void 0 ? void 0 : _b.toObject(),
+            varFileInfo: (_c = this.varFileInfo) === null || _c === void 0 ? void 0 : _c.toObject()
+        };
+    };
+    return VsVersionInfo;
+}());
+exports.VsVersionInfo = VsVersionInfo;
+
+
+/***/ }),
+
+/***/ 6413:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BufferReader = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+/**
+ * The BufferReader provides many utility methods for reading and navigating a data buffer, as well
+ * as automatically advance, update, and track the byte offset for operations that advance the offset pointer.
+ */
+var BufferReader = /** @class */ (function () {
+    /**
+     * @param buffer The original data buffer of read bytes
+     */
+    function BufferReader(buffer) {
+        this.data = new DataView(new Uint8Array(buffer).buffer);
+        this.offset = 0;
+        this.offsetStack = [];
+        this.alignment = 0;
+    }
+    BufferReader.prototype.getOffset = function () {
+        return this.offset;
+    };
+    BufferReader.prototype.getByteLength = function () {
+        return this.data.byteLength;
+    };
+    BufferReader.prototype.pushOffset = function () {
+        this.offsetStack.push(this.offset);
+    };
+    BufferReader.prototype.popOffset = function () {
+        if (this.offsetStack.length > 0) {
+            this.offset = this.offsetStack.pop();
+        }
+    };
+    BufferReader.prototype.trim = function (start, end) {
+        if (start === void 0) { start = 0; }
+        if (end === void 0) { end = this.data.byteLength; }
+        this.data = new DataView(new Uint8Array(this.data.buffer.slice(start, end)));
+    };
+    BufferReader.prototype.slicedBuffer = function (offset, byteCount) {
+        if (offset === void 0) { offset = this.offset; }
+        return new BufferReader(this.data.buffer.slice(offset, offset + byteCount));
+    };
+    BufferReader.prototype.readByte = function () {
+        var byte = this.data.getUint8(this.offset);
+        this.offset += data_types_1.DataSize.BYTE;
+        return byte;
+    };
+    BufferReader.prototype.readBytes = function (byteCount, le) {
+        if (le === void 0) { le = false; }
+        var bytes = [];
+        for (var i = 0; i < byteCount; i++) {
+            bytes.push(this.data.getUint8(this.offset));
+            this.offset += data_types_1.DataSize.BYTE;
+        }
+        if (le === true) {
+            bytes.reverse();
+        }
+        return Uint8Array.from(bytes);
+    };
+    /**
+     * Read a WORD worth of bytes
+     * @returns {number}
+     */
+    BufferReader.prototype.readWord = function () {
+        var word = this.data.getUint16(this.offset, true);
+        this.offset += data_types_1.DataSize.WORD;
+        return word;
+    };
+    /**
+     * Reads a specific number of word sized bytes
+     * @param wordCount
+     * @returns {Uint16Array}
+     */
+    BufferReader.prototype.readWords = function (wordCount) {
+        var words = [];
+        for (var i = 0; i < wordCount; i++) {
+            words.push(this.data.getUint16(this.offset, true));
+            this.offset += data_types_1.DataSize.WORD;
+        }
+        return Uint16Array.from(words);
+    };
+    /**
+     * Reads a DWORD worth of bytes
+     * @returns {number}
+     */
+    BufferReader.prototype.readDWord = function () {
+        var dword = this.data.getUint32(this.offset, true);
+        this.offset += data_types_1.DataSize.DWORD;
+        return dword;
+    };
+    /**
+     * Reads a specific number of dword sized bytes
+     * @param dwordCount
+     * @returns {Uint32Array}
+     */
+    BufferReader.prototype.readDWords = function (dwordCount) {
+        var dwords = [];
+        for (var i = 0; i < dwordCount; i++) {
+            dwords.push(this.data.getUint32(this.offset, true));
+            this.offset += data_types_1.DataSize.DWORD;
+        }
+        return Uint32Array.from(dwords);
+    };
+    /**
+     * Reads a QWORD worth of bytes
+     * @param asInt
+     * @returns {bigint}
+     */
+    BufferReader.prototype.readQWord = function () {
+        var qword = this.data.getBigUint64(this.offset, true);
+        this.offset += data_types_1.DataSize.QWORD;
+        return qword;
+    };
+    /**
+     * Reads a specific number of qword sized bytes
+     * @param qwordCount
+     * @returns {BigUint64Array}
+     */
+    BufferReader.prototype.readQWords = function (qwordCount) {
+        var qwords = [];
+        for (var i = 0; i < qwordCount; i++) {
+            qwords.push(this.data.getBigUint64(this.offset, true));
+            this.offset += data_types_1.DataSize.QWORD;
+        }
+        return BigUint64Array.from(qwords);
+    };
+    /**
+     * Reads a zero (null byte) terminated two-byte (WORD) per character string
+     * @returns {string}
+     */
+    BufferReader.prototype.readWordStringZ = function () {
+        var word = 0x0000;
+        var str = [];
+        while ((word = this.peekWord()) != 0x0000) {
+            str.push(String.fromCharCode(word));
+            this.offset += data_types_1.DataSize.WORD;
+        }
+        this.offset += data_types_1.DataSize.WORD;
+        return str.join('').replace(/\0/g, '');
+    };
+    BufferReader.prototype.readByteStringZ = function () {
+        var byte = 0x00;
+        var str = [];
+        while ((byte = this.peekByte()) != 0x00) {
+            str.push(String.fromCharCode(byte));
+            this.offset += data_types_1.DataSize.BYTE;
+        }
+        this.offset += data_types_1.DataSize.BYTE;
+        return str.join('').replace(/\0/g, '');
+    };
+    BufferReader.prototype.readBytesAsString = function (byteCount) {
+        var bytes = this.readBytes(byteCount);
+        var str = [];
+        for (var i = 0; i < bytes.length; i++) {
+            str.push(String.fromCharCode(bytes[i]));
+        }
+        return str.join('').replace(/\0/g, '');
+    };
+    BufferReader.prototype.readWordsAsString = function (wordCount) {
+        var words = this.readWords(wordCount);
+        var str = [];
+        for (var i = 0; i < words.length; i++) {
+            str.push(String.fromCharCode(words[i]));
+        }
+        return str.join('').replace(/\0/g, '');
+    };
+    BufferReader.prototype.peekByte = function (offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return this.data.getUint8(offset);
+    };
+    BufferReader.prototype.peekBytes = function (byteCount, offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return new Uint8Array(this.data.buffer.slice(offset, offset + (byteCount * data_types_1.DataSize.BYTE)));
+    };
+    BufferReader.prototype.prevByte = function (offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return this.data.getUint8(offset - data_types_1.DataSize.BYTE);
+    };
+    BufferReader.prototype.prevBytes = function (byteCount, offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return new Uint8Array(this.data.buffer.slice(offset - (byteCount * data_types_1.DataSize.BYTE), offset));
+    };
+    BufferReader.prototype.peekWord = function (offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return this.data.getUint16(offset, true);
+    };
+    BufferReader.prototype.peekWords = function (wordCount, offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return new Uint8Array(this.data.buffer.slice(offset, offset + (wordCount * data_types_1.DataSize.WORD)));
+    };
+    BufferReader.prototype.prevWord = function (offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return this.data.getUint16(offset - data_types_1.DataSize.WORD, true);
+    };
+    BufferReader.prototype.prevWords = function (wordCount, offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return new Uint8Array(this.data.buffer.slice(offset - (wordCount * data_types_1.DataSize.WORD), offset));
+    };
+    BufferReader.prototype.seekNext = function (data) {
+        var location = this.findNext(data);
+        if (location.start.dec !== -1) {
+            this.goto(location.start.dec);
+        }
+    };
+    BufferReader.prototype.seekNonZeroByte = function () {
+        while (this.peekByte() === 0x00) {
+            this.readByte();
+        }
+    };
+    BufferReader.prototype.seekNonZeroWord = function () {
+        while (this.peekWord() === 0x0000) {
+            this.readWord();
+        }
+    };
+    BufferReader.prototype.alignTo32BitBoundary = function () {
+        var offset = 0;
+        while ((this.offset + offset) % data_types_1.DataSize.DWORD !== 0) {
+            offset += data_types_1.DataSize.BYTE;
+        }
+        this.alignment = offset;
+    };
+    BufferReader.prototype.seek32BitBoundary = function () {
+        if ((this.offset + this.alignment) % data_types_1.DataSize.DWORD === 0) {
+            return;
+        }
+        else {
+            while ((this.offset + this.alignment) % data_types_1.DataSize.DWORD !== 0) {
+                this.readByte();
+            }
+        }
+    };
+    BufferReader.prototype.findNext = function (data, offset) {
+        var _a;
+        if (offset === void 0) { offset = this.offset; }
+        var start = -1;
+        var end = -1;
+        if (typeof data === 'string') {
+            data = Uint8Array.from(((_a = data.match(/[\da-f]{2}/gi)) !== null && _a !== void 0 ? _a : []).map(function (h) { return parseInt(h, 16); }));
+        }
+        for (var i = offset; i < this.data.byteLength; i++) {
+            if (this.data.getUint8(i) === data[0]) {
+                var match = true;
+                for (var seek = 0; seek < data.length && match === true; seek++) {
+                    match = match && this.data.getUint8(i + seek) === data[seek];
+                    if (match === false) {
+                        break;
+                    }
+                }
+                if (match === true) {
+                    start = i;
+                    end = (start + (data.length));
+                    break;
+                }
+            }
+        }
+        return new SeekLocation(start, end);
+    };
+    BufferReader.prototype.findNextWord = function (data, offset) {
+        if (offset === void 0) { offset = this.offset; }
+        var word;
+        if (typeof data === 'string') {
+            word = Buffer.from(data, 'hex');
+        }
+        else {
+            word = Uint8Array.from(data);
+        }
+        var current = this.peekWords(1, offset);
+        function compareWords(word1, word2) {
+            return word1[0] === word2[0] && word1[1] === word2[1];
+        }
+        while (!compareWords(word, current) && offset < this.data.byteLength) {
+            offset += data_types_1.DataSize.WORD;
+            current = this.peekWords(1, offset);
+        }
+        return offset >= this.data.byteLength ? null : new SeekLocation(offset, offset + word.length / 2);
+    };
+    BufferReader.prototype.hasNext = function (data, offset) {
+        if (offset === void 0) { offset = 0; }
+        return this.findNext(data, offset).start.dec != -1;
+    };
+    BufferReader.prototype.findOccurences = function (data, offset) {
+        if (offset === void 0) { offset = 0; }
+        var occurences = [];
+        var location = null;
+        while ((location = this.findNext(data, offset)).start.dec != -1) {
+            occurences.push(location);
+            offset = location.end.dec;
+        }
+        return occurences;
+    };
+    BufferReader.prototype.rewindBytes = function (byteCount) {
+        this.offset -= byteCount * data_types_1.DataSize.BYTE;
+    };
+    BufferReader.prototype.rewindWords = function (wordCount) {
+        this.offset -= wordCount * data_types_1.DataSize.WORD;
+    };
+    BufferReader.prototype.goto = function (offset) {
+        this.offset = offset;
+    };
+    return BufferReader;
+}());
+exports.BufferReader = BufferReader;
+/**
+ * Stores location information describing start and end offsets, in both decimal and hex.
+ */
+var SeekLocation = /** @class */ (function () {
+    function SeekLocation(start, end) {
+        this.start = {
+            dec: start,
+            hex: start.toString(16)
+        };
+        this.end = {
+            dec: end,
+            hex: end.toString(16)
+        };
+    }
+    return SeekLocation;
+}());
+
+
+/***/ }),
+
+/***/ 9076:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BufferWriter = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+var BufferWriter = /** @class */ (function () {
+    function BufferWriter(buffer) {
+        this.data = new DataView(buffer);
+        this.offset = 0;
+        this.offsetStack = [];
+        this.alignment = 0;
+    }
+    BufferWriter.prototype.byteLength = function () {
+        return this.data.byteLength;
+    };
+    BufferWriter.prototype.buffer = function () {
+        return this.data.buffer;
+    };
+    BufferWriter.prototype.writeByte = function (byte) {
+        this.data.setUint8(this.offset, byte);
+        this.offset += data_types_1.DataSize.BYTE;
+    };
+    BufferWriter.prototype.writeBytes = function (bytes) {
+        for (var _i = 0, _a = Array.from(bytes); _i < _a.length; _i++) {
+            var byte = _a[_i];
+            this.writeByte(byte);
+        }
+    };
+    BufferWriter.prototype.writeWord = function (word) {
+        this.data.setUint16(this.offset, word, true);
+        this.offset += data_types_1.DataSize.WORD;
+    };
+    BufferWriter.prototype.writeWords = function (words) {
+        for (var _i = 0, _a = Array.from(words); _i < _a.length; _i++) {
+            var word = _a[_i];
+            this.writeWord(word);
+        }
+    };
+    BufferWriter.prototype.writeDWord = function (dWord) {
+        this.data.setUint32(this.offset, dWord, true);
+        this.offset += data_types_1.DataSize.DWORD;
+    };
+    BufferWriter.prototype.writeDWords = function (dwords) {
+        for (var _i = 0, _a = Array.from(dwords); _i < _a.length; _i++) {
+            var dword = _a[_i];
+            this.writeDWord(dword);
+        }
+    };
+    BufferWriter.prototype.writeQWord = function (qword) {
+        this.data.setBigUint64(this.offset, BigInt(qword), true);
+        this.offset += data_types_1.DataSize.QWORD;
+    };
+    BufferWriter.prototype.writeQWords = function (qwords) {
+        for (var _i = 0, _a = Array.from(qwords); _i < _a.length; _i++) {
+            var qword = _a[_i];
+            this.writeQWord(qword);
+        }
+    };
+    BufferWriter.prototype.writeStringZ = function (str) {
+        var word = 0x0000;
+        this.writeStringAsBytes(str);
+        this.writeWord(word);
+    };
+    BufferWriter.prototype.writeStringAsBytes = function (str) {
+        for (var _i = 0, _a = str.split('').map(function (char) { return char.codePointAt(0); }); _i < _a.length; _i++) {
+            var chr = _a[_i];
+            this.writeByte(chr);
+        }
+    };
+    BufferWriter.prototype.writeStringAsWords = function (str) {
+        for (var _i = 0, _a = str.split('').map(function (char) { return char.codePointAt(0); }); _i < _a.length; _i++) {
+            var chr = _a[_i];
+            this.writeWord(chr);
+        }
+    };
+    return BufferWriter;
+}());
+exports.BufferWriter = BufferWriter;
+
+
+/***/ }),
+
+/***/ 4913:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FileStreamReader = void 0;
+var data_types_1 = __nccwpck_require__(5686);
+var fs = __importStar(__nccwpck_require__(7147));
+var FileStreamReader = /** @class */ (function () {
+    function FileStreamReader(fd) {
+        this.data = fd;
+        this.offset = 0;
+        this.offsetStack = [];
+        this.alignment = 0;
+    }
+    FileStreamReader.prototype.getOffset = function () {
+        return this.offset;
+    };
+    FileStreamReader.prototype.pushOffset = function () {
+        this.offsetStack.push(this.offset);
+    };
+    FileStreamReader.prototype.popOffset = function () {
+        if (this.offsetStack.length > 0) {
+            this.offset = this.offsetStack.pop();
+        }
+    };
+    FileStreamReader.prototype.readByte = function () {
+        var byte = this.getUint8(this.offset);
+        this.offset += data_types_1.DataSize.BYTE;
+        return byte;
+    };
+    FileStreamReader.prototype.readBytes = function (byteCount) {
+        var bytes = new Uint8Array(byteCount);
+        fs.readSync(this.data, bytes, 0, byteCount, this.offset);
+        this.offset += (bytes.length * data_types_1.DataSize.BYTE);
+        return bytes;
+    };
+    FileStreamReader.prototype.getUint8 = function (offset) {
+        if (offset === void 0) { offset = this.offset; }
+        var byte = new Uint8Array(data_types_1.DataSize.BYTE);
+        fs.readSync(this.data, byte, 0, data_types_1.DataSize.BYTE, offset);
+        return byte.at(0);
+    };
+    FileStreamReader.prototype.readWord = function () {
+        var word = this.getUint16(this.offset, true);
+        this.offset += data_types_1.DataSize.WORD;
+        return word;
+    };
+    FileStreamReader.prototype.readWords = function (wordCount) {
+        var words = [];
+        for (var i = 0; i < wordCount; i++) {
+            words.push(this.readWord());
+        }
+        return new Uint16Array(words);
+    };
+    FileStreamReader.prototype.getUint16 = function (offset, le) {
+        if (offset === void 0) { offset = this.offset; }
+        if (le === void 0) { le = true; }
+        var bytes = new Uint8Array(data_types_1.DataSize.WORD);
+        fs.readSync(this.data, bytes, 0, data_types_1.DataSize.WORD, offset);
+        var num = 0x00;
+        if (le === true) {
+            for (var i = 0; i < bytes.length; i++) {
+                num += bytes[i] << (8 * i);
+            }
+            return num;
+        }
+        else {
+            for (var i = bytes.length - 1; i >= 0; i--) {
+                num += bytes[i] << (8 * i);
+            }
+            return num;
+        }
+    };
+    FileStreamReader.prototype.readDWord = function () {
+        var dword = this.getUint32(this.offset, true);
+        this.offset += data_types_1.DataSize.DWORD;
+        return dword;
+    };
+    FileStreamReader.prototype.readDWords = function (dwordCount) {
+        var dwords = [];
+        for (var i = 0; i < dwordCount; i++) {
+            dwords.push(this.readDWord());
+        }
+        return new Uint32Array(dwords);
+    };
+    FileStreamReader.prototype.getUint32 = function (offset, le) {
+        if (offset === void 0) { offset = this.offset; }
+        if (le === void 0) { le = true; }
+        var bytes = new Uint8Array(data_types_1.DataSize.DWORD);
+        fs.readSync(this.data, bytes, 0, data_types_1.DataSize.DWORD, offset);
+        var num = 0x00;
+        if (le === true) {
+            for (var i = 0; i < bytes.length; i++) {
+                num += bytes[i] << (8 * i) >>> 0;
+            }
+            return num;
+        }
+        else {
+            for (var i = bytes.length - 1; i >= 0; i--) {
+                num += bytes[i] << (8 * i) >>> 0;
+            }
+            return num;
+        }
+    };
+    /**
+     * Reads a QWORD worth of bytes
+     * @param asInt
+     * @returns {bigint}
+     */
+    FileStreamReader.prototype.readQWord = function () {
+        var qword = this.getBigUint64(this.offset, true);
+        this.offset += data_types_1.DataSize.QWORD;
+        return qword;
+    };
+    /**
+     * Reads a specific number of qword sized bytes
+     * @param qwordCount
+     * @returns {BigUint64Array}
+     */
+    FileStreamReader.prototype.readQWords = function (qwordCount) {
+        var qwords = [];
+        for (var i = 0; i < qwordCount; i++) {
+            qwords.push(this.getBigUint64(this.offset, true));
+            this.offset += data_types_1.DataSize.QWORD;
+        }
+        return BigUint64Array.from(qwords);
+    };
+    FileStreamReader.prototype.getBigUint64 = function (offset, le) {
+        if (offset === void 0) { offset = this.offset; }
+        if (le === void 0) { le = true; }
+        var bytes = new Uint8Array(data_types_1.DataSize.QWORD);
+        fs.readSync(this.data, bytes, 0, data_types_1.DataSize.QWORD, offset);
+        var num = 0x00;
+        if (le === true) {
+            for (var i = 0; i < bytes.length; i++) {
+                num += bytes[i] << (8 * i) >>> 0;
+            }
+            return BigInt(num);
+        }
+        else {
+            for (var i = bytes.length - 1; i >= 0; i--) {
+                num += bytes[i] << (8 * i) >>> 0;
+            }
+            return BigInt(num);
+        }
+    };
+    FileStreamReader.prototype.peekByte = function (offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return this.getUint8(offset);
+    };
+    FileStreamReader.prototype.peekWord = function (offset) {
+        if (offset === void 0) { offset = this.offset; }
+        return this.getUint16(offset, true);
+    };
+    FileStreamReader.prototype.readBytesAsString = function (byteCount) {
+        var bytes = this.readBytes(byteCount);
+        var str = String.fromCharCode.apply(null, Array.from(bytes));
+        return str.replace(/\0/g, '');
+    };
+    FileStreamReader.prototype.readWordsAsString = function (wordCount) {
+        var words = this.readWords(wordCount);
+        var str = String.fromCharCode.apply(null, Array.from(words));
+        return str.replace(/\0/g, '');
+    };
+    FileStreamReader.prototype.readByteStringZ = function () {
+        var byte = 0x00;
+        var str = [];
+        while ((byte = this.peekByte()) != 0x00) {
+            str.push(String.fromCharCode(byte));
+            this.offset += data_types_1.DataSize.BYTE;
+        }
+        this.offset += data_types_1.DataSize.BYTE;
+        return str.join('').replace(/\0/g, '');
+    };
+    FileStreamReader.prototype.readWordStringZ = function () {
+        var word = 0x0000;
+        var str = [];
+        while ((word = this.peekWord()) != 0x0000) {
+            str.push(String.fromCharCode(word));
+            this.offset += data_types_1.DataSize.WORD;
+        }
+        this.offset += data_types_1.DataSize.WORD;
+        return str.join('').replace(/\0/g, '');
+    };
+    FileStreamReader.prototype.goto = function (offset) {
+        this.offset = offset;
+    };
+    return FileStreamReader;
+}());
+exports.FileStreamReader = FileStreamReader;
+
+
+/***/ }),
+
+/***/ 2898:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HexUtils = void 0;
+var HexUtils;
+(function (HexUtils) {
+    function uintArrayToHex(arr) {
+        var out = [];
+        for (var i = 0; i < arr.length; i++) {
+            out.push(arr[i].toString(16));
+        }
+        var padding = 0;
+        if (arr instanceof Uint8Array) {
+            padding = 2;
+        }
+        else if (arr instanceof Uint16Array) {
+            padding = 4;
+        }
+        else if (arr instanceof Uint32Array) {
+            padding = 6;
+        }
+        else if (arr instanceof BigUint64Array) {
+            padding = 8;
+        }
+        return out.map(function (v) { return v.padStart(padding, "0"); });
+    }
+    HexUtils.uintArrayToHex = uintArrayToHex;
+})(HexUtils = exports.HexUtils || (exports.HexUtils = {}));
+
+
+/***/ }),
+
+/***/ 8408:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LanguageUtils = void 0;
+var languages_1 = __nccwpck_require__(3199);
+var LanguageUtils;
+(function (LanguageUtils) {
+    function languageIdLookup(languageId) {
+        return languages_1.LanguagePack.valueOf(languageId);
+    }
+    LanguageUtils.languageIdLookup = languageIdLookup;
+})(LanguageUtils = exports.LanguageUtils || (exports.LanguageUtils = {}));
+
+
+/***/ }),
+
+/***/ 6431:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Optional = void 0;
+var Optional = /** @class */ (function () {
+    function Optional(value) {
+        this.value = value;
+    }
+    Optional.of = function (value) {
+        return new Optional(value);
+    };
+    Optional.empty = function () {
+        return new Optional(null);
+    };
+    Optional.prototype.get = function () {
+        return this.value;
+    };
+    Optional.prototype.getOrElse = function (elseValue) {
+        if (this.value != null) {
+            return this.value;
+        }
+        else {
+            return elseValue;
+        }
+    };
+    Optional.prototype.getOrElseSupply = function (elseSupplier) {
+        if (this.value != null) {
+            return this.value;
+        }
+        else {
+            return elseSupplier();
+        }
+    };
+    Optional.prototype.getOrElseThrow = function (e) {
+        if (this.value != null) {
+            return this.value;
+        }
+        else {
+            if (e == null) {
+                throw new Error("optional value is undefined");
+            }
+            else if (e instanceof Error) {
+                throw e;
+            }
+            else {
+                throw new Error(e);
+            }
+        }
+    };
+    return Optional;
+}());
+exports.Optional = Optional;
+
 
 /***/ }),
 
@@ -24274,6 +32824,32 @@ module.exports = {
 
 /***/ }),
 
+/***/ 1429:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+function getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
+  }
+
+  return "<environment undetectable>";
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
 /***/ 5840:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -24920,6 +33496,171 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 2940:
+/***/ ((module) => {
+
+// Returns a wrapper function that returns a wrapped callback
+// The wrapper function should do some stuff, and return a
+// presumably different callback function.
+// This makes sure that own properties are retained, so that
+// decorations and such are not lost along the way.
+module.exports = wrappy
+function wrappy (fn, cb) {
+  if (fn && cb) return wrappy(fn)(cb)
+
+  if (typeof fn !== 'function')
+    throw new TypeError('need wrapper function')
+
+  Object.keys(fn).forEach(function (k) {
+    wrapper[k] = fn[k]
+  })
+
+  return wrapper
+
+  function wrapper() {
+    var args = new Array(arguments.length)
+    for (var i = 0; i < args.length; i++) {
+      args[i] = arguments[i]
+    }
+    var ret = fn.apply(this, args)
+    var cb = args[args.length-1]
+    if (typeof ret === 'function' && ret !== cb) {
+      Object.keys(cb).forEach(function (k) {
+        ret[k] = cb[k]
+      })
+    }
+    return ret
+  }
+}
+
+
+/***/ }),
+
+/***/ 978:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.updateFromGithub = void 0;
+const plugin_1 = __nccwpck_require__(1069);
+const github = __importStar(__nccwpck_require__(5438));
+const core = __importStar(__nccwpck_require__(2186));
+const main_1 = __nccwpck_require__(399);
+const env = process.env;
+const envToken = env.INPUT_token;
+let token = core.getInput('token');
+if (token === '' && envToken !== undefined) {
+    token = envToken;
+}
+const octokit = github.getOctokit(token);
+async function updateFromGithub(plugin) {
+    const [owner, repo] = plugin.host_url.split('/');
+    const releases = await octokit.rest.repos.listReleases({
+        owner: owner,
+        repo: repo
+    });
+    let latestRelease = await octokit.rest.repos.getLatestRelease({
+        owner: owner,
+        repo: repo
+    });
+    plugin.release = await findAndCreateRelease(plugin, plugin.release, latestRelease);
+    // find pre-release until latest release
+    for (const release of releases.data) {
+        if (release.prerelease) {
+            plugin.prerelease = await findAndCreateRelease(plugin, plugin.prerelease, release);
+            break;
+        }
+        else if (release.tag_name == latestRelease.data.tag_name) {
+            // TODO: if prerelease is set, we removed it
+            plugin.prerelease = undefined;
+            break;
+        }
+    }
+}
+exports.updateFromGithub = updateFromGithub;
+/**
+ *
+ * @param plugin The plugin currently checked
+ * @param oldRelease the old release (either plugin.release or plugin.prerelease)
+ * @param githubRelease The github api response for the corresponding release/tag
+ * @return oldRelease when the release didn't change or the new release
+ * @throws Error when no valid release asset was found
+ */
+async function findAndCreateRelease(plugin, oldRelease, githubRelease) {
+    if (checkAssetChanged(oldRelease, githubRelease.data)) {
+        let found = false;
+        for (let i = 0; i < githubRelease.data.assets.length; i++) {
+            const asset = githubRelease.data.assets[i];
+            const release = await downloadFromGithub(plugin, asset);
+            if (release !== undefined) {
+                release.asset_index = i;
+                if (!oldRelease || (0, plugin_1.isGreater)(release.version, oldRelease.version)) {
+                    return release;
+                    // TODO: new release was found
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            throw new Error(`no release asset found for plugin ${plugin.name}`);
+        }
+    }
+    return oldRelease;
+}
+async function downloadFromGithub(plugin, asset) {
+    const file = await fetch(asset.browser_download_url);
+    if (!file.ok) {
+        throw new Error(`Unable to download asset: ${asset.browser_download_url}`);
+    }
+    const fileBuffer = await file.arrayBuffer();
+    let release;
+    if (plugin.download_type == plugin_1.DownloadType.Dll) {
+        release = (0, plugin_1.createReleaseFromDll)(plugin, fileBuffer, asset.id.toString(), asset.browser_download_url);
+    }
+    else {
+        release = await (0, plugin_1.createReleaseFromArchive)(plugin, fileBuffer, asset.id.toString(), asset.browser_download_url);
+    }
+    if (release !== undefined) {
+        (0, main_1.addAddonName)(plugin, release.name);
+    }
+    return release;
+}
+function checkAssetChanged(release, githubRelease) {
+    if (!release || release.asset_index == undefined) {
+        return true;
+    }
+    const last_asset = githubRelease.data.assets[release.asset_index];
+    return last_asset === undefined || last_asset.id.toString() !== release.id;
+}
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -24949,46 +33690,335 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.run = exports.addAddonName = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-var HostType;
-(function (HostType) {
-    HostType["Github"] = "github";
-    HostType["Standalone"] = "standalone";
-})(HostType || (HostType = {}));
-var DownloadType;
-(function (DownloadType) {
-    DownloadType["Archive"] = "archive";
-    DownloadType["Dll"] = "dll";
-})(DownloadType || (DownloadType = {}));
-var InstallMode;
-(function (InstallMode) {
-    InstallMode["Binary"] = "binary";
-    InstallMode["Arc"] = "arc";
-})(InstallMode || (InstallMode = {}));
+const plugin_1 = __nccwpck_require__(1069);
+const github_1 = __nccwpck_require__(978);
+const standalone_1 = __nccwpck_require__(811);
+function addAddonName(plugin, name) {
+    if (plugin.addon_names === undefined) {
+        plugin.addon_names = [name];
+    }
+    else {
+        if (plugin.addon_names.indexOf(name) === -1) {
+            plugin.addon_names = plugin.addon_names.concat(name);
+        }
+    }
+}
+exports.addAddonName = addAddonName;
+async function update(plugin) {
+    switch (plugin.host_type) {
+        case plugin_1.HostType.Github:
+            await (0, github_1.updateFromGithub)(plugin);
+            break;
+        case plugin_1.HostType.Standalone:
+            await (0, standalone_1.updateStandalone)(plugin);
+            break;
+    }
+}
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
-        // download json
-        let response = await fetch('https://knoxfighter.github.io/addon-repo/manifest.json');
-        if (!response.ok) {
-            core.setFailed(response.statusText);
+        // exec("pwd", (error, stdout, stderr) => {
+        // 	if (error) {
+        // 		throw error
+        // 	}
+        // 	console.log(stdout)
+        // 	console.log(stderr)
+        // })
+        // download manifest
+        let manifestRes = await fetch('https://knoxfighter.github.io/addon-repo/manifest.json');
+        if (!manifestRes.ok) {
+            core.setFailed(manifestRes.statusText);
             return;
         }
-        let responseJson = await response.json();
-        let data = JSON.parse(responseJson);
-        console.log(data);
+        // tomls are in the working dir
+        // const dir = fs.readdirSync("./addons")
+        // for (let addonToml of dir) {
+        // 	const tomlFile = fs.readFileSync(addonToml)
+        // 	const config = toml.parse(tomlFile.toString())
+        //
+        // }
+        let plugins = await manifestRes.json();
+        for (let plugin of plugins) {
+            try {
+                await update(plugin);
+            }
+            catch (error) {
+                if (error instanceof Error) {
+                    core.error(`Plugin ${plugin.name} failed to update: ${error.message}`);
+                }
+                else {
+                    core.error(`Plugin ${plugin.name} failed to update`);
+                }
+            }
+        }
+        console.log(JSON.stringify(plugins, null, 2));
+        // console.log(plugins)
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        if (error instanceof Error)
-            core.setFailed(error.message);
+        // @ts-ignore
+        console.log(error.message);
+        // @ts-ignore
+        core.setFailed(error.message);
     }
 }
 exports.run = run;
+
+
+/***/ }),
+
+/***/ 1069:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createReleaseFromDll = exports.createReleaseFromArchive = exports.isGreater = exports.InstallMode = exports.DownloadType = exports.HostType = void 0;
+const pe_toolkit_1 = __nccwpck_require__(8520);
+const fflate_1 = __nccwpck_require__(2146);
+const os_1 = __nccwpck_require__(2037);
+const node_path_1 = __importDefault(__nccwpck_require__(9411));
+const fs = __importStar(__nccwpck_require__(7561));
+const child_process_1 = __nccwpck_require__(2081);
+var HostType;
+(function (HostType) {
+    HostType["Github"] = "github";
+    HostType["Standalone"] = "standalone";
+})(HostType || (exports.HostType = HostType = {}));
+var DownloadType;
+(function (DownloadType) {
+    DownloadType["Archive"] = "archive";
+    DownloadType["Dll"] = "dll";
+})(DownloadType || (exports.DownloadType = DownloadType = {}));
+var InstallMode;
+(function (InstallMode) {
+    InstallMode["Gw2Load"] = "gw2load";
+    InstallMode["Arc"] = "arc";
+})(InstallMode || (exports.InstallMode = InstallMode = {}));
+function isGreater(a, b) {
+    for (let i = 0; i < 4; i++)
+        if (a[i] > b[i])
+            return true;
+    return false;
+}
+exports.isGreater = isGreater;
+async function createReleaseFromArchive(plugin, fileBuffer, id, downloadUrl) {
+    const unzipped = (0, fflate_1.unzipSync)(new Uint8Array(fileBuffer));
+    const files = Object.keys(unzipped)
+        .filter(value => value.endsWith('.dll'))
+        .map(value => new File([unzipped[value]], value));
+    for (let file of files) {
+        // save file to tmp
+        const path = await saveToTmp(file);
+        // check if dll has exports, skip if not
+        if (!checkDllExports(path)) {
+            continue;
+        }
+        // create release
+        const subFileBuffer = await file.arrayBuffer();
+        return createReleaseFromDll(plugin, subFileBuffer, id, downloadUrl);
+    }
+    return undefined;
+}
+exports.createReleaseFromArchive = createReleaseFromArchive;
+async function saveToTmp(file) {
+    let dir = (0, os_1.tmpdir)();
+    dir = node_path_1.default.resolve(dir, file.name);
+    const buffer = await file.arrayBuffer();
+    fs.writeFileSync(dir, new DataView(buffer));
+    return dir;
+}
+function checkDllExports(path) {
+    let result = false;
+    (0, child_process_1.exec)(`./winedump -j export ${path} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, (error, stdout, stderr) => {
+        result = error !== undefined;
+    });
+    return result;
+}
+function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
+    let fileParser = new pe_toolkit_1.PeFileParser();
+    fileParser.parseBytes(fileBuffer);
+    const versionInfoResource = fileParser.getVersionInfoResources();
+    if (versionInfoResource === undefined) {
+        throw new Error(`No versionInfoResource found for plugin ${plugin.name}`);
+    }
+    const vsInfoSub = Object.values(versionInfoResource)[0];
+    if (vsInfoSub === undefined) {
+        throw new Error(`no vsInfoSub found for plugin ${plugin.name}`);
+    }
+    const versionInfo = Object.values(vsInfoSub)[0];
+    if (versionInfo === undefined) {
+        throw new Error(`No versionInfo found for ${plugin.name}`);
+    }
+    const fixedFileInfo = versionInfo.getFixedFileInfo();
+    if (fixedFileInfo === undefined) {
+        throw new Error(`No fileInfo found for ${plugin.name}`);
+    }
+    let addonVersion = [
+        (fixedFileInfo.getStruct().dwFileVersionMS >> 16) & 0xffff,
+        fixedFileInfo.getStruct().dwFileVersionMS & 0xffff,
+        (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
+        fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
+    ];
+    if (addonVersion[0] == 0 &&
+        addonVersion[1] == 0 &&
+        addonVersion[2] == 0 &&
+        addonVersion[3] == 0) {
+        addonVersion = [
+            (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
+            fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
+            (fixedFileInfo.getStruct().dwProductVersionLS >> 16) & 0xffff,
+            fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
+        ];
+    }
+    if (addonVersion[0] == 0 &&
+        addonVersion[1] == 0 &&
+        addonVersion[2] == 0 &&
+        addonVersion[3] == 0) {
+        throw new Error(`no addonVersion found for plugin ${plugin.name}`);
+    }
+    // read version string
+    // console.log(versionInfo)
+    let addonVersionStr = undefined;
+    let addonName = undefined;
+    const stringFileInfo = versionInfo.getStringFileInfo();
+    if (stringFileInfo == undefined) {
+        throw new Error(`No StringFileInfo found for plugin ${plugin.name}`);
+    }
+    else {
+        let stringInfo = Object.values(stringFileInfo.getStringTables())[0].toObject();
+        addonVersionStr = stringInfo['FileVersion'];
+        if (addonVersionStr === undefined) {
+            addonVersionStr = stringInfo['ProductVersion'];
+        }
+        if (addonVersionStr === undefined) {
+            addonVersionStr = `${addonVersion[0]}.${addonVersion[1]}.${addonVersion[2]}.${addonVersion[3]}`;
+        }
+        // read name
+        addonName = stringInfo['ProductName'];
+        if (addonName === undefined) {
+            addonName = stringInfo['FileDescription'];
+        }
+        if (addonName === undefined) {
+            throw new Error(`No addonName found for plugin ${plugin.name}`);
+        }
+    }
+    // this has to be last, so we don't override valid stuff with invalid
+    let release = {
+        id: id,
+        name: addonName,
+        version: addonVersion,
+        version_str: addonVersionStr,
+        download_url: downloadUrl
+    };
+    return release;
+}
+exports.createReleaseFromDll = createReleaseFromDll;
+
+
+/***/ }),
+
+/***/ 811:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.updateStandalone = void 0;
+const plugin_1 = __nccwpck_require__(1069);
+const main_1 = __nccwpck_require__(399);
+async function updateStandalone(plugin) {
+    if (!plugin.version_url) {
+        throw new Error(`no version_url for plugin ${plugin.name}`);
+    }
+    plugin.release = await downloadAndCheckVersion(plugin, plugin.release, plugin.version_url, plugin.host_url);
+    // only run when configured and release was found
+    if (plugin.prerelease_host_url &&
+        plugin.prerelease_version_url &&
+        plugin.release) {
+        const prerelease = await downloadAndCheckVersion(plugin, plugin.prerelease, plugin.prerelease_version_url, plugin.prerelease_host_url);
+        // check if prerelease is later than release, if not, remove prerelease
+        if (prerelease) {
+            if ((0, plugin_1.isGreater)(prerelease.version, plugin.release.version)) {
+                // TODO: new release was found die zweite
+                plugin.prerelease = prerelease;
+                return;
+            }
+        }
+    }
+    // TODO: if prerelease is set, we removed it
+    plugin.prerelease = undefined;
+}
+exports.updateStandalone = updateStandalone;
+async function downloadAndCheckVersion(plugin, oldRelease, version_url, host_url) {
+    const versionRes = await fetch(version_url);
+    if (versionRes.status !== 200) {
+        throw new Error(`version response status for plugin ${plugin.name}: ${versionRes.status}`);
+    }
+    const version = await versionRes.text();
+    if (!oldRelease || oldRelease.id !== version) {
+        let found = false;
+        const release = await downloadStandalone(plugin, host_url, version);
+        if (release !== undefined) {
+            if (!oldRelease || (0, plugin_1.isGreater)(release.version, oldRelease.version)) {
+                return release;
+                // TODO: new release was found
+            }
+            return oldRelease;
+        }
+        throw new Error(`no release asset found for plugin ${plugin.name}`);
+    }
+    return oldRelease;
+}
+async function downloadStandalone(plugin, host_url, id) {
+    const file = await fetch(host_url);
+    if (!file.ok) {
+        throw new Error(`Unable to download asset ${host_url}`);
+    }
+    const fileBuffer = await file.arrayBuffer();
+    let release;
+    if (plugin.download_type == plugin_1.DownloadType.Dll) {
+        release = (0, plugin_1.createReleaseFromDll)(plugin, fileBuffer, id, host_url);
+    }
+    else {
+        release = await (0, plugin_1.createReleaseFromArchive)(plugin, fileBuffer, id, host_url);
+    }
+    if (release !== undefined) {
+        (0, main_1.addAddonName)(plugin, release.name);
+    }
+    return release;
+}
 
 
 /***/ }),
@@ -25014,6 +34044,14 @@ module.exports = require("async_hooks");
 
 "use strict";
 module.exports = require("buffer");
+
+/***/ }),
+
+/***/ 2081:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
 
 /***/ }),
 
@@ -25094,6 +34132,22 @@ module.exports = require("net");
 
 "use strict";
 module.exports = require("node:events");
+
+/***/ }),
+
+/***/ 7561:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:fs");
+
+/***/ }),
+
+/***/ 9411:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:path");
 
 /***/ }),
 
@@ -26838,6 +35892,2714 @@ function parseParams (str) {
 }
 
 module.exports = parseParams
+
+
+/***/ }),
+
+/***/ 2146:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// DEFLATE is a complex format; to read this code, you should probably check the RFC first:
+// https://tools.ietf.org/html/rfc1951
+// You may also wish to take a look at the guide I made about this program:
+// https://gist.github.com/101arrowz/253f31eb5abc3d9275ab943003ffecad
+// Some of the following code is similar to that of UZIP.js:
+// https://github.com/photopea/UZIP.js
+// However, the vast majority of the codebase has diverged from UZIP.js to increase performance and reduce bundle size.
+// Sometimes 0 will appear where -1 would be more appropriate. This is because using a uint
+// is better for memory in most engines (I *think*).
+// Mediocre shim
+var Worker;
+var workerAdd = ";var __w=require('worker_threads');__w.parentPort.on('message',function(m){onmessage({data:m})}),postMessage=function(m,t){__w.parentPort.postMessage(m,t)},close=process.exit;self=global";
+try {
+    Worker = (__nccwpck_require__(1267).Worker);
+}
+catch (e) {
+}
+var node_worker_1 = {};
+node_worker_1["default"] = Worker ? function (c, _, msg, transfer, cb) {
+    var done = false;
+    var w = new Worker(c + workerAdd, { eval: true })
+        .on('error', function (e) { return cb(e, null); })
+        .on('message', function (m) { return cb(null, m); })
+        .on('exit', function (c) {
+        if (c && !done)
+            cb(new Error('exited with code ' + c), null);
+    });
+    w.postMessage(msg, transfer);
+    w.terminate = function () {
+        done = true;
+        return Worker.prototype.terminate.call(w);
+    };
+    return w;
+} : function (_, __, ___, ____, cb) {
+    setImmediate(function () { return cb(new Error('async operations unsupported - update to Node 12+ (or Node 10-11 with the --experimental-worker CLI flag)'), null); });
+    var NOP = function () { };
+    return {
+        terminate: NOP,
+        postMessage: NOP
+    };
+};
+
+// aliases for shorter compressed code (most minifers don't do this)
+var u8 = Uint8Array, u16 = Uint16Array, i32 = Int32Array;
+// fixed length extra bits
+var fleb = new u8([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, /* unused */ 0, 0, /* impossible */ 0]);
+// fixed distance extra bits
+var fdeb = new u8([0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, /* unused */ 0, 0]);
+// code length index map
+var clim = new u8([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]);
+// get base, reverse index map from extra bits
+var freb = function (eb, start) {
+    var b = new u16(31);
+    for (var i = 0; i < 31; ++i) {
+        b[i] = start += 1 << eb[i - 1];
+    }
+    // numbers here are at max 18 bits
+    var r = new i32(b[30]);
+    for (var i = 1; i < 30; ++i) {
+        for (var j = b[i]; j < b[i + 1]; ++j) {
+            r[j] = ((j - b[i]) << 5) | i;
+        }
+    }
+    return { b: b, r: r };
+};
+var _a = freb(fleb, 2), fl = _a.b, revfl = _a.r;
+// we can ignore the fact that the other numbers are wrong; they never happen anyway
+fl[28] = 258, revfl[258] = 28;
+var _b = freb(fdeb, 0), fd = _b.b, revfd = _b.r;
+// map of value to reverse (assuming 16 bits)
+var rev = new u16(32768);
+for (var i = 0; i < 32768; ++i) {
+    // reverse table algorithm from SO
+    var x = ((i & 0xAAAA) >> 1) | ((i & 0x5555) << 1);
+    x = ((x & 0xCCCC) >> 2) | ((x & 0x3333) << 2);
+    x = ((x & 0xF0F0) >> 4) | ((x & 0x0F0F) << 4);
+    rev[i] = (((x & 0xFF00) >> 8) | ((x & 0x00FF) << 8)) >> 1;
+}
+// create huffman tree from u8 "map": index -> code length for code index
+// mb (max bits) must be at most 15
+// TODO: optimize/split up?
+var hMap = (function (cd, mb, r) {
+    var s = cd.length;
+    // index
+    var i = 0;
+    // u16 "map": index -> # of codes with bit length = index
+    var l = new u16(mb);
+    // length of cd must be 288 (total # of codes)
+    for (; i < s; ++i) {
+        if (cd[i])
+            ++l[cd[i] - 1];
+    }
+    // u16 "map": index -> minimum code for bit length = index
+    var le = new u16(mb);
+    for (i = 1; i < mb; ++i) {
+        le[i] = (le[i - 1] + l[i - 1]) << 1;
+    }
+    var co;
+    if (r) {
+        // u16 "map": index -> number of actual bits, symbol for code
+        co = new u16(1 << mb);
+        // bits to remove for reverser
+        var rvb = 15 - mb;
+        for (i = 0; i < s; ++i) {
+            // ignore 0 lengths
+            if (cd[i]) {
+                // num encoding both symbol and bits read
+                var sv = (i << 4) | cd[i];
+                // free bits
+                var r_1 = mb - cd[i];
+                // start value
+                var v = le[cd[i] - 1]++ << r_1;
+                // m is end value
+                for (var m = v | ((1 << r_1) - 1); v <= m; ++v) {
+                    // every 16 bit value starting with the code yields the same result
+                    co[rev[v] >> rvb] = sv;
+                }
+            }
+        }
+    }
+    else {
+        co = new u16(s);
+        for (i = 0; i < s; ++i) {
+            if (cd[i]) {
+                co[i] = rev[le[cd[i] - 1]++] >> (15 - cd[i]);
+            }
+        }
+    }
+    return co;
+});
+// fixed length tree
+var flt = new u8(288);
+for (var i = 0; i < 144; ++i)
+    flt[i] = 8;
+for (var i = 144; i < 256; ++i)
+    flt[i] = 9;
+for (var i = 256; i < 280; ++i)
+    flt[i] = 7;
+for (var i = 280; i < 288; ++i)
+    flt[i] = 8;
+// fixed distance tree
+var fdt = new u8(32);
+for (var i = 0; i < 32; ++i)
+    fdt[i] = 5;
+// fixed length map
+var flm = /*#__PURE__*/ hMap(flt, 9, 0), flrm = /*#__PURE__*/ hMap(flt, 9, 1);
+// fixed distance map
+var fdm = /*#__PURE__*/ hMap(fdt, 5, 0), fdrm = /*#__PURE__*/ hMap(fdt, 5, 1);
+// find max of array
+var max = function (a) {
+    var m = a[0];
+    for (var i = 1; i < a.length; ++i) {
+        if (a[i] > m)
+            m = a[i];
+    }
+    return m;
+};
+// read d, starting at bit p and mask with m
+var bits = function (d, p, m) {
+    var o = (p / 8) | 0;
+    return ((d[o] | (d[o + 1] << 8)) >> (p & 7)) & m;
+};
+// read d, starting at bit p continuing for at least 16 bits
+var bits16 = function (d, p) {
+    var o = (p / 8) | 0;
+    return ((d[o] | (d[o + 1] << 8) | (d[o + 2] << 16)) >> (p & 7));
+};
+// get end of byte
+var shft = function (p) { return ((p + 7) / 8) | 0; };
+// typed array slice - allows garbage collector to free original reference,
+// while being more compatible than .slice
+var slc = function (v, s, e) {
+    if (s == null || s < 0)
+        s = 0;
+    if (e == null || e > v.length)
+        e = v.length;
+    // can't use .constructor in case user-supplied
+    return new u8(v.subarray(s, e));
+};
+/**
+ * Codes for errors generated within this library
+ */
+exports.FlateErrorCode = {
+    UnexpectedEOF: 0,
+    InvalidBlockType: 1,
+    InvalidLengthLiteral: 2,
+    InvalidDistance: 3,
+    StreamFinished: 4,
+    NoStreamHandler: 5,
+    InvalidHeader: 6,
+    NoCallback: 7,
+    InvalidUTF8: 8,
+    ExtraFieldTooLong: 9,
+    InvalidDate: 10,
+    FilenameTooLong: 11,
+    StreamFinishing: 12,
+    InvalidZipData: 13,
+    UnknownCompressionMethod: 14
+};
+// error codes
+var ec = [
+    'unexpected EOF',
+    'invalid block type',
+    'invalid length/literal',
+    'invalid distance',
+    'stream finished',
+    'no stream handler',
+    ,
+    'no callback',
+    'invalid UTF-8 data',
+    'extra field too long',
+    'date not in range 1980-2099',
+    'filename too long',
+    'stream finishing',
+    'invalid zip data'
+    // determined by unknown compression method
+];
+;
+var err = function (ind, msg, nt) {
+    var e = new Error(msg || ec[ind]);
+    e.code = ind;
+    if (Error.captureStackTrace)
+        Error.captureStackTrace(e, err);
+    if (!nt)
+        throw e;
+    return e;
+};
+// expands raw DEFLATE data
+var inflt = function (dat, st, buf, dict) {
+    // source length       dict length
+    var sl = dat.length, dl = dict ? dict.length : 0;
+    if (!sl || st.f && !st.l)
+        return buf || new u8(0);
+    var noBuf = !buf;
+    // have to estimate size
+    var resize = noBuf || st.i != 2;
+    // no state
+    var noSt = st.i;
+    // Assumes roughly 33% compression ratio average
+    if (noBuf)
+        buf = new u8(sl * 3);
+    // ensure buffer can fit at least l elements
+    var cbuf = function (l) {
+        var bl = buf.length;
+        // need to increase size to fit
+        if (l > bl) {
+            // Double or set to necessary, whichever is greater
+            var nbuf = new u8(Math.max(bl * 2, l));
+            nbuf.set(buf);
+            buf = nbuf;
+        }
+    };
+    //  last chunk         bitpos           bytes
+    var final = st.f || 0, pos = st.p || 0, bt = st.b || 0, lm = st.l, dm = st.d, lbt = st.m, dbt = st.n;
+    // total bits
+    var tbts = sl * 8;
+    do {
+        if (!lm) {
+            // BFINAL - this is only 1 when last chunk is next
+            final = bits(dat, pos, 1);
+            // type: 0 = no compression, 1 = fixed huffman, 2 = dynamic huffman
+            var type = bits(dat, pos + 1, 3);
+            pos += 3;
+            if (!type) {
+                // go to end of byte boundary
+                var s = shft(pos) + 4, l = dat[s - 4] | (dat[s - 3] << 8), t = s + l;
+                if (t > sl) {
+                    if (noSt)
+                        err(0);
+                    break;
+                }
+                // ensure size
+                if (resize)
+                    cbuf(bt + l);
+                // Copy over uncompressed data
+                buf.set(dat.subarray(s, t), bt);
+                // Get new bitpos, update byte count
+                st.b = bt += l, st.p = pos = t * 8, st.f = final;
+                continue;
+            }
+            else if (type == 1)
+                lm = flrm, dm = fdrm, lbt = 9, dbt = 5;
+            else if (type == 2) {
+                //  literal                            lengths
+                var hLit = bits(dat, pos, 31) + 257, hcLen = bits(dat, pos + 10, 15) + 4;
+                var tl = hLit + bits(dat, pos + 5, 31) + 1;
+                pos += 14;
+                // length+distance tree
+                var ldt = new u8(tl);
+                // code length tree
+                var clt = new u8(19);
+                for (var i = 0; i < hcLen; ++i) {
+                    // use index map to get real code
+                    clt[clim[i]] = bits(dat, pos + i * 3, 7);
+                }
+                pos += hcLen * 3;
+                // code lengths bits
+                var clb = max(clt), clbmsk = (1 << clb) - 1;
+                // code lengths map
+                var clm = hMap(clt, clb, 1);
+                for (var i = 0; i < tl;) {
+                    var r = clm[bits(dat, pos, clbmsk)];
+                    // bits read
+                    pos += r & 15;
+                    // symbol
+                    var s = r >> 4;
+                    // code length to copy
+                    if (s < 16) {
+                        ldt[i++] = s;
+                    }
+                    else {
+                        //  copy   count
+                        var c = 0, n = 0;
+                        if (s == 16)
+                            n = 3 + bits(dat, pos, 3), pos += 2, c = ldt[i - 1];
+                        else if (s == 17)
+                            n = 3 + bits(dat, pos, 7), pos += 3;
+                        else if (s == 18)
+                            n = 11 + bits(dat, pos, 127), pos += 7;
+                        while (n--)
+                            ldt[i++] = c;
+                    }
+                }
+                //    length tree                 distance tree
+                var lt = ldt.subarray(0, hLit), dt = ldt.subarray(hLit);
+                // max length bits
+                lbt = max(lt);
+                // max dist bits
+                dbt = max(dt);
+                lm = hMap(lt, lbt, 1);
+                dm = hMap(dt, dbt, 1);
+            }
+            else
+                err(1);
+            if (pos > tbts) {
+                if (noSt)
+                    err(0);
+                break;
+            }
+        }
+        // Make sure the buffer can hold this + the largest possible addition
+        // Maximum chunk size (practically, theoretically infinite) is 2^17
+        if (resize)
+            cbuf(bt + 131072);
+        var lms = (1 << lbt) - 1, dms = (1 << dbt) - 1;
+        var lpos = pos;
+        for (;; lpos = pos) {
+            // bits read, code
+            var c = lm[bits16(dat, pos) & lms], sym = c >> 4;
+            pos += c & 15;
+            if (pos > tbts) {
+                if (noSt)
+                    err(0);
+                break;
+            }
+            if (!c)
+                err(2);
+            if (sym < 256)
+                buf[bt++] = sym;
+            else if (sym == 256) {
+                lpos = pos, lm = null;
+                break;
+            }
+            else {
+                var add = sym - 254;
+                // no extra bits needed if less
+                if (sym > 264) {
+                    // index
+                    var i = sym - 257, b = fleb[i];
+                    add = bits(dat, pos, (1 << b) - 1) + fl[i];
+                    pos += b;
+                }
+                // dist
+                var d = dm[bits16(dat, pos) & dms], dsym = d >> 4;
+                if (!d)
+                    err(3);
+                pos += d & 15;
+                var dt = fd[dsym];
+                if (dsym > 3) {
+                    var b = fdeb[dsym];
+                    dt += bits16(dat, pos) & (1 << b) - 1, pos += b;
+                }
+                if (pos > tbts) {
+                    if (noSt)
+                        err(0);
+                    break;
+                }
+                if (resize)
+                    cbuf(bt + 131072);
+                var end = bt + add;
+                if (bt < dt) {
+                    var shift = dl - dt, dend = Math.min(dt, end);
+                    if (shift + bt < 0)
+                        err(3);
+                    for (; bt < dend; ++bt)
+                        buf[bt] = dict[shift + bt];
+                }
+                for (; bt < end; ++bt)
+                    buf[bt] = buf[bt - dt];
+            }
+        }
+        st.l = lm, st.p = lpos, st.b = bt, st.f = final;
+        if (lm)
+            final = 1, st.m = lbt, st.d = dm, st.n = dbt;
+    } while (!final);
+    // don't reallocate for streams or user buffers
+    return bt != buf.length && noBuf ? slc(buf, 0, bt) : buf.subarray(0, bt);
+};
+// starting at p, write the minimum number of bits that can hold v to d
+var wbits = function (d, p, v) {
+    v <<= p & 7;
+    var o = (p / 8) | 0;
+    d[o] |= v;
+    d[o + 1] |= v >> 8;
+};
+// starting at p, write the minimum number of bits (>8) that can hold v to d
+var wbits16 = function (d, p, v) {
+    v <<= p & 7;
+    var o = (p / 8) | 0;
+    d[o] |= v;
+    d[o + 1] |= v >> 8;
+    d[o + 2] |= v >> 16;
+};
+// creates code lengths from a frequency table
+var hTree = function (d, mb) {
+    // Need extra info to make a tree
+    var t = [];
+    for (var i = 0; i < d.length; ++i) {
+        if (d[i])
+            t.push({ s: i, f: d[i] });
+    }
+    var s = t.length;
+    var t2 = t.slice();
+    if (!s)
+        return { t: et, l: 0 };
+    if (s == 1) {
+        var v = new u8(t[0].s + 1);
+        v[t[0].s] = 1;
+        return { t: v, l: 1 };
+    }
+    t.sort(function (a, b) { return a.f - b.f; });
+    // after i2 reaches last ind, will be stopped
+    // freq must be greater than largest possible number of symbols
+    t.push({ s: -1, f: 25001 });
+    var l = t[0], r = t[1], i0 = 0, i1 = 1, i2 = 2;
+    t[0] = { s: -1, f: l.f + r.f, l: l, r: r };
+    // efficient algorithm from UZIP.js
+    // i0 is lookbehind, i2 is lookahead - after processing two low-freq
+    // symbols that combined have high freq, will start processing i2 (high-freq,
+    // non-composite) symbols instead
+    // see https://reddit.com/r/photopea/comments/ikekht/uzipjs_questions/
+    while (i1 != s - 1) {
+        l = t[t[i0].f < t[i2].f ? i0++ : i2++];
+        r = t[i0 != i1 && t[i0].f < t[i2].f ? i0++ : i2++];
+        t[i1++] = { s: -1, f: l.f + r.f, l: l, r: r };
+    }
+    var maxSym = t2[0].s;
+    for (var i = 1; i < s; ++i) {
+        if (t2[i].s > maxSym)
+            maxSym = t2[i].s;
+    }
+    // code lengths
+    var tr = new u16(maxSym + 1);
+    // max bits in tree
+    var mbt = ln(t[i1 - 1], tr, 0);
+    if (mbt > mb) {
+        // more algorithms from UZIP.js
+        // TODO: find out how this code works (debt)
+        //  ind    debt
+        var i = 0, dt = 0;
+        //    left            cost
+        var lft = mbt - mb, cst = 1 << lft;
+        t2.sort(function (a, b) { return tr[b.s] - tr[a.s] || a.f - b.f; });
+        for (; i < s; ++i) {
+            var i2_1 = t2[i].s;
+            if (tr[i2_1] > mb) {
+                dt += cst - (1 << (mbt - tr[i2_1]));
+                tr[i2_1] = mb;
+            }
+            else
+                break;
+        }
+        dt >>= lft;
+        while (dt > 0) {
+            var i2_2 = t2[i].s;
+            if (tr[i2_2] < mb)
+                dt -= 1 << (mb - tr[i2_2]++ - 1);
+            else
+                ++i;
+        }
+        for (; i >= 0 && dt; --i) {
+            var i2_3 = t2[i].s;
+            if (tr[i2_3] == mb) {
+                --tr[i2_3];
+                ++dt;
+            }
+        }
+        mbt = mb;
+    }
+    return { t: new u8(tr), l: mbt };
+};
+// get the max length and assign length codes
+var ln = function (n, l, d) {
+    return n.s == -1
+        ? Math.max(ln(n.l, l, d + 1), ln(n.r, l, d + 1))
+        : (l[n.s] = d);
+};
+// length codes generation
+var lc = function (c) {
+    var s = c.length;
+    // Note that the semicolon was intentional
+    while (s && !c[--s])
+        ;
+    var cl = new u16(++s);
+    //  ind      num         streak
+    var cli = 0, cln = c[0], cls = 1;
+    var w = function (v) { cl[cli++] = v; };
+    for (var i = 1; i <= s; ++i) {
+        if (c[i] == cln && i != s)
+            ++cls;
+        else {
+            if (!cln && cls > 2) {
+                for (; cls > 138; cls -= 138)
+                    w(32754);
+                if (cls > 2) {
+                    w(cls > 10 ? ((cls - 11) << 5) | 28690 : ((cls - 3) << 5) | 12305);
+                    cls = 0;
+                }
+            }
+            else if (cls > 3) {
+                w(cln), --cls;
+                for (; cls > 6; cls -= 6)
+                    w(8304);
+                if (cls > 2)
+                    w(((cls - 3) << 5) | 8208), cls = 0;
+            }
+            while (cls--)
+                w(cln);
+            cls = 1;
+            cln = c[i];
+        }
+    }
+    return { c: cl.subarray(0, cli), n: s };
+};
+// calculate the length of output from tree, code lengths
+var clen = function (cf, cl) {
+    var l = 0;
+    for (var i = 0; i < cl.length; ++i)
+        l += cf[i] * cl[i];
+    return l;
+};
+// writes a fixed block
+// returns the new bit pos
+var wfblk = function (out, pos, dat) {
+    // no need to write 00 as type: TypedArray defaults to 0
+    var s = dat.length;
+    var o = shft(pos + 2);
+    out[o] = s & 255;
+    out[o + 1] = s >> 8;
+    out[o + 2] = out[o] ^ 255;
+    out[o + 3] = out[o + 1] ^ 255;
+    for (var i = 0; i < s; ++i)
+        out[o + i + 4] = dat[i];
+    return (o + 4 + s) * 8;
+};
+// writes a block
+var wblk = function (dat, out, final, syms, lf, df, eb, li, bs, bl, p) {
+    wbits(out, p++, final);
+    ++lf[256];
+    var _a = hTree(lf, 15), dlt = _a.t, mlb = _a.l;
+    var _b = hTree(df, 15), ddt = _b.t, mdb = _b.l;
+    var _c = lc(dlt), lclt = _c.c, nlc = _c.n;
+    var _d = lc(ddt), lcdt = _d.c, ndc = _d.n;
+    var lcfreq = new u16(19);
+    for (var i = 0; i < lclt.length; ++i)
+        ++lcfreq[lclt[i] & 31];
+    for (var i = 0; i < lcdt.length; ++i)
+        ++lcfreq[lcdt[i] & 31];
+    var _e = hTree(lcfreq, 7), lct = _e.t, mlcb = _e.l;
+    var nlcc = 19;
+    for (; nlcc > 4 && !lct[clim[nlcc - 1]]; --nlcc)
+        ;
+    var flen = (bl + 5) << 3;
+    var ftlen = clen(lf, flt) + clen(df, fdt) + eb;
+    var dtlen = clen(lf, dlt) + clen(df, ddt) + eb + 14 + 3 * nlcc + clen(lcfreq, lct) + 2 * lcfreq[16] + 3 * lcfreq[17] + 7 * lcfreq[18];
+    if (bs >= 0 && flen <= ftlen && flen <= dtlen)
+        return wfblk(out, p, dat.subarray(bs, bs + bl));
+    var lm, ll, dm, dl;
+    wbits(out, p, 1 + (dtlen < ftlen)), p += 2;
+    if (dtlen < ftlen) {
+        lm = hMap(dlt, mlb, 0), ll = dlt, dm = hMap(ddt, mdb, 0), dl = ddt;
+        var llm = hMap(lct, mlcb, 0);
+        wbits(out, p, nlc - 257);
+        wbits(out, p + 5, ndc - 1);
+        wbits(out, p + 10, nlcc - 4);
+        p += 14;
+        for (var i = 0; i < nlcc; ++i)
+            wbits(out, p + 3 * i, lct[clim[i]]);
+        p += 3 * nlcc;
+        var lcts = [lclt, lcdt];
+        for (var it = 0; it < 2; ++it) {
+            var clct = lcts[it];
+            for (var i = 0; i < clct.length; ++i) {
+                var len = clct[i] & 31;
+                wbits(out, p, llm[len]), p += lct[len];
+                if (len > 15)
+                    wbits(out, p, (clct[i] >> 5) & 127), p += clct[i] >> 12;
+            }
+        }
+    }
+    else {
+        lm = flm, ll = flt, dm = fdm, dl = fdt;
+    }
+    for (var i = 0; i < li; ++i) {
+        var sym = syms[i];
+        if (sym > 255) {
+            var len = (sym >> 18) & 31;
+            wbits16(out, p, lm[len + 257]), p += ll[len + 257];
+            if (len > 7)
+                wbits(out, p, (sym >> 23) & 31), p += fleb[len];
+            var dst = sym & 31;
+            wbits16(out, p, dm[dst]), p += dl[dst];
+            if (dst > 3)
+                wbits16(out, p, (sym >> 5) & 8191), p += fdeb[dst];
+        }
+        else {
+            wbits16(out, p, lm[sym]), p += ll[sym];
+        }
+    }
+    wbits16(out, p, lm[256]);
+    return p + ll[256];
+};
+// deflate options (nice << 13) | chain
+var deo = /*#__PURE__*/ new i32([65540, 131080, 131088, 131104, 262176, 1048704, 1048832, 2114560, 2117632]);
+// empty
+var et = /*#__PURE__*/ new u8(0);
+// compresses data into a raw DEFLATE buffer
+var dflt = function (dat, lvl, plvl, pre, post, st) {
+    var s = st.z || dat.length;
+    var o = new u8(pre + s + 5 * (1 + Math.ceil(s / 7000)) + post);
+    // writing to this writes to the output buffer
+    var w = o.subarray(pre, o.length - post);
+    var lst = st.l;
+    var pos = (st.r || 0) & 7;
+    if (lvl) {
+        if (pos)
+            w[0] = st.r >> 3;
+        var opt = deo[lvl - 1];
+        var n = opt >> 13, c = opt & 8191;
+        var msk_1 = (1 << plvl) - 1;
+        //    prev 2-byte val map    curr 2-byte val map
+        var prev = st.p || new u16(32768), head = st.h || new u16(msk_1 + 1);
+        var bs1_1 = Math.ceil(plvl / 3), bs2_1 = 2 * bs1_1;
+        var hsh = function (i) { return (dat[i] ^ (dat[i + 1] << bs1_1) ^ (dat[i + 2] << bs2_1)) & msk_1; };
+        // 24576 is an arbitrary number of maximum symbols per block
+        // 424 buffer for last block
+        var syms = new i32(25000);
+        // length/literal freq   distance freq
+        var lf = new u16(288), df = new u16(32);
+        //  l/lcnt  exbits  index          l/lind  waitdx          blkpos
+        var lc_1 = 0, eb = 0, i = st.i || 0, li = 0, wi = st.w || 0, bs = 0;
+        for (; i + 2 < s; ++i) {
+            // hash value
+            var hv = hsh(i);
+            // index mod 32768    previous index mod
+            var imod = i & 32767, pimod = head[hv];
+            prev[imod] = pimod;
+            head[hv] = imod;
+            // We always should modify head and prev, but only add symbols if
+            // this data is not yet processed ("wait" for wait index)
+            if (wi <= i) {
+                // bytes remaining
+                var rem = s - i;
+                if ((lc_1 > 7000 || li > 24576) && (rem > 423 || !lst)) {
+                    pos = wblk(dat, w, 0, syms, lf, df, eb, li, bs, i - bs, pos);
+                    li = lc_1 = eb = 0, bs = i;
+                    for (var j = 0; j < 286; ++j)
+                        lf[j] = 0;
+                    for (var j = 0; j < 30; ++j)
+                        df[j] = 0;
+                }
+                //  len    dist   chain
+                var l = 2, d = 0, ch_1 = c, dif = imod - pimod & 32767;
+                if (rem > 2 && hv == hsh(i - dif)) {
+                    var maxn = Math.min(n, rem) - 1;
+                    var maxd = Math.min(32767, i);
+                    // max possible length
+                    // not capped at dif because decompressors implement "rolling" index population
+                    var ml = Math.min(258, rem);
+                    while (dif <= maxd && --ch_1 && imod != pimod) {
+                        if (dat[i + l] == dat[i + l - dif]) {
+                            var nl = 0;
+                            for (; nl < ml && dat[i + nl] == dat[i + nl - dif]; ++nl)
+                                ;
+                            if (nl > l) {
+                                l = nl, d = dif;
+                                // break out early when we reach "nice" (we are satisfied enough)
+                                if (nl > maxn)
+                                    break;
+                                // now, find the rarest 2-byte sequence within this
+                                // length of literals and search for that instead.
+                                // Much faster than just using the start
+                                var mmd = Math.min(dif, nl - 2);
+                                var md = 0;
+                                for (var j = 0; j < mmd; ++j) {
+                                    var ti = i - dif + j & 32767;
+                                    var pti = prev[ti];
+                                    var cd = ti - pti & 32767;
+                                    if (cd > md)
+                                        md = cd, pimod = ti;
+                                }
+                            }
+                        }
+                        // check the previous match
+                        imod = pimod, pimod = prev[imod];
+                        dif += imod - pimod & 32767;
+                    }
+                }
+                // d will be nonzero only when a match was found
+                if (d) {
+                    // store both dist and len data in one int32
+                    // Make sure this is recognized as a len/dist with 28th bit (2^28)
+                    syms[li++] = 268435456 | (revfl[l] << 18) | revfd[d];
+                    var lin = revfl[l] & 31, din = revfd[d] & 31;
+                    eb += fleb[lin] + fdeb[din];
+                    ++lf[257 + lin];
+                    ++df[din];
+                    wi = i + l;
+                    ++lc_1;
+                }
+                else {
+                    syms[li++] = dat[i];
+                    ++lf[dat[i]];
+                }
+            }
+        }
+        for (i = Math.max(i, wi); i < s; ++i) {
+            syms[li++] = dat[i];
+            ++lf[dat[i]];
+        }
+        pos = wblk(dat, w, lst, syms, lf, df, eb, li, bs, i - bs, pos);
+        if (!lst) {
+            st.r = (pos & 7) | w[(pos / 8) | 0] << 3;
+            // shft(pos) now 1 less if pos & 7 != 0
+            pos -= 7;
+            st.h = head, st.p = prev, st.i = i, st.w = wi;
+        }
+    }
+    else {
+        for (var i = st.w || 0; i < s + lst; i += 65535) {
+            // end
+            var e = i + 65535;
+            if (e >= s) {
+                // write final block
+                w[(pos / 8) | 0] = lst;
+                e = s;
+            }
+            pos = wfblk(w, pos + 1, dat.subarray(i, e));
+        }
+        st.i = s;
+    }
+    return slc(o, 0, pre + shft(pos) + post);
+};
+// CRC32 table
+var crct = /*#__PURE__*/ (function () {
+    var t = new Int32Array(256);
+    for (var i = 0; i < 256; ++i) {
+        var c = i, k = 9;
+        while (--k)
+            c = ((c & 1) && -306674912) ^ (c >>> 1);
+        t[i] = c;
+    }
+    return t;
+})();
+// CRC32
+var crc = function () {
+    var c = -1;
+    return {
+        p: function (d) {
+            // closures have awful performance
+            var cr = c;
+            for (var i = 0; i < d.length; ++i)
+                cr = crct[(cr & 255) ^ d[i]] ^ (cr >>> 8);
+            c = cr;
+        },
+        d: function () { return ~c; }
+    };
+};
+// Adler32
+var adler = function () {
+    var a = 1, b = 0;
+    return {
+        p: function (d) {
+            // closures have awful performance
+            var n = a, m = b;
+            var l = d.length | 0;
+            for (var i = 0; i != l;) {
+                var e = Math.min(i + 2655, l);
+                for (; i < e; ++i)
+                    m += n += d[i];
+                n = (n & 65535) + 15 * (n >> 16), m = (m & 65535) + 15 * (m >> 16);
+            }
+            a = n, b = m;
+        },
+        d: function () {
+            a %= 65521, b %= 65521;
+            return (a & 255) << 24 | (a & 0xFF00) << 8 | (b & 255) << 8 | (b >> 8);
+        }
+    };
+};
+;
+// deflate with opts
+var dopt = function (dat, opt, pre, post, st) {
+    if (!st) {
+        st = { l: 1 };
+        if (opt.dictionary) {
+            var dict = opt.dictionary.subarray(-32768);
+            var newDat = new u8(dict.length + dat.length);
+            newDat.set(dict);
+            newDat.set(dat, dict.length);
+            dat = newDat;
+            st.w = dict.length;
+        }
+    }
+    return dflt(dat, opt.level == null ? 6 : opt.level, opt.mem == null ? (st.l ? Math.ceil(Math.max(8, Math.min(13, Math.log(dat.length))) * 1.5) : 20) : (12 + opt.mem), pre, post, st);
+};
+// Walmart object spread
+var mrg = function (a, b) {
+    var o = {};
+    for (var k in a)
+        o[k] = a[k];
+    for (var k in b)
+        o[k] = b[k];
+    return o;
+};
+// worker clone
+// This is possibly the craziest part of the entire codebase, despite how simple it may seem.
+// The only parameter to this function is a closure that returns an array of variables outside of the function scope.
+// We're going to try to figure out the variable names used in the closure as strings because that is crucial for workerization.
+// We will return an object mapping of true variable name to value (basically, the current scope as a JS object).
+// The reason we can't just use the original variable names is minifiers mangling the toplevel scope.
+// This took me three weeks to figure out how to do.
+var wcln = function (fn, fnStr, td) {
+    var dt = fn();
+    var st = fn.toString();
+    var ks = st.slice(st.indexOf('[') + 1, st.lastIndexOf(']')).replace(/\s+/g, '').split(',');
+    for (var i = 0; i < dt.length; ++i) {
+        var v = dt[i], k = ks[i];
+        if (typeof v == 'function') {
+            fnStr += ';' + k + '=';
+            var st_1 = v.toString();
+            if (v.prototype) {
+                // for global objects
+                if (st_1.indexOf('[native code]') != -1) {
+                    var spInd = st_1.indexOf(' ', 8) + 1;
+                    fnStr += st_1.slice(spInd, st_1.indexOf('(', spInd));
+                }
+                else {
+                    fnStr += st_1;
+                    for (var t in v.prototype)
+                        fnStr += ';' + k + '.prototype.' + t + '=' + v.prototype[t].toString();
+                }
+            }
+            else
+                fnStr += st_1;
+        }
+        else
+            td[k] = v;
+    }
+    return fnStr;
+};
+var ch = [];
+// clone bufs
+var cbfs = function (v) {
+    var tl = [];
+    for (var k in v) {
+        if (v[k].buffer) {
+            tl.push((v[k] = new v[k].constructor(v[k])).buffer);
+        }
+    }
+    return tl;
+};
+// use a worker to execute code
+var wrkr = function (fns, init, id, cb) {
+    if (!ch[id]) {
+        var fnStr = '', td_1 = {}, m = fns.length - 1;
+        for (var i = 0; i < m; ++i)
+            fnStr = wcln(fns[i], fnStr, td_1);
+        ch[id] = { c: wcln(fns[m], fnStr, td_1), e: td_1 };
+    }
+    var td = mrg({}, ch[id].e);
+    return (0, node_worker_1.default)(ch[id].c + ';onmessage=function(e){for(var k in e.data)self[k]=e.data[k];onmessage=' + init.toString() + '}', id, td, cbfs(td), cb);
+};
+// base async inflate fn
+var bInflt = function () { return [u8, u16, i32, fleb, fdeb, clim, fl, fd, flrm, fdrm, rev, ec, hMap, max, bits, bits16, shft, slc, err, inflt, inflateSync, pbf, gopt]; };
+var bDflt = function () { return [u8, u16, i32, fleb, fdeb, clim, revfl, revfd, flm, flt, fdm, fdt, rev, deo, et, hMap, wbits, wbits16, hTree, ln, lc, clen, wfblk, wblk, shft, slc, dflt, dopt, deflateSync, pbf]; };
+// gzip extra
+var gze = function () { return [gzh, gzhl, wbytes, crc, crct]; };
+// gunzip extra
+var guze = function () { return [gzs, gzl]; };
+// zlib extra
+var zle = function () { return [zlh, wbytes, adler]; };
+// unzlib extra
+var zule = function () { return [zls]; };
+// post buf
+var pbf = function (msg) { return postMessage(msg, [msg.buffer]); };
+// get opts
+var gopt = function (o) { return o && {
+    out: o.size && new u8(o.size),
+    dictionary: o.dictionary
+}; };
+// async helper
+var cbify = function (dat, opts, fns, init, id, cb) {
+    var w = wrkr(fns, init, id, function (err, dat) {
+        w.terminate();
+        cb(err, dat);
+    });
+    w.postMessage([dat, opts], opts.consume ? [dat.buffer] : []);
+    return function () { w.terminate(); };
+};
+// auto stream
+var astrm = function (strm) {
+    strm.ondata = function (dat, final) { return postMessage([dat, final], [dat.buffer]); };
+    return function (ev) {
+        if (ev.data.length) {
+            strm.push(ev.data[0], ev.data[1]);
+            postMessage([ev.data[0].length]);
+        }
+        else
+            strm.flush();
+    };
+};
+// async stream attach
+var astrmify = function (fns, strm, opts, init, id, flush, ext) {
+    var t;
+    var w = wrkr(fns, init, id, function (err, dat) {
+        if (err)
+            w.terminate(), strm.ondata.call(strm, err);
+        else if (!Array.isArray(dat))
+            ext(dat);
+        else if (dat.length == 1) {
+            strm.queuedSize -= dat[0];
+            if (strm.ondrain)
+                strm.ondrain(dat[0]);
+        }
+        else {
+            if (dat[1])
+                w.terminate();
+            strm.ondata.call(strm, err, dat[0], dat[1]);
+        }
+    });
+    w.postMessage(opts);
+    strm.queuedSize = 0;
+    strm.push = function (d, f) {
+        if (!strm.ondata)
+            err(5);
+        if (t)
+            strm.ondata(err(4, 0, 1), null, !!f);
+        strm.queuedSize += d.length;
+        w.postMessage([d, t = f], [d.buffer]);
+    };
+    strm.terminate = function () { w.terminate(); };
+    if (flush) {
+        strm.flush = function () { w.postMessage([]); };
+    }
+};
+// read 2 bytes
+var b2 = function (d, b) { return d[b] | (d[b + 1] << 8); };
+// read 4 bytes
+var b4 = function (d, b) { return (d[b] | (d[b + 1] << 8) | (d[b + 2] << 16) | (d[b + 3] << 24)) >>> 0; };
+var b8 = function (d, b) { return b4(d, b) + (b4(d, b + 4) * 4294967296); };
+// write bytes
+var wbytes = function (d, b, v) {
+    for (; v; ++b)
+        d[b] = v, v >>>= 8;
+};
+// gzip header
+var gzh = function (c, o) {
+    var fn = o.filename;
+    c[0] = 31, c[1] = 139, c[2] = 8, c[8] = o.level < 2 ? 4 : o.level == 9 ? 2 : 0, c[9] = 3; // assume Unix
+    if (o.mtime != 0)
+        wbytes(c, 4, Math.floor(new Date(o.mtime || Date.now()) / 1000));
+    if (fn) {
+        c[3] = 8;
+        for (var i = 0; i <= fn.length; ++i)
+            c[i + 10] = fn.charCodeAt(i);
+    }
+};
+// gzip footer: -8 to -4 = CRC, -4 to -0 is length
+// gzip start
+var gzs = function (d) {
+    if (d[0] != 31 || d[1] != 139 || d[2] != 8)
+        err(6, 'invalid gzip data');
+    var flg = d[3];
+    var st = 10;
+    if (flg & 4)
+        st += (d[10] | d[11] << 8) + 2;
+    for (var zs = (flg >> 3 & 1) + (flg >> 4 & 1); zs > 0; zs -= !d[st++])
+        ;
+    return st + (flg & 2);
+};
+// gzip length
+var gzl = function (d) {
+    var l = d.length;
+    return (d[l - 4] | d[l - 3] << 8 | d[l - 2] << 16 | d[l - 1] << 24) >>> 0;
+};
+// gzip header length
+var gzhl = function (o) { return 10 + (o.filename ? o.filename.length + 1 : 0); };
+// zlib header
+var zlh = function (c, o) {
+    var lv = o.level, fl = lv == 0 ? 0 : lv < 6 ? 1 : lv == 9 ? 3 : 2;
+    c[0] = 120, c[1] = (fl << 6) | (o.dictionary && 32);
+    c[1] |= 31 - ((c[0] << 8) | c[1]) % 31;
+    if (o.dictionary) {
+        var h = adler();
+        h.p(o.dictionary);
+        wbytes(c, 2, h.d());
+    }
+};
+// zlib start
+var zls = function (d, dict) {
+    if ((d[0] & 15) != 8 || (d[0] >> 4) > 7 || ((d[0] << 8 | d[1]) % 31))
+        err(6, 'invalid zlib data');
+    if ((d[1] >> 5 & 1) == +!dict)
+        err(6, 'invalid zlib data: ' + (d[1] & 32 ? 'need' : 'unexpected') + ' dictionary');
+    return (d[1] >> 3 & 4) + 2;
+};
+function StrmOpt(opts, cb) {
+    if (typeof opts == 'function')
+        cb = opts, opts = {};
+    this.ondata = cb;
+    return opts;
+}
+/**
+ * Streaming DEFLATE compression
+ */
+var Deflate = /*#__PURE__*/ (function () {
+    function Deflate(opts, cb) {
+        if (typeof opts == 'function')
+            cb = opts, opts = {};
+        this.ondata = cb;
+        this.o = opts || {};
+        this.s = { l: 0, i: 32768, w: 32768, z: 32768 };
+        // Buffer length must always be 0 mod 32768 for index calculations to be correct when modifying head and prev
+        // 98304 = 32768 (lookback) + 65536 (common chunk size)
+        this.b = new u8(98304);
+        if (this.o.dictionary) {
+            var dict = this.o.dictionary.subarray(-32768);
+            this.b.set(dict, 32768 - dict.length);
+            this.s.i = 32768 - dict.length;
+        }
+    }
+    Deflate.prototype.p = function (c, f) {
+        this.ondata(dopt(c, this.o, 0, 0, this.s), f);
+    };
+    /**
+     * Pushes a chunk to be deflated
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    Deflate.prototype.push = function (chunk, final) {
+        if (!this.ondata)
+            err(5);
+        if (this.s.l)
+            err(4);
+        var endLen = chunk.length + this.s.z;
+        if (endLen > this.b.length) {
+            if (endLen > 2 * this.b.length - 32768) {
+                var newBuf = new u8(endLen & -32768);
+                newBuf.set(this.b.subarray(0, this.s.z));
+                this.b = newBuf;
+            }
+            var split = this.b.length - this.s.z;
+            this.b.set(chunk.subarray(0, split), this.s.z);
+            this.s.z = this.b.length;
+            this.p(this.b, false);
+            this.b.set(this.b.subarray(-32768));
+            this.b.set(chunk.subarray(split), 32768);
+            this.s.z = chunk.length - split + 32768;
+            this.s.i = 32766, this.s.w = 32768;
+        }
+        else {
+            this.b.set(chunk, this.s.z);
+            this.s.z += chunk.length;
+        }
+        this.s.l = final & 1;
+        if (this.s.z > this.s.w + 8191 || final) {
+            this.p(this.b, final || false);
+            this.s.w = this.s.i, this.s.i -= 2;
+        }
+    };
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * deflated output for small inputs.
+     */
+    Deflate.prototype.flush = function () {
+        if (!this.ondata)
+            err(5);
+        if (this.s.l)
+            err(4);
+        this.p(this.b, false);
+        this.s.w = this.s.i, this.s.i -= 2;
+    };
+    return Deflate;
+}());
+exports.Deflate = Deflate;
+/**
+ * Asynchronous streaming DEFLATE compression
+ */
+var AsyncDeflate = /*#__PURE__*/ (function () {
+    function AsyncDeflate(opts, cb) {
+        astrmify([
+            bDflt,
+            function () { return [astrm, Deflate]; }
+        ], this, StrmOpt.call(this, opts, cb), function (ev) {
+            var strm = new Deflate(ev.data);
+            onmessage = astrm(strm);
+        }, 6, 1);
+    }
+    return AsyncDeflate;
+}());
+exports.AsyncDeflate = AsyncDeflate;
+function deflate(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    return cbify(data, opts, [
+        bDflt,
+    ], function (ev) { return pbf(deflateSync(ev.data[0], ev.data[1])); }, 0, cb);
+}
+exports.deflate = deflate;
+/**
+ * Compresses data with DEFLATE without any wrapper
+ * @param data The data to compress
+ * @param opts The compression options
+ * @returns The deflated version of the data
+ */
+function deflateSync(data, opts) {
+    return dopt(data, opts || {}, 0, 0);
+}
+exports.deflateSync = deflateSync;
+/**
+ * Streaming DEFLATE decompression
+ */
+var Inflate = /*#__PURE__*/ (function () {
+    function Inflate(opts, cb) {
+        // no StrmOpt here to avoid adding to workerizer
+        if (typeof opts == 'function')
+            cb = opts, opts = {};
+        this.ondata = cb;
+        var dict = opts && opts.dictionary && opts.dictionary.subarray(-32768);
+        this.s = { i: 0, b: dict ? dict.length : 0 };
+        this.o = new u8(32768);
+        this.p = new u8(0);
+        if (dict)
+            this.o.set(dict);
+    }
+    Inflate.prototype.e = function (c) {
+        if (!this.ondata)
+            err(5);
+        if (this.d)
+            err(4);
+        if (!this.p.length)
+            this.p = c;
+        else if (c.length) {
+            var n = new u8(this.p.length + c.length);
+            n.set(this.p), n.set(c, this.p.length), this.p = n;
+        }
+    };
+    Inflate.prototype.c = function (final) {
+        this.s.i = +(this.d = final || false);
+        var bts = this.s.b;
+        var dt = inflt(this.p, this.s, this.o);
+        this.ondata(slc(dt, bts, this.s.b), this.d);
+        this.o = slc(dt, this.s.b - 32768), this.s.b = this.o.length;
+        this.p = slc(this.p, (this.s.p / 8) | 0), this.s.p &= 7;
+    };
+    /**
+     * Pushes a chunk to be inflated
+     * @param chunk The chunk to push
+     * @param final Whether this is the final chunk
+     */
+    Inflate.prototype.push = function (chunk, final) {
+        this.e(chunk), this.c(final);
+    };
+    return Inflate;
+}());
+exports.Inflate = Inflate;
+/**
+ * Asynchronous streaming DEFLATE decompression
+ */
+var AsyncInflate = /*#__PURE__*/ (function () {
+    function AsyncInflate(opts, cb) {
+        astrmify([
+            bInflt,
+            function () { return [astrm, Inflate]; }
+        ], this, StrmOpt.call(this, opts, cb), function (ev) {
+            var strm = new Inflate(ev.data);
+            onmessage = astrm(strm);
+        }, 7, 0);
+    }
+    return AsyncInflate;
+}());
+exports.AsyncInflate = AsyncInflate;
+function inflate(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    return cbify(data, opts, [
+        bInflt
+    ], function (ev) { return pbf(inflateSync(ev.data[0], gopt(ev.data[1]))); }, 1, cb);
+}
+exports.inflate = inflate;
+/**
+ * Expands DEFLATE data with no wrapper
+ * @param data The data to decompress
+ * @param opts The decompression options
+ * @returns The decompressed version of the data
+ */
+function inflateSync(data, opts) {
+    return inflt(data, { i: 2 }, opts && opts.out, opts && opts.dictionary);
+}
+exports.inflateSync = inflateSync;
+// before you yell at me for not just using extends, my reason is that TS inheritance is hard to workerize.
+/**
+ * Streaming GZIP compression
+ */
+var Gzip = /*#__PURE__*/ (function () {
+    function Gzip(opts, cb) {
+        this.c = crc();
+        this.l = 0;
+        this.v = 1;
+        Deflate.call(this, opts, cb);
+    }
+    /**
+     * Pushes a chunk to be GZIPped
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    Gzip.prototype.push = function (chunk, final) {
+        this.c.p(chunk);
+        this.l += chunk.length;
+        Deflate.prototype.push.call(this, chunk, final);
+    };
+    Gzip.prototype.p = function (c, f) {
+        var raw = dopt(c, this.o, this.v && gzhl(this.o), f && 8, this.s);
+        if (this.v)
+            gzh(raw, this.o), this.v = 0;
+        if (f)
+            wbytes(raw, raw.length - 8, this.c.d()), wbytes(raw, raw.length - 4, this.l);
+        this.ondata(raw, f);
+    };
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * GZIPped output for small inputs.
+     */
+    Gzip.prototype.flush = function () {
+        Deflate.prototype.flush.call(this);
+    };
+    return Gzip;
+}());
+exports.Gzip = Gzip;
+exports.Compress = Gzip;
+/**
+ * Asynchronous streaming GZIP compression
+ */
+var AsyncGzip = /*#__PURE__*/ (function () {
+    function AsyncGzip(opts, cb) {
+        astrmify([
+            bDflt,
+            gze,
+            function () { return [astrm, Deflate, Gzip]; }
+        ], this, StrmOpt.call(this, opts, cb), function (ev) {
+            var strm = new Gzip(ev.data);
+            onmessage = astrm(strm);
+        }, 8, 1);
+    }
+    return AsyncGzip;
+}());
+exports.AsyncGzip = AsyncGzip;
+exports.AsyncCompress = AsyncGzip;
+function gzip(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    return cbify(data, opts, [
+        bDflt,
+        gze,
+        function () { return [gzipSync]; }
+    ], function (ev) { return pbf(gzipSync(ev.data[0], ev.data[1])); }, 2, cb);
+}
+exports.gzip = gzip;
+exports.compress = gzip;
+/**
+ * Compresses data with GZIP
+ * @param data The data to compress
+ * @param opts The compression options
+ * @returns The gzipped version of the data
+ */
+function gzipSync(data, opts) {
+    if (!opts)
+        opts = {};
+    var c = crc(), l = data.length;
+    c.p(data);
+    var d = dopt(data, opts, gzhl(opts), 8), s = d.length;
+    return gzh(d, opts), wbytes(d, s - 8, c.d()), wbytes(d, s - 4, l), d;
+}
+exports.gzipSync = gzipSync;
+exports.compressSync = gzipSync;
+/**
+ * Streaming single or multi-member GZIP decompression
+ */
+var Gunzip = /*#__PURE__*/ (function () {
+    function Gunzip(opts, cb) {
+        this.v = 1;
+        this.r = 0;
+        Inflate.call(this, opts, cb);
+    }
+    /**
+     * Pushes a chunk to be GUNZIPped
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    Gunzip.prototype.push = function (chunk, final) {
+        Inflate.prototype.e.call(this, chunk);
+        this.r += chunk.length;
+        if (this.v) {
+            var p = this.p.subarray(this.v - 1);
+            var s = p.length > 3 ? gzs(p) : 4;
+            if (s > p.length) {
+                if (!final)
+                    return;
+            }
+            else if (this.v > 1 && this.onmember) {
+                this.onmember(this.r - p.length);
+            }
+            this.p = p.subarray(s), this.v = 0;
+        }
+        // necessary to prevent TS from using the closure value
+        // This allows for workerization to function correctly
+        Inflate.prototype.c.call(this, final);
+        // process concatenated GZIP
+        if (this.s.f && !this.s.l && !final) {
+            this.v = shft(this.s.p) + 9;
+            this.s = { i: 0 };
+            this.o = new u8(0);
+            this.push(new u8(0), final);
+        }
+    };
+    return Gunzip;
+}());
+exports.Gunzip = Gunzip;
+/**
+ * Asynchronous streaming single or multi-member GZIP decompression
+ */
+var AsyncGunzip = /*#__PURE__*/ (function () {
+    function AsyncGunzip(opts, cb) {
+        var _this = this;
+        astrmify([
+            bInflt,
+            guze,
+            function () { return [astrm, Inflate, Gunzip]; }
+        ], this, StrmOpt.call(this, opts, cb), function (ev) {
+            var strm = new Gunzip(ev.data);
+            strm.onmember = function (offset) { return postMessage(offset); };
+            onmessage = astrm(strm);
+        }, 9, 0, function (offset) { return _this.onmember && _this.onmember(offset); });
+    }
+    return AsyncGunzip;
+}());
+exports.AsyncGunzip = AsyncGunzip;
+function gunzip(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    return cbify(data, opts, [
+        bInflt,
+        guze,
+        function () { return [gunzipSync]; }
+    ], function (ev) { return pbf(gunzipSync(ev.data[0], ev.data[1])); }, 3, cb);
+}
+exports.gunzip = gunzip;
+/**
+ * Expands GZIP data
+ * @param data The data to decompress
+ * @param opts The decompression options
+ * @returns The decompressed version of the data
+ */
+function gunzipSync(data, opts) {
+    var st = gzs(data);
+    if (st + 8 > data.length)
+        err(6, 'invalid gzip data');
+    return inflt(data.subarray(st, -8), { i: 2 }, opts && opts.out || new u8(gzl(data)), opts && opts.dictionary);
+}
+exports.gunzipSync = gunzipSync;
+/**
+ * Streaming Zlib compression
+ */
+var Zlib = /*#__PURE__*/ (function () {
+    function Zlib(opts, cb) {
+        this.c = adler();
+        this.v = 1;
+        Deflate.call(this, opts, cb);
+    }
+    /**
+     * Pushes a chunk to be zlibbed
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    Zlib.prototype.push = function (chunk, final) {
+        this.c.p(chunk);
+        Deflate.prototype.push.call(this, chunk, final);
+    };
+    Zlib.prototype.p = function (c, f) {
+        var raw = dopt(c, this.o, this.v && (this.o.dictionary ? 6 : 2), f && 4, this.s);
+        if (this.v)
+            zlh(raw, this.o), this.v = 0;
+        if (f)
+            wbytes(raw, raw.length - 4, this.c.d());
+        this.ondata(raw, f);
+    };
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * zlibbed output for small inputs.
+     */
+    Zlib.prototype.flush = function () {
+        Deflate.prototype.flush.call(this);
+    };
+    return Zlib;
+}());
+exports.Zlib = Zlib;
+/**
+ * Asynchronous streaming Zlib compression
+ */
+var AsyncZlib = /*#__PURE__*/ (function () {
+    function AsyncZlib(opts, cb) {
+        astrmify([
+            bDflt,
+            zle,
+            function () { return [astrm, Deflate, Zlib]; }
+        ], this, StrmOpt.call(this, opts, cb), function (ev) {
+            var strm = new Zlib(ev.data);
+            onmessage = astrm(strm);
+        }, 10, 1);
+    }
+    return AsyncZlib;
+}());
+exports.AsyncZlib = AsyncZlib;
+function zlib(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    return cbify(data, opts, [
+        bDflt,
+        zle,
+        function () { return [zlibSync]; }
+    ], function (ev) { return pbf(zlibSync(ev.data[0], ev.data[1])); }, 4, cb);
+}
+exports.zlib = zlib;
+/**
+ * Compress data with Zlib
+ * @param data The data to compress
+ * @param opts The compression options
+ * @returns The zlib-compressed version of the data
+ */
+function zlibSync(data, opts) {
+    if (!opts)
+        opts = {};
+    var a = adler();
+    a.p(data);
+    var d = dopt(data, opts, opts.dictionary ? 6 : 2, 4);
+    return zlh(d, opts), wbytes(d, d.length - 4, a.d()), d;
+}
+exports.zlibSync = zlibSync;
+/**
+ * Streaming Zlib decompression
+ */
+var Unzlib = /*#__PURE__*/ (function () {
+    function Unzlib(opts, cb) {
+        Inflate.call(this, opts, cb);
+        this.v = opts && opts.dictionary ? 2 : 1;
+    }
+    /**
+     * Pushes a chunk to be unzlibbed
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    Unzlib.prototype.push = function (chunk, final) {
+        Inflate.prototype.e.call(this, chunk);
+        if (this.v) {
+            if (this.p.length < 6 && !final)
+                return;
+            this.p = this.p.subarray(zls(this.p, this.v - 1)), this.v = 0;
+        }
+        if (final) {
+            if (this.p.length < 4)
+                err(6, 'invalid zlib data');
+            this.p = this.p.subarray(0, -4);
+        }
+        // necessary to prevent TS from using the closure value
+        // This allows for workerization to function correctly
+        Inflate.prototype.c.call(this, final);
+    };
+    return Unzlib;
+}());
+exports.Unzlib = Unzlib;
+/**
+ * Asynchronous streaming Zlib decompression
+ */
+var AsyncUnzlib = /*#__PURE__*/ (function () {
+    function AsyncUnzlib(opts, cb) {
+        astrmify([
+            bInflt,
+            zule,
+            function () { return [astrm, Inflate, Unzlib]; }
+        ], this, StrmOpt.call(this, opts, cb), function (ev) {
+            var strm = new Unzlib(ev.data);
+            onmessage = astrm(strm);
+        }, 11, 0);
+    }
+    return AsyncUnzlib;
+}());
+exports.AsyncUnzlib = AsyncUnzlib;
+function unzlib(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    return cbify(data, opts, [
+        bInflt,
+        zule,
+        function () { return [unzlibSync]; }
+    ], function (ev) { return pbf(unzlibSync(ev.data[0], gopt(ev.data[1]))); }, 5, cb);
+}
+exports.unzlib = unzlib;
+/**
+ * Expands Zlib data
+ * @param data The data to decompress
+ * @param opts The decompression options
+ * @returns The decompressed version of the data
+ */
+function unzlibSync(data, opts) {
+    return inflt(data.subarray(zls(data, opts && opts.dictionary), -4), { i: 2 }, opts && opts.out, opts && opts.dictionary);
+}
+exports.unzlibSync = unzlibSync;
+/**
+ * Streaming GZIP, Zlib, or raw DEFLATE decompression
+ */
+var Decompress = /*#__PURE__*/ (function () {
+    function Decompress(opts, cb) {
+        this.o = StrmOpt.call(this, opts, cb) || {};
+        this.G = Gunzip;
+        this.I = Inflate;
+        this.Z = Unzlib;
+    }
+    // init substream
+    // overriden by AsyncDecompress
+    Decompress.prototype.i = function () {
+        var _this = this;
+        this.s.ondata = function (dat, final) {
+            _this.ondata(dat, final);
+        };
+    };
+    /**
+     * Pushes a chunk to be decompressed
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    Decompress.prototype.push = function (chunk, final) {
+        if (!this.ondata)
+            err(5);
+        if (!this.s) {
+            if (this.p && this.p.length) {
+                var n = new u8(this.p.length + chunk.length);
+                n.set(this.p), n.set(chunk, this.p.length);
+            }
+            else
+                this.p = chunk;
+            if (this.p.length > 2) {
+                this.s = (this.p[0] == 31 && this.p[1] == 139 && this.p[2] == 8)
+                    ? new this.G(this.o)
+                    : ((this.p[0] & 15) != 8 || (this.p[0] >> 4) > 7 || ((this.p[0] << 8 | this.p[1]) % 31))
+                        ? new this.I(this.o)
+                        : new this.Z(this.o);
+                this.i();
+                this.s.push(this.p, final);
+                this.p = null;
+            }
+        }
+        else
+            this.s.push(chunk, final);
+    };
+    return Decompress;
+}());
+exports.Decompress = Decompress;
+/**
+ * Asynchronous streaming GZIP, Zlib, or raw DEFLATE decompression
+ */
+var AsyncDecompress = /*#__PURE__*/ (function () {
+    function AsyncDecompress(opts, cb) {
+        Decompress.call(this, opts, cb);
+        this.queuedSize = 0;
+        this.G = AsyncGunzip;
+        this.I = AsyncInflate;
+        this.Z = AsyncUnzlib;
+    }
+    AsyncDecompress.prototype.i = function () {
+        var _this = this;
+        this.s.ondata = function (err, dat, final) {
+            _this.ondata(err, dat, final);
+        };
+        this.s.ondrain = function (size) {
+            _this.queuedSize -= size;
+            if (_this.ondrain)
+                _this.ondrain(size);
+        };
+    };
+    /**
+     * Pushes a chunk to be decompressed
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    AsyncDecompress.prototype.push = function (chunk, final) {
+        this.queuedSize += chunk.length;
+        Decompress.prototype.push.call(this, chunk, final);
+    };
+    return AsyncDecompress;
+}());
+exports.AsyncDecompress = AsyncDecompress;
+function decompress(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    return (data[0] == 31 && data[1] == 139 && data[2] == 8)
+        ? gunzip(data, opts, cb)
+        : ((data[0] & 15) != 8 || (data[0] >> 4) > 7 || ((data[0] << 8 | data[1]) % 31))
+            ? inflate(data, opts, cb)
+            : unzlib(data, opts, cb);
+}
+exports.decompress = decompress;
+/**
+ * Expands compressed GZIP, Zlib, or raw DEFLATE data, automatically detecting the format
+ * @param data The data to decompress
+ * @param opts The decompression options
+ * @returns The decompressed version of the data
+ */
+function decompressSync(data, opts) {
+    return (data[0] == 31 && data[1] == 139 && data[2] == 8)
+        ? gunzipSync(data, opts)
+        : ((data[0] & 15) != 8 || (data[0] >> 4) > 7 || ((data[0] << 8 | data[1]) % 31))
+            ? inflateSync(data, opts)
+            : unzlibSync(data, opts);
+}
+exports.decompressSync = decompressSync;
+// flatten a directory structure
+var fltn = function (d, p, t, o) {
+    for (var k in d) {
+        var val = d[k], n = p + k, op = o;
+        if (Array.isArray(val))
+            op = mrg(o, val[1]), val = val[0];
+        if (val instanceof u8)
+            t[n] = [val, op];
+        else {
+            t[n += '/'] = [new u8(0), op];
+            fltn(val, n, t, o);
+        }
+    }
+};
+// text encoder
+var te = typeof TextEncoder != 'undefined' && /*#__PURE__*/ new TextEncoder();
+// text decoder
+var td = typeof TextDecoder != 'undefined' && /*#__PURE__*/ new TextDecoder();
+// text decoder stream
+var tds = 0;
+try {
+    td.decode(et, { stream: true });
+    tds = 1;
+}
+catch (e) { }
+// decode UTF8
+var dutf8 = function (d) {
+    for (var r = '', i = 0;;) {
+        var c = d[i++];
+        var eb = (c > 127) + (c > 223) + (c > 239);
+        if (i + eb > d.length)
+            return { s: r, r: slc(d, i - 1) };
+        if (!eb)
+            r += String.fromCharCode(c);
+        else if (eb == 3) {
+            c = ((c & 15) << 18 | (d[i++] & 63) << 12 | (d[i++] & 63) << 6 | (d[i++] & 63)) - 65536,
+                r += String.fromCharCode(55296 | (c >> 10), 56320 | (c & 1023));
+        }
+        else if (eb & 1)
+            r += String.fromCharCode((c & 31) << 6 | (d[i++] & 63));
+        else
+            r += String.fromCharCode((c & 15) << 12 | (d[i++] & 63) << 6 | (d[i++] & 63));
+    }
+};
+/**
+ * Streaming UTF-8 decoding
+ */
+var DecodeUTF8 = /*#__PURE__*/ (function () {
+    /**
+     * Creates a UTF-8 decoding stream
+     * @param cb The callback to call whenever data is decoded
+     */
+    function DecodeUTF8(cb) {
+        this.ondata = cb;
+        if (tds)
+            this.t = new TextDecoder();
+        else
+            this.p = et;
+    }
+    /**
+     * Pushes a chunk to be decoded from UTF-8 binary
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    DecodeUTF8.prototype.push = function (chunk, final) {
+        if (!this.ondata)
+            err(5);
+        final = !!final;
+        if (this.t) {
+            this.ondata(this.t.decode(chunk, { stream: true }), final);
+            if (final) {
+                if (this.t.decode().length)
+                    err(8);
+                this.t = null;
+            }
+            return;
+        }
+        if (!this.p)
+            err(4);
+        var dat = new u8(this.p.length + chunk.length);
+        dat.set(this.p);
+        dat.set(chunk, this.p.length);
+        var _a = dutf8(dat), s = _a.s, r = _a.r;
+        if (final) {
+            if (r.length)
+                err(8);
+            this.p = null;
+        }
+        else
+            this.p = r;
+        this.ondata(s, final);
+    };
+    return DecodeUTF8;
+}());
+exports.DecodeUTF8 = DecodeUTF8;
+/**
+ * Streaming UTF-8 encoding
+ */
+var EncodeUTF8 = /*#__PURE__*/ (function () {
+    /**
+     * Creates a UTF-8 decoding stream
+     * @param cb The callback to call whenever data is encoded
+     */
+    function EncodeUTF8(cb) {
+        this.ondata = cb;
+    }
+    /**
+     * Pushes a chunk to be encoded to UTF-8
+     * @param chunk The string data to push
+     * @param final Whether this is the last chunk
+     */
+    EncodeUTF8.prototype.push = function (chunk, final) {
+        if (!this.ondata)
+            err(5);
+        if (this.d)
+            err(4);
+        this.ondata(strToU8(chunk), this.d = final || false);
+    };
+    return EncodeUTF8;
+}());
+exports.EncodeUTF8 = EncodeUTF8;
+/**
+ * Converts a string into a Uint8Array for use with compression/decompression methods
+ * @param str The string to encode
+ * @param latin1 Whether or not to interpret the data as Latin-1. This should
+ *               not need to be true unless decoding a binary string.
+ * @returns The string encoded in UTF-8/Latin-1 binary
+ */
+function strToU8(str, latin1) {
+    if (latin1) {
+        var ar_1 = new u8(str.length);
+        for (var i = 0; i < str.length; ++i)
+            ar_1[i] = str.charCodeAt(i);
+        return ar_1;
+    }
+    if (te)
+        return te.encode(str);
+    var l = str.length;
+    var ar = new u8(str.length + (str.length >> 1));
+    var ai = 0;
+    var w = function (v) { ar[ai++] = v; };
+    for (var i = 0; i < l; ++i) {
+        if (ai + 5 > ar.length) {
+            var n = new u8(ai + 8 + ((l - i) << 1));
+            n.set(ar);
+            ar = n;
+        }
+        var c = str.charCodeAt(i);
+        if (c < 128 || latin1)
+            w(c);
+        else if (c < 2048)
+            w(192 | (c >> 6)), w(128 | (c & 63));
+        else if (c > 55295 && c < 57344)
+            c = 65536 + (c & 1023 << 10) | (str.charCodeAt(++i) & 1023),
+                w(240 | (c >> 18)), w(128 | ((c >> 12) & 63)), w(128 | ((c >> 6) & 63)), w(128 | (c & 63));
+        else
+            w(224 | (c >> 12)), w(128 | ((c >> 6) & 63)), w(128 | (c & 63));
+    }
+    return slc(ar, 0, ai);
+}
+exports.strToU8 = strToU8;
+/**
+ * Converts a Uint8Array to a string
+ * @param dat The data to decode to string
+ * @param latin1 Whether or not to interpret the data as Latin-1. This should
+ *               not need to be true unless encoding to binary string.
+ * @returns The original UTF-8/Latin-1 string
+ */
+function strFromU8(dat, latin1) {
+    if (latin1) {
+        var r = '';
+        for (var i = 0; i < dat.length; i += 16384)
+            r += String.fromCharCode.apply(null, dat.subarray(i, i + 16384));
+        return r;
+    }
+    else if (td) {
+        return td.decode(dat);
+    }
+    else {
+        var _a = dutf8(dat), s = _a.s, r = _a.r;
+        if (r.length)
+            err(8);
+        return s;
+    }
+}
+exports.strFromU8 = strFromU8;
+;
+// deflate bit flag
+var dbf = function (l) { return l == 1 ? 3 : l < 6 ? 2 : l == 9 ? 1 : 0; };
+// skip local zip header
+var slzh = function (d, b) { return b + 30 + b2(d, b + 26) + b2(d, b + 28); };
+// read zip header
+var zh = function (d, b, z) {
+    var fnl = b2(d, b + 28), fn = strFromU8(d.subarray(b + 46, b + 46 + fnl), !(b2(d, b + 8) & 2048)), es = b + 46 + fnl, bs = b4(d, b + 20);
+    var _a = z && bs == 4294967295 ? z64e(d, es) : [bs, b4(d, b + 24), b4(d, b + 42)], sc = _a[0], su = _a[1], off = _a[2];
+    return [b2(d, b + 10), sc, su, fn, es + b2(d, b + 30) + b2(d, b + 32), off];
+};
+// read zip64 extra field
+var z64e = function (d, b) {
+    for (; b2(d, b) != 1; b += 4 + b2(d, b + 2))
+        ;
+    return [b8(d, b + 12), b8(d, b + 4), b8(d, b + 20)];
+};
+// extra field length
+var exfl = function (ex) {
+    var le = 0;
+    if (ex) {
+        for (var k in ex) {
+            var l = ex[k].length;
+            if (l > 65535)
+                err(9);
+            le += l + 4;
+        }
+    }
+    return le;
+};
+// write zip header
+var wzh = function (d, b, f, fn, u, c, ce, co) {
+    var fl = fn.length, ex = f.extra, col = co && co.length;
+    var exl = exfl(ex);
+    wbytes(d, b, ce != null ? 0x2014B50 : 0x4034B50), b += 4;
+    if (ce != null)
+        d[b++] = 20, d[b++] = f.os;
+    d[b] = 20, b += 2; // spec compliance? what's that?
+    d[b++] = (f.flag << 1) | (c < 0 && 8), d[b++] = u && 8;
+    d[b++] = f.compression & 255, d[b++] = f.compression >> 8;
+    var dt = new Date(f.mtime == null ? Date.now() : f.mtime), y = dt.getFullYear() - 1980;
+    if (y < 0 || y > 119)
+        err(10);
+    wbytes(d, b, (y << 25) | ((dt.getMonth() + 1) << 21) | (dt.getDate() << 16) | (dt.getHours() << 11) | (dt.getMinutes() << 5) | (dt.getSeconds() >> 1)), b += 4;
+    if (c != -1) {
+        wbytes(d, b, f.crc);
+        wbytes(d, b + 4, c < 0 ? -c - 2 : c);
+        wbytes(d, b + 8, f.size);
+    }
+    wbytes(d, b + 12, fl);
+    wbytes(d, b + 14, exl), b += 16;
+    if (ce != null) {
+        wbytes(d, b, col);
+        wbytes(d, b + 6, f.attrs);
+        wbytes(d, b + 10, ce), b += 14;
+    }
+    d.set(fn, b);
+    b += fl;
+    if (exl) {
+        for (var k in ex) {
+            var exf = ex[k], l = exf.length;
+            wbytes(d, b, +k);
+            wbytes(d, b + 2, l);
+            d.set(exf, b + 4), b += 4 + l;
+        }
+    }
+    if (col)
+        d.set(co, b), b += col;
+    return b;
+};
+// write zip footer (end of central directory)
+var wzf = function (o, b, c, d, e) {
+    wbytes(o, b, 0x6054B50); // skip disk
+    wbytes(o, b + 8, c);
+    wbytes(o, b + 10, c);
+    wbytes(o, b + 12, d);
+    wbytes(o, b + 16, e);
+};
+/**
+ * A pass-through stream to keep data uncompressed in a ZIP archive.
+ */
+var ZipPassThrough = /*#__PURE__*/ (function () {
+    /**
+     * Creates a pass-through stream that can be added to ZIP archives
+     * @param filename The filename to associate with this data stream
+     */
+    function ZipPassThrough(filename) {
+        this.filename = filename;
+        this.c = crc();
+        this.size = 0;
+        this.compression = 0;
+    }
+    /**
+     * Processes a chunk and pushes to the output stream. You can override this
+     * method in a subclass for custom behavior, but by default this passes
+     * the data through. You must call this.ondata(err, chunk, final) at some
+     * point in this method.
+     * @param chunk The chunk to process
+     * @param final Whether this is the last chunk
+     */
+    ZipPassThrough.prototype.process = function (chunk, final) {
+        this.ondata(null, chunk, final);
+    };
+    /**
+     * Pushes a chunk to be added. If you are subclassing this with a custom
+     * compression algorithm, note that you must push data from the source
+     * file only, pre-compression.
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    ZipPassThrough.prototype.push = function (chunk, final) {
+        if (!this.ondata)
+            err(5);
+        this.c.p(chunk);
+        this.size += chunk.length;
+        if (final)
+            this.crc = this.c.d();
+        this.process(chunk, final || false);
+    };
+    return ZipPassThrough;
+}());
+exports.ZipPassThrough = ZipPassThrough;
+// I don't extend because TypeScript extension adds 1kB of runtime bloat
+/**
+ * Streaming DEFLATE compression for ZIP archives. Prefer using AsyncZipDeflate
+ * for better performance
+ */
+var ZipDeflate = /*#__PURE__*/ (function () {
+    /**
+     * Creates a DEFLATE stream that can be added to ZIP archives
+     * @param filename The filename to associate with this data stream
+     * @param opts The compression options
+     */
+    function ZipDeflate(filename, opts) {
+        var _this = this;
+        if (!opts)
+            opts = {};
+        ZipPassThrough.call(this, filename);
+        this.d = new Deflate(opts, function (dat, final) {
+            _this.ondata(null, dat, final);
+        });
+        this.compression = 8;
+        this.flag = dbf(opts.level);
+    }
+    ZipDeflate.prototype.process = function (chunk, final) {
+        try {
+            this.d.push(chunk, final);
+        }
+        catch (e) {
+            this.ondata(e, null, final);
+        }
+    };
+    /**
+     * Pushes a chunk to be deflated
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    ZipDeflate.prototype.push = function (chunk, final) {
+        ZipPassThrough.prototype.push.call(this, chunk, final);
+    };
+    return ZipDeflate;
+}());
+exports.ZipDeflate = ZipDeflate;
+/**
+ * Asynchronous streaming DEFLATE compression for ZIP archives
+ */
+var AsyncZipDeflate = /*#__PURE__*/ (function () {
+    /**
+     * Creates an asynchronous DEFLATE stream that can be added to ZIP archives
+     * @param filename The filename to associate with this data stream
+     * @param opts The compression options
+     */
+    function AsyncZipDeflate(filename, opts) {
+        var _this = this;
+        if (!opts)
+            opts = {};
+        ZipPassThrough.call(this, filename);
+        this.d = new AsyncDeflate(opts, function (err, dat, final) {
+            _this.ondata(err, dat, final);
+        });
+        this.compression = 8;
+        this.flag = dbf(opts.level);
+        this.terminate = this.d.terminate;
+    }
+    AsyncZipDeflate.prototype.process = function (chunk, final) {
+        this.d.push(chunk, final);
+    };
+    /**
+     * Pushes a chunk to be deflated
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    AsyncZipDeflate.prototype.push = function (chunk, final) {
+        ZipPassThrough.prototype.push.call(this, chunk, final);
+    };
+    return AsyncZipDeflate;
+}());
+exports.AsyncZipDeflate = AsyncZipDeflate;
+// TODO: Better tree shaking
+/**
+ * A zippable archive to which files can incrementally be added
+ */
+var Zip = /*#__PURE__*/ (function () {
+    /**
+     * Creates an empty ZIP archive to which files can be added
+     * @param cb The callback to call whenever data for the generated ZIP archive
+     *           is available
+     */
+    function Zip(cb) {
+        this.ondata = cb;
+        this.u = [];
+        this.d = 1;
+    }
+    /**
+     * Adds a file to the ZIP archive
+     * @param file The file stream to add
+     */
+    Zip.prototype.add = function (file) {
+        var _this = this;
+        if (!this.ondata)
+            err(5);
+        // finishing or finished
+        if (this.d & 2)
+            this.ondata(err(4 + (this.d & 1) * 8, 0, 1), null, false);
+        else {
+            var f = strToU8(file.filename), fl_1 = f.length;
+            var com = file.comment, o = com && strToU8(com);
+            var u = fl_1 != file.filename.length || (o && (com.length != o.length));
+            var hl_1 = fl_1 + exfl(file.extra) + 30;
+            if (fl_1 > 65535)
+                this.ondata(err(11, 0, 1), null, false);
+            var header = new u8(hl_1);
+            wzh(header, 0, file, f, u, -1);
+            var chks_1 = [header];
+            var pAll_1 = function () {
+                for (var _i = 0, chks_2 = chks_1; _i < chks_2.length; _i++) {
+                    var chk = chks_2[_i];
+                    _this.ondata(null, chk, false);
+                }
+                chks_1 = [];
+            };
+            var tr_1 = this.d;
+            this.d = 0;
+            var ind_1 = this.u.length;
+            var uf_1 = mrg(file, {
+                f: f,
+                u: u,
+                o: o,
+                t: function () {
+                    if (file.terminate)
+                        file.terminate();
+                },
+                r: function () {
+                    pAll_1();
+                    if (tr_1) {
+                        var nxt = _this.u[ind_1 + 1];
+                        if (nxt)
+                            nxt.r();
+                        else
+                            _this.d = 1;
+                    }
+                    tr_1 = 1;
+                }
+            });
+            var cl_1 = 0;
+            file.ondata = function (err, dat, final) {
+                if (err) {
+                    _this.ondata(err, dat, final);
+                    _this.terminate();
+                }
+                else {
+                    cl_1 += dat.length;
+                    chks_1.push(dat);
+                    if (final) {
+                        var dd = new u8(16);
+                        wbytes(dd, 0, 0x8074B50);
+                        wbytes(dd, 4, file.crc);
+                        wbytes(dd, 8, cl_1);
+                        wbytes(dd, 12, file.size);
+                        chks_1.push(dd);
+                        uf_1.c = cl_1, uf_1.b = hl_1 + cl_1 + 16, uf_1.crc = file.crc, uf_1.size = file.size;
+                        if (tr_1)
+                            uf_1.r();
+                        tr_1 = 1;
+                    }
+                    else if (tr_1)
+                        pAll_1();
+                }
+            };
+            this.u.push(uf_1);
+        }
+    };
+    /**
+     * Ends the process of adding files and prepares to emit the final chunks.
+     * This *must* be called after adding all desired files for the resulting
+     * ZIP file to work properly.
+     */
+    Zip.prototype.end = function () {
+        var _this = this;
+        if (this.d & 2) {
+            this.ondata(err(4 + (this.d & 1) * 8, 0, 1), null, true);
+            return;
+        }
+        if (this.d)
+            this.e();
+        else
+            this.u.push({
+                r: function () {
+                    if (!(_this.d & 1))
+                        return;
+                    _this.u.splice(-1, 1);
+                    _this.e();
+                },
+                t: function () { }
+            });
+        this.d = 3;
+    };
+    Zip.prototype.e = function () {
+        var bt = 0, l = 0, tl = 0;
+        for (var _i = 0, _a = this.u; _i < _a.length; _i++) {
+            var f = _a[_i];
+            tl += 46 + f.f.length + exfl(f.extra) + (f.o ? f.o.length : 0);
+        }
+        var out = new u8(tl + 22);
+        for (var _b = 0, _c = this.u; _b < _c.length; _b++) {
+            var f = _c[_b];
+            wzh(out, bt, f, f.f, f.u, -f.c - 2, l, f.o);
+            bt += 46 + f.f.length + exfl(f.extra) + (f.o ? f.o.length : 0), l += f.b;
+        }
+        wzf(out, bt, this.u.length, tl, l);
+        this.ondata(null, out, true);
+        this.d = 2;
+    };
+    /**
+     * A method to terminate any internal workers used by the stream. Subsequent
+     * calls to add() will fail.
+     */
+    Zip.prototype.terminate = function () {
+        for (var _i = 0, _a = this.u; _i < _a.length; _i++) {
+            var f = _a[_i];
+            f.t();
+        }
+        this.d = 2;
+    };
+    return Zip;
+}());
+exports.Zip = Zip;
+function zip(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    var r = {};
+    fltn(data, '', r, opts);
+    var k = Object.keys(r);
+    var lft = k.length, o = 0, tot = 0;
+    var slft = lft, files = new Array(lft);
+    var term = [];
+    var tAll = function () {
+        for (var i = 0; i < term.length; ++i)
+            term[i]();
+    };
+    var cbd = function (a, b) {
+        mt(function () { cb(a, b); });
+    };
+    mt(function () { cbd = cb; });
+    var cbf = function () {
+        var out = new u8(tot + 22), oe = o, cdl = tot - o;
+        tot = 0;
+        for (var i = 0; i < slft; ++i) {
+            var f = files[i];
+            try {
+                var l = f.c.length;
+                wzh(out, tot, f, f.f, f.u, l);
+                var badd = 30 + f.f.length + exfl(f.extra);
+                var loc = tot + badd;
+                out.set(f.c, loc);
+                wzh(out, o, f, f.f, f.u, l, tot, f.m), o += 16 + badd + (f.m ? f.m.length : 0), tot = loc + l;
+            }
+            catch (e) {
+                return cbd(e, null);
+            }
+        }
+        wzf(out, o, files.length, cdl, oe);
+        cbd(null, out);
+    };
+    if (!lft)
+        cbf();
+    var _loop_1 = function (i) {
+        var fn = k[i];
+        var _a = r[fn], file = _a[0], p = _a[1];
+        var c = crc(), size = file.length;
+        c.p(file);
+        var f = strToU8(fn), s = f.length;
+        var com = p.comment, m = com && strToU8(com), ms = m && m.length;
+        var exl = exfl(p.extra);
+        var compression = p.level == 0 ? 0 : 8;
+        var cbl = function (e, d) {
+            if (e) {
+                tAll();
+                cbd(e, null);
+            }
+            else {
+                var l = d.length;
+                files[i] = mrg(p, {
+                    size: size,
+                    crc: c.d(),
+                    c: d,
+                    f: f,
+                    m: m,
+                    u: s != fn.length || (m && (com.length != ms)),
+                    compression: compression
+                });
+                o += 30 + s + exl + l;
+                tot += 76 + 2 * (s + exl) + (ms || 0) + l;
+                if (!--lft)
+                    cbf();
+            }
+        };
+        if (s > 65535)
+            cbl(err(11, 0, 1), null);
+        if (!compression)
+            cbl(null, file);
+        else if (size < 160000) {
+            try {
+                cbl(null, deflateSync(file, p));
+            }
+            catch (e) {
+                cbl(e, null);
+            }
+        }
+        else
+            term.push(deflate(file, p, cbl));
+    };
+    // Cannot use lft because it can decrease
+    for (var i = 0; i < slft; ++i) {
+        _loop_1(i);
+    }
+    return tAll;
+}
+exports.zip = zip;
+/**
+ * Synchronously creates a ZIP file. Prefer using `zip` for better performance
+ * with more than one file.
+ * @param data The directory structure for the ZIP archive
+ * @param opts The main options, merged with per-file options
+ * @returns The generated ZIP archive
+ */
+function zipSync(data, opts) {
+    if (!opts)
+        opts = {};
+    var r = {};
+    var files = [];
+    fltn(data, '', r, opts);
+    var o = 0;
+    var tot = 0;
+    for (var fn in r) {
+        var _a = r[fn], file = _a[0], p = _a[1];
+        var compression = p.level == 0 ? 0 : 8;
+        var f = strToU8(fn), s = f.length;
+        var com = p.comment, m = com && strToU8(com), ms = m && m.length;
+        var exl = exfl(p.extra);
+        if (s > 65535)
+            err(11);
+        var d = compression ? deflateSync(file, p) : file, l = d.length;
+        var c = crc();
+        c.p(file);
+        files.push(mrg(p, {
+            size: file.length,
+            crc: c.d(),
+            c: d,
+            f: f,
+            m: m,
+            u: s != fn.length || (m && (com.length != ms)),
+            o: o,
+            compression: compression
+        }));
+        o += 30 + s + exl + l;
+        tot += 76 + 2 * (s + exl) + (ms || 0) + l;
+    }
+    var out = new u8(tot + 22), oe = o, cdl = tot - o;
+    for (var i = 0; i < files.length; ++i) {
+        var f = files[i];
+        wzh(out, f.o, f, f.f, f.u, f.c.length);
+        var badd = 30 + f.f.length + exfl(f.extra);
+        out.set(f.c, f.o + badd);
+        wzh(out, o, f, f.f, f.u, f.c.length, f.o, f.m), o += 16 + badd + (f.m ? f.m.length : 0);
+    }
+    wzf(out, o, files.length, cdl, oe);
+    return out;
+}
+exports.zipSync = zipSync;
+/**
+ * Streaming pass-through decompression for ZIP archives
+ */
+var UnzipPassThrough = /*#__PURE__*/ (function () {
+    function UnzipPassThrough() {
+    }
+    UnzipPassThrough.prototype.push = function (data, final) {
+        this.ondata(null, data, final);
+    };
+    UnzipPassThrough.compression = 0;
+    return UnzipPassThrough;
+}());
+exports.UnzipPassThrough = UnzipPassThrough;
+/**
+ * Streaming DEFLATE decompression for ZIP archives. Prefer AsyncZipInflate for
+ * better performance.
+ */
+var UnzipInflate = /*#__PURE__*/ (function () {
+    /**
+     * Creates a DEFLATE decompression that can be used in ZIP archives
+     */
+    function UnzipInflate() {
+        var _this = this;
+        this.i = new Inflate(function (dat, final) {
+            _this.ondata(null, dat, final);
+        });
+    }
+    UnzipInflate.prototype.push = function (data, final) {
+        try {
+            this.i.push(data, final);
+        }
+        catch (e) {
+            this.ondata(e, null, final);
+        }
+    };
+    UnzipInflate.compression = 8;
+    return UnzipInflate;
+}());
+exports.UnzipInflate = UnzipInflate;
+/**
+ * Asynchronous streaming DEFLATE decompression for ZIP archives
+ */
+var AsyncUnzipInflate = /*#__PURE__*/ (function () {
+    /**
+     * Creates a DEFLATE decompression that can be used in ZIP archives
+     */
+    function AsyncUnzipInflate(_, sz) {
+        var _this = this;
+        if (sz < 320000) {
+            this.i = new Inflate(function (dat, final) {
+                _this.ondata(null, dat, final);
+            });
+        }
+        else {
+            this.i = new AsyncInflate(function (err, dat, final) {
+                _this.ondata(err, dat, final);
+            });
+            this.terminate = this.i.terminate;
+        }
+    }
+    AsyncUnzipInflate.prototype.push = function (data, final) {
+        if (this.i.terminate)
+            data = slc(data, 0);
+        this.i.push(data, final);
+    };
+    AsyncUnzipInflate.compression = 8;
+    return AsyncUnzipInflate;
+}());
+exports.AsyncUnzipInflate = AsyncUnzipInflate;
+/**
+ * A ZIP archive decompression stream that emits files as they are discovered
+ */
+var Unzip = /*#__PURE__*/ (function () {
+    /**
+     * Creates a ZIP decompression stream
+     * @param cb The callback to call whenever a file in the ZIP archive is found
+     */
+    function Unzip(cb) {
+        this.onfile = cb;
+        this.k = [];
+        this.o = {
+            0: UnzipPassThrough
+        };
+        this.p = et;
+    }
+    /**
+     * Pushes a chunk to be unzipped
+     * @param chunk The chunk to push
+     * @param final Whether this is the last chunk
+     */
+    Unzip.prototype.push = function (chunk, final) {
+        var _this = this;
+        if (!this.onfile)
+            err(5);
+        if (!this.p)
+            err(4);
+        if (this.c > 0) {
+            var len = Math.min(this.c, chunk.length);
+            var toAdd = chunk.subarray(0, len);
+            this.c -= len;
+            if (this.d)
+                this.d.push(toAdd, !this.c);
+            else
+                this.k[0].push(toAdd);
+            chunk = chunk.subarray(len);
+            if (chunk.length)
+                return this.push(chunk, final);
+        }
+        else {
+            var f = 0, i = 0, is = void 0, buf = void 0;
+            if (!this.p.length)
+                buf = chunk;
+            else if (!chunk.length)
+                buf = this.p;
+            else {
+                buf = new u8(this.p.length + chunk.length);
+                buf.set(this.p), buf.set(chunk, this.p.length);
+            }
+            var l = buf.length, oc = this.c, add = oc && this.d;
+            var _loop_2 = function () {
+                var _a;
+                var sig = b4(buf, i);
+                if (sig == 0x4034B50) {
+                    f = 1, is = i;
+                    this_1.d = null;
+                    this_1.c = 0;
+                    var bf = b2(buf, i + 6), cmp_1 = b2(buf, i + 8), u = bf & 2048, dd = bf & 8, fnl = b2(buf, i + 26), es = b2(buf, i + 28);
+                    if (l > i + 30 + fnl + es) {
+                        var chks_3 = [];
+                        this_1.k.unshift(chks_3);
+                        f = 2;
+                        var sc_1 = b4(buf, i + 18), su_1 = b4(buf, i + 22);
+                        var fn_1 = strFromU8(buf.subarray(i + 30, i += 30 + fnl), !u);
+                        if (sc_1 == 4294967295) {
+                            _a = dd ? [-2] : z64e(buf, i), sc_1 = _a[0], su_1 = _a[1];
+                        }
+                        else if (dd)
+                            sc_1 = -1;
+                        i += es;
+                        this_1.c = sc_1;
+                        var d_1;
+                        var file_1 = {
+                            name: fn_1,
+                            compression: cmp_1,
+                            start: function () {
+                                if (!file_1.ondata)
+                                    err(5);
+                                if (!sc_1)
+                                    file_1.ondata(null, et, true);
+                                else {
+                                    var ctr = _this.o[cmp_1];
+                                    if (!ctr)
+                                        file_1.ondata(err(14, 'unknown compression type ' + cmp_1, 1), null, false);
+                                    d_1 = sc_1 < 0 ? new ctr(fn_1) : new ctr(fn_1, sc_1, su_1);
+                                    d_1.ondata = function (err, dat, final) { file_1.ondata(err, dat, final); };
+                                    for (var _i = 0, chks_4 = chks_3; _i < chks_4.length; _i++) {
+                                        var dat = chks_4[_i];
+                                        d_1.push(dat, false);
+                                    }
+                                    if (_this.k[0] == chks_3 && _this.c)
+                                        _this.d = d_1;
+                                    else
+                                        d_1.push(et, true);
+                                }
+                            },
+                            terminate: function () {
+                                if (d_1 && d_1.terminate)
+                                    d_1.terminate();
+                            }
+                        };
+                        if (sc_1 >= 0)
+                            file_1.size = sc_1, file_1.originalSize = su_1;
+                        this_1.onfile(file_1);
+                    }
+                    return "break";
+                }
+                else if (oc) {
+                    if (sig == 0x8074B50) {
+                        is = i += 12 + (oc == -2 && 8), f = 3, this_1.c = 0;
+                        return "break";
+                    }
+                    else if (sig == 0x2014B50) {
+                        is = i -= 4, f = 3, this_1.c = 0;
+                        return "break";
+                    }
+                }
+            };
+            var this_1 = this;
+            for (; i < l - 4; ++i) {
+                var state_1 = _loop_2();
+                if (state_1 === "break")
+                    break;
+            }
+            this.p = et;
+            if (oc < 0) {
+                var dat = f ? buf.subarray(0, is - 12 - (oc == -2 && 8) - (b4(buf, is - 16) == 0x8074B50 && 4)) : buf.subarray(0, i);
+                if (add)
+                    add.push(dat, !!f);
+                else
+                    this.k[+(f == 2)].push(dat);
+            }
+            if (f & 2)
+                return this.push(buf.subarray(i), final);
+            this.p = buf.subarray(i);
+        }
+        if (final) {
+            if (this.c)
+                err(13);
+            this.p = null;
+        }
+    };
+    /**
+     * Registers a decoder with the stream, allowing for files compressed with
+     * the compression type provided to be expanded correctly
+     * @param decoder The decoder constructor
+     */
+    Unzip.prototype.register = function (decoder) {
+        this.o[decoder.compression] = decoder;
+    };
+    return Unzip;
+}());
+exports.Unzip = Unzip;
+var mt = typeof queueMicrotask == 'function' ? queueMicrotask : typeof setTimeout == 'function' ? setTimeout : function (fn) { fn(); };
+function unzip(data, opts, cb) {
+    if (!cb)
+        cb = opts, opts = {};
+    if (typeof cb != 'function')
+        err(7);
+    var term = [];
+    var tAll = function () {
+        for (var i = 0; i < term.length; ++i)
+            term[i]();
+    };
+    var files = {};
+    var cbd = function (a, b) {
+        mt(function () { cb(a, b); });
+    };
+    mt(function () { cbd = cb; });
+    var e = data.length - 22;
+    for (; b4(data, e) != 0x6054B50; --e) {
+        if (!e || data.length - e > 65558) {
+            cbd(err(13, 0, 1), null);
+            return tAll;
+        }
+    }
+    ;
+    var lft = b2(data, e + 8);
+    if (lft) {
+        var c = lft;
+        var o = b4(data, e + 16);
+        var z = o == 4294967295 || c == 65535;
+        if (z) {
+            var ze = b4(data, e - 12);
+            z = b4(data, ze) == 0x6064B50;
+            if (z) {
+                c = lft = b4(data, ze + 32);
+                o = b4(data, ze + 48);
+            }
+        }
+        var fltr = opts && opts.filter;
+        var _loop_3 = function (i) {
+            var _a = zh(data, o, z), c_1 = _a[0], sc = _a[1], su = _a[2], fn = _a[3], no = _a[4], off = _a[5], b = slzh(data, off);
+            o = no;
+            var cbl = function (e, d) {
+                if (e) {
+                    tAll();
+                    cbd(e, null);
+                }
+                else {
+                    if (d)
+                        files[fn] = d;
+                    if (!--lft)
+                        cbd(null, files);
+                }
+            };
+            if (!fltr || fltr({
+                name: fn,
+                size: sc,
+                originalSize: su,
+                compression: c_1
+            })) {
+                if (!c_1)
+                    cbl(null, slc(data, b, b + sc));
+                else if (c_1 == 8) {
+                    var infl = data.subarray(b, b + sc);
+                    // Synchronously decompress under 512KB, or barely-compressed data
+                    if (su < 524288 || sc > 0.8 * su) {
+                        try {
+                            cbl(null, inflateSync(infl, { out: new u8(su) }));
+                        }
+                        catch (e) {
+                            cbl(e, null);
+                        }
+                    }
+                    else
+                        term.push(inflate(infl, { size: su }, cbl));
+                }
+                else
+                    cbl(err(14, 'unknown compression type ' + c_1, 1), null);
+            }
+            else
+                cbl(null, null);
+        };
+        for (var i = 0; i < c; ++i) {
+            _loop_3(i);
+        }
+    }
+    else
+        cbd(null, {});
+    return tAll;
+}
+exports.unzip = unzip;
+/**
+ * Synchronously decompresses a ZIP archive. Prefer using `unzip` for better
+ * performance with more than one file.
+ * @param data The raw compressed ZIP file
+ * @param opts The ZIP extraction options
+ * @returns The decompressed files
+ */
+function unzipSync(data, opts) {
+    var files = {};
+    var e = data.length - 22;
+    for (; b4(data, e) != 0x6054B50; --e) {
+        if (!e || data.length - e > 65558)
+            err(13);
+    }
+    ;
+    var c = b2(data, e + 8);
+    if (!c)
+        return {};
+    var o = b4(data, e + 16);
+    var z = o == 4294967295 || c == 65535;
+    if (z) {
+        var ze = b4(data, e - 12);
+        z = b4(data, ze) == 0x6064B50;
+        if (z) {
+            c = b4(data, ze + 32);
+            o = b4(data, ze + 48);
+        }
+    }
+    var fltr = opts && opts.filter;
+    for (var i = 0; i < c; ++i) {
+        var _a = zh(data, o, z), c_2 = _a[0], sc = _a[1], su = _a[2], fn = _a[3], no = _a[4], off = _a[5], b = slzh(data, off);
+        o = no;
+        if (!fltr || fltr({
+            name: fn,
+            size: sc,
+            originalSize: su,
+            compression: c_2
+        })) {
+            if (!c_2)
+                files[fn] = slc(data, b, b + sc);
+            else if (c_2 == 8)
+                files[fn] = inflateSync(data.subarray(b, b + sc), { out: new u8(su) });
+            else
+                err(14, 'unknown compression type ' + c_2);
+        }
+    }
+    return files;
+}
+exports.unzipSync = unzipSync;
 
 
 /***/ })

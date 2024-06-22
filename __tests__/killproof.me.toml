@@ -1,0 +1,30 @@
+[package]
+
+id = "arcdps-killproof.me-plugin"
+name = 	"ArcDPS Killproof.me Plugin"
+description = "This addon shows the killproofs of players, that are registered on killproof.me"
+tooltip = "Shows killproof.me data ingame"
+website = "https://github.com/knoxfighter/arcdps-killproof.me-plugin"
+developer = "knox"
+
+dependencies = ["arcdps"]
+optional_dependencies = []
+conflicts  = []
+
+[host.github]
+url = "knoxfighter/arcdps-killproof.me-plugin"
+artifact_name = "d3d9_arcdps_killproof_me.dll"
+
+[host.standalone]
+url = "https://www.deltaconnected.com/arcdps/gw2addon_arcdps.dll"
+version_url = "https://www.deltaconnected.com/arcdps/x64/d3d11.dll.md5sum"
+prerelease_url = ""
+prerelease_version_url = ""
+
+[artifact.dll]
+
+[artifact.archive]
+
+[installation]
+# "arc" or "gw2load"
+mode = "arc"

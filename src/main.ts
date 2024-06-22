@@ -1,36 +1,33 @@
 import * as core from '@actions/core'
+import {
+  createReleaseFromDll,
+  HostType,
+  Plugin,
+  Release,
+  Version
+} from './plugin'
+import { updateFromGithub } from './github'
+import { updateStandalone } from './standalone'
 
-enum HostType {
-  Github = 'github',
-  Standalone = 'standalone'
+export function addAddonName(plugin: Plugin, name: string) {
+  if (plugin.addon_names === undefined) {
+    plugin.addon_names = [name]
+  } else {
+    if (plugin.addon_names.indexOf(name) === -1) {
+      plugin.addon_names = plugin.addon_names.concat(name)
+    }
+  }
 }
 
-enum DownloadType {
-  Archive = 'archive',
-  Dll = 'dll'
-}
-
-enum InstallMode {
-  Binary = 'binary',
-  Arc = 'arc'
-}
-
-type Plugin = {
-  name: string
-  description: string
-  tooltip: string
-  website: string
-  developer: string
-
-  host_type: HostType
-  host_url: string
-  version_url?: string
-
-  download_type: DownloadType
-  install_mode: InstallMode
-  dependencies?: string[]
-  optional_dependencies?: string[]
-  conflicts?: string[]
+async function update(plugin: Plugin): Promise<void> {
+  switch (plugin.host_type) {
+    case HostType.Github:
+      await updateFromGithub(plugin)
+      break
+    case HostType.Standalone:
+      await updateStandalone(plugin)
+      break
+  }
 }
 
 /**
@@ -39,21 +36,51 @@ type Plugin = {
  */
 export async function run(): Promise<void> {
   try {
-    // download json
-    let response = await fetch(
+    // exec("pwd", (error, stdout, stderr) => {
+    // 	if (error) {
+    // 		throw error
+    // 	}
+    // 	console.log(stdout)
+    // 	console.log(stderr)
+    // })
+
+    // download manifest
+    let manifestRes = await fetch(
       'https://knoxfighter.github.io/addon-repo/manifest.json'
     )
-    if (!response.ok) {
-      core.setFailed(response.statusText)
+    if (!manifestRes.ok) {
+      core.setFailed(manifestRes.statusText)
       return
     }
 
-    let responseJson = await response.json()
-    let data: Plugin[] = JSON.parse(responseJson)
+    // tomls are in the working dir
+    // const dir = fs.readdirSync("./addons")
+    // for (let addonToml of dir) {
+    // 	const tomlFile = fs.readFileSync(addonToml)
+    // 	const config = toml.parse(tomlFile.toString())
+    //
+    // }
 
-    console.log(data)
+    let plugins: Plugin[] = await manifestRes.json()
+    for (let plugin of plugins) {
+      try {
+        await update(plugin)
+      } catch (error) {
+        if (error instanceof Error) {
+          core.error(`Plugin ${plugin.name} failed to update: ${error.message}`)
+        } else {
+          core.error(`Plugin ${plugin.name} failed to update`)
+        }
+      }
+    }
+
+    console.log(JSON.stringify(plugins, null, 2))
+    // console.log(plugins)
   } catch (error) {
     // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+    // @ts-ignore
+    console.log(error.message)
+    // @ts-ignore
+    core.setFailed(error.message)
   }
 }

@@ -8,7 +8,10 @@ branding:
   color: 'red'
 
 # Define your inputs here.
-#inputs:
+inputs:
+  token:
+    description: 'GitHub Token'
+    required: true
 #  milliseconds:
 #    description: 'Your input description here'
 #    required: true
