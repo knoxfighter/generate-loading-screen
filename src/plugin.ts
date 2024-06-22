@@ -4,7 +4,6 @@ import { tmpdir } from 'os'
 import path from 'node:path'
 import * as fs from 'node:fs'
 import { exec } from 'child_process'
-import * as core from '@actions/core'
 
 export enum HostType {
   Github = 'github',
@@ -59,8 +58,12 @@ export type Plugin = {
   addon_names?: string[]
 }
 
-export function isGreater(a: Version, b: Version) {
-  for (let i = 0; i < 4; i++) if (a[i] > b[i]) return true
+export function isGreater(a: Version, b: Version): boolean {
+  for (let i = 0; i < 4; i++) {
+    if (a[i] > b[i]) {
+      return true
+    }
+  }
   return false
 }
 
@@ -75,12 +78,12 @@ export async function createReleaseFromArchive(
     .filter(value => value.endsWith('.dll'))
     .map(value => new File([unzipped[value]], value))
 
-  for (let file of files) {
+  for (const file of files) {
     // save file to tmp
-    const path = await saveToTmp(file)
+    const filePath = await saveToTmp(file)
 
     // check if dll has exports, skip if not
-    if (!checkDllExports(path)) {
+    if (!checkDllExports(filePath)) {
       continue
     }
 
@@ -100,11 +103,11 @@ async function saveToTmp(file: File): Promise<string> {
   return dir
 }
 
-function checkDllExports(path: string): boolean {
+function checkDllExports(filepath: string): boolean {
   let result = false
   exec(
-    `./winedump -j export ${path} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`,
-    (error, stdout, stderr) => {
+    `./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`,
+    error => {
       result = error !== undefined
     }
   )
@@ -117,7 +120,7 @@ export function createReleaseFromDll(
   id: string,
   downloadUrl: string
 ): Release {
-  let fileParser = new PeFileParser()
+  const fileParser = new PeFileParser()
 
   fileParser.parseBytes(fileBuffer)
   const versionInfoResource = fileParser.getVersionInfoResources()
@@ -147,10 +150,10 @@ export function createReleaseFromDll(
     fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
   ]
   if (
-    addonVersion[0] == 0 &&
-    addonVersion[1] == 0 &&
-    addonVersion[2] == 0 &&
-    addonVersion[3] == 0
+    addonVersion[0] === 0 &&
+    addonVersion[1] === 0 &&
+    addonVersion[2] === 0 &&
+    addonVersion[3] === 0
   ) {
     addonVersion = [
       (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
@@ -160,10 +163,10 @@ export function createReleaseFromDll(
     ]
   }
   if (
-    addonVersion[0] == 0 &&
-    addonVersion[1] == 0 &&
-    addonVersion[2] == 0 &&
-    addonVersion[3] == 0
+    addonVersion[0] === 0 &&
+    addonVersion[1] === 0 &&
+    addonVersion[2] === 0 &&
+    addonVersion[3] === 0
   ) {
     throw new Error(`no addonVersion found for plugin ${plugin.name}`)
   }
@@ -173,10 +176,10 @@ export function createReleaseFromDll(
   let addonVersionStr = undefined
   let addonName = undefined
   const stringFileInfo = versionInfo.getStringFileInfo()
-  if (stringFileInfo == undefined) {
+  if (stringFileInfo === undefined) {
     throw new Error(`No StringFileInfo found for plugin ${plugin.name}`)
   } else {
-    let stringInfo = Object.values(
+    const stringInfo = Object.values(
       stringFileInfo.getStringTables()
     )[0].toObject()
     addonVersionStr = stringInfo['FileVersion']
@@ -198,8 +201,8 @@ export function createReleaseFromDll(
   }
 
   // this has to be last, so we don't override valid stuff with invalid
-  let release: Release = {
-    id: id,
+  const release: Release = {
+    id,
     name: addonName,
     version: addonVersion,
     version_str: addonVersionStr,

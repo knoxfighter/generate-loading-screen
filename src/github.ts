@@ -4,8 +4,7 @@ import {
   DownloadType,
   isGreater,
   Plugin,
-  Release,
-  Version
+  Release
 } from './plugin'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
@@ -23,12 +22,12 @@ export async function updateFromGithub(plugin: Plugin): Promise<void> {
   const [owner, repo] = plugin.host_url.split('/')
 
   const releases = await octokit.rest.repos.listReleases({
-    owner: owner,
-    repo: repo
+    owner,
+    repo
   })
-  let latestRelease = await octokit.rest.repos.getLatestRelease({
-    owner: owner,
-    repo: repo
+  const latestRelease = await octokit.rest.repos.getLatestRelease({
+    owner,
+    repo
   })
 
   plugin.release = await findAndCreateRelease(
@@ -46,7 +45,7 @@ export async function updateFromGithub(plugin: Plugin): Promise<void> {
         release
       )
       break
-    } else if (release.tag_name == latestRelease.data.tag_name) {
+    } else if (release.tag_name === latestRelease.data.tag_name) {
       // TODO: if prerelease is set, we removed it
       plugin.prerelease = undefined
       break
@@ -101,7 +100,7 @@ async function downloadFromGithub(
   }
   const fileBuffer = await file.arrayBuffer()
   let release: Release | undefined
-  if (plugin.download_type == DownloadType.Dll) {
+  if (plugin.download_type === DownloadType.Dll) {
     release = createReleaseFromDll(
       plugin,
       fileBuffer,
@@ -128,7 +127,7 @@ function checkAssetChanged(
   release: Release | undefined,
   githubRelease: any
 ): boolean {
-  if (!release || release.asset_index == undefined) {
+  if (!release || release.asset_index === undefined) {
     return true
   }
   const last_asset = githubRelease.data.assets[release.asset_index]

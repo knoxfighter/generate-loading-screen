@@ -1,19 +1,13 @@
 import * as core from '@actions/core'
-import {
-  createReleaseFromDll,
-  HostType,
-  Plugin,
-  Release,
-  Version
-} from './plugin'
+import { HostType, Plugin } from './plugin'
 import { updateFromGithub } from './github'
 import { updateStandalone } from './standalone'
 
-export function addAddonName(plugin: Plugin, name: string) {
+export function addAddonName(plugin: Plugin, name: string): void {
   if (plugin.addon_names === undefined) {
     plugin.addon_names = [name]
   } else {
-    if (plugin.addon_names.indexOf(name) === -1) {
+    if (!plugin.addon_names.includes(name)) {
       plugin.addon_names = plugin.addon_names.concat(name)
     }
   }
@@ -45,7 +39,7 @@ export async function run(): Promise<void> {
     // })
 
     // download manifest
-    let manifestRes = await fetch(
+    const manifestRes = await fetch(
       'https://knoxfighter.github.io/addon-repo/manifest.json'
     )
     if (!manifestRes.ok) {
@@ -61,8 +55,8 @@ export async function run(): Promise<void> {
     //
     // }
 
-    let plugins: Plugin[] = await manifestRes.json()
-    for (let plugin of plugins) {
+    const plugins: Plugin[] = await manifestRes.json()
+    for (const plugin of plugins) {
       try {
         await update(plugin)
       } catch (error) {
@@ -78,9 +72,9 @@ export async function run(): Promise<void> {
     // console.log(plugins)
   } catch (error) {
     // Fail the workflow run if an error occurs
-    // @ts-ignore
+    // @ts-expect-error
     console.log(error.message)
-    // @ts-ignore
+    // @ts-expect-error
     core.setFailed(error.message)
   }
 }

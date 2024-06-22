@@ -33580,12 +33580,12 @@ const octokit = github.getOctokit(token);
 async function updateFromGithub(plugin) {
     const [owner, repo] = plugin.host_url.split('/');
     const releases = await octokit.rest.repos.listReleases({
-        owner: owner,
-        repo: repo
+        owner,
+        repo
     });
-    let latestRelease = await octokit.rest.repos.getLatestRelease({
-        owner: owner,
-        repo: repo
+    const latestRelease = await octokit.rest.repos.getLatestRelease({
+        owner,
+        repo
     });
     plugin.release = await findAndCreateRelease(plugin, plugin.release, latestRelease);
     // find pre-release until latest release
@@ -33594,7 +33594,7 @@ async function updateFromGithub(plugin) {
             plugin.prerelease = await findAndCreateRelease(plugin, plugin.prerelease, release);
             break;
         }
-        else if (release.tag_name == latestRelease.data.tag_name) {
+        else if (release.tag_name === latestRelease.data.tag_name) {
             // TODO: if prerelease is set, we removed it
             plugin.prerelease = undefined;
             break;
@@ -33639,7 +33639,7 @@ async function downloadFromGithub(plugin, asset) {
     }
     const fileBuffer = await file.arrayBuffer();
     let release;
-    if (plugin.download_type == plugin_1.DownloadType.Dll) {
+    if (plugin.download_type === plugin_1.DownloadType.Dll) {
         release = (0, plugin_1.createReleaseFromDll)(plugin, fileBuffer, asset.id.toString(), asset.browser_download_url);
     }
     else {
@@ -33651,7 +33651,7 @@ async function downloadFromGithub(plugin, asset) {
     return release;
 }
 function checkAssetChanged(release, githubRelease) {
-    if (!release || release.asset_index == undefined) {
+    if (!release || release.asset_index === undefined) {
         return true;
     }
     const last_asset = githubRelease.data.assets[release.asset_index];
@@ -33700,7 +33700,7 @@ function addAddonName(plugin, name) {
         plugin.addon_names = [name];
     }
     else {
-        if (plugin.addon_names.indexOf(name) === -1) {
+        if (!plugin.addon_names.includes(name)) {
             plugin.addon_names = plugin.addon_names.concat(name);
         }
     }
@@ -33730,7 +33730,7 @@ async function run() {
         // 	console.log(stderr)
         // })
         // download manifest
-        let manifestRes = await fetch('https://knoxfighter.github.io/addon-repo/manifest.json');
+        const manifestRes = await fetch('https://knoxfighter.github.io/addon-repo/manifest.json');
         if (!manifestRes.ok) {
             core.setFailed(manifestRes.statusText);
             return;
@@ -33742,8 +33742,8 @@ async function run() {
         // 	const config = toml.parse(tomlFile.toString())
         //
         // }
-        let plugins = await manifestRes.json();
-        for (let plugin of plugins) {
+        const plugins = await manifestRes.json();
+        for (const plugin of plugins) {
             try {
                 await update(plugin);
             }
@@ -33761,9 +33761,9 @@ async function run() {
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        // @ts-ignore
+        // @ts-expect-error
         console.log(error.message);
-        // @ts-ignore
+        // @ts-expect-error
         core.setFailed(error.message);
     }
 }
@@ -33827,9 +33827,11 @@ var InstallMode;
     InstallMode["Arc"] = "arc";
 })(InstallMode || (exports.InstallMode = InstallMode = {}));
 function isGreater(a, b) {
-    for (let i = 0; i < 4; i++)
-        if (a[i] > b[i])
+    for (let i = 0; i < 4; i++) {
+        if (a[i] > b[i]) {
             return true;
+        }
+    }
     return false;
 }
 exports.isGreater = isGreater;
@@ -33838,11 +33840,11 @@ async function createReleaseFromArchive(plugin, fileBuffer, id, downloadUrl) {
     const files = Object.keys(unzipped)
         .filter(value => value.endsWith('.dll'))
         .map(value => new File([unzipped[value]], value));
-    for (let file of files) {
+    for (const file of files) {
         // save file to tmp
-        const path = await saveToTmp(file);
+        const filePath = await saveToTmp(file);
         // check if dll has exports, skip if not
-        if (!checkDllExports(path)) {
+        if (!checkDllExports(filePath)) {
             continue;
         }
         // create release
@@ -33859,15 +33861,15 @@ async function saveToTmp(file) {
     fs.writeFileSync(dir, new DataView(buffer));
     return dir;
 }
-function checkDllExports(path) {
+function checkDllExports(filepath) {
     let result = false;
-    (0, child_process_1.exec)(`./winedump -j export ${path} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, (error, stdout, stderr) => {
+    (0, child_process_1.exec)(`./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, error => {
         result = error !== undefined;
     });
     return result;
 }
 function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
-    let fileParser = new pe_toolkit_1.PeFileParser();
+    const fileParser = new pe_toolkit_1.PeFileParser();
     fileParser.parseBytes(fileBuffer);
     const versionInfoResource = fileParser.getVersionInfoResources();
     if (versionInfoResource === undefined) {
@@ -33891,10 +33893,10 @@ function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
         (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
         fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
     ];
-    if (addonVersion[0] == 0 &&
-        addonVersion[1] == 0 &&
-        addonVersion[2] == 0 &&
-        addonVersion[3] == 0) {
+    if (addonVersion[0] === 0 &&
+        addonVersion[1] === 0 &&
+        addonVersion[2] === 0 &&
+        addonVersion[3] === 0) {
         addonVersion = [
             (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
             fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
@@ -33902,10 +33904,10 @@ function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
             fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
         ];
     }
-    if (addonVersion[0] == 0 &&
-        addonVersion[1] == 0 &&
-        addonVersion[2] == 0 &&
-        addonVersion[3] == 0) {
+    if (addonVersion[0] === 0 &&
+        addonVersion[1] === 0 &&
+        addonVersion[2] === 0 &&
+        addonVersion[3] === 0) {
         throw new Error(`no addonVersion found for plugin ${plugin.name}`);
     }
     // read version string
@@ -33913,11 +33915,11 @@ function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
     let addonVersionStr = undefined;
     let addonName = undefined;
     const stringFileInfo = versionInfo.getStringFileInfo();
-    if (stringFileInfo == undefined) {
+    if (stringFileInfo === undefined) {
         throw new Error(`No StringFileInfo found for plugin ${plugin.name}`);
     }
     else {
-        let stringInfo = Object.values(stringFileInfo.getStringTables())[0].toObject();
+        const stringInfo = Object.values(stringFileInfo.getStringTables())[0].toObject();
         addonVersionStr = stringInfo['FileVersion'];
         if (addonVersionStr === undefined) {
             addonVersionStr = stringInfo['ProductVersion'];
@@ -33935,8 +33937,8 @@ function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
         }
     }
     // this has to be last, so we don't override valid stuff with invalid
-    let release = {
-        id: id,
+    const release = {
+        id,
         name: addonName,
         version: addonVersion,
         version_str: addonVersionStr,
@@ -33988,7 +33990,6 @@ async function downloadAndCheckVersion(plugin, oldRelease, version_url, host_url
     }
     const version = await versionRes.text();
     if (!oldRelease || oldRelease.id !== version) {
-        let found = false;
         const release = await downloadStandalone(plugin, host_url, version);
         if (release !== undefined) {
             if (!oldRelease || (0, plugin_1.isGreater)(release.version, oldRelease.version)) {
@@ -34008,7 +34009,7 @@ async function downloadStandalone(plugin, host_url, id) {
     }
     const fileBuffer = await file.arrayBuffer();
     let release;
-    if (plugin.download_type == plugin_1.DownloadType.Dll) {
+    if (plugin.download_type === plugin_1.DownloadType.Dll) {
         release = (0, plugin_1.createReleaseFromDll)(plugin, fileBuffer, id, host_url);
     }
     else {

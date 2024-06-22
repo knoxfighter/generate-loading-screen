@@ -61,7 +61,6 @@ async function downloadAndCheckVersion(
   const version = await versionRes.text()
 
   if (!oldRelease || oldRelease.id !== version) {
-    let found = false
     const release = await downloadStandalone(plugin, host_url, version)
     if (release !== undefined) {
       if (!oldRelease || isGreater(release.version, oldRelease.version)) {
@@ -89,7 +88,7 @@ async function downloadStandalone(
   }
   const fileBuffer = await file.arrayBuffer()
   let release: Release | undefined
-  if (plugin.download_type == DownloadType.Dll) {
+  if (plugin.download_type === DownloadType.Dll) {
     release = createReleaseFromDll(plugin, fileBuffer, id, host_url)
   } else {
     release = await createReleaseFromArchive(plugin, fileBuffer, id, host_url)
