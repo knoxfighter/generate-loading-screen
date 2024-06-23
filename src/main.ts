@@ -1,7 +1,10 @@
 import * as core from '@actions/core'
-import { HostType, Plugin } from './plugin'
+import { Plugin } from './plugin'
 import { updateFromGithub } from './github'
 import { updateStandalone } from './standalone'
+import * as fs from 'node:fs'
+import * as toml from 'toml'
+import path from 'node:path'
 
 export function addAddonName(plugin: Plugin, name: string): void {
   if (plugin.addon_names === undefined) {
@@ -14,13 +17,10 @@ export function addAddonName(plugin: Plugin, name: string): void {
 }
 
 async function update(plugin: Plugin): Promise<void> {
-  switch (plugin.host_type) {
-    case HostType.Github:
-      await updateFromGithub(plugin)
-      break
-    case HostType.Standalone:
-      await updateStandalone(plugin)
-      break
+  if (plugin.host.github !== undefined) {
+    await updateFromGithub(plugin)
+  } else if (plugin.host.standalone !== undefined) {
+    await updateStandalone(plugin)
   }
 }
 
@@ -30,40 +30,62 @@ async function update(plugin: Plugin): Promise<void> {
  */
 export async function run(): Promise<void> {
   try {
-    // exec("pwd", (error, stdout, stderr) => {
-    // 	if (error) {
-    // 		throw error
-    // 	}
-    // 	console.log(stdout)
-    // 	console.log(stderr)
-    // })
+    const plugins: Plugin[] = []
+
+    // tomls are in the working dir
+    const githubWorkspace = process.env['GITHUB_WORKSPACE']
+    if (!githubWorkspace) {
+      throw new Error('GitHub workspace not set')
+    }
+    const addonsPath = path.join(githubWorkspace, 'addons')
+    const dir = fs.readdirSync(addonsPath)
+    for (const addonToml of dir) {
+      const addonPath = path.join(addonsPath, addonToml)
+      const tomlFile = fs.readFileSync(addonPath)
+      const config: Plugin = toml.parse(tomlFile.toString())
+      plugins.push(config)
+    }
 
     // download manifest
     const manifestRes = await fetch(
       'https://knoxfighter.github.io/addon-repo/manifest.json'
     )
     if (!manifestRes.ok) {
-      core.setFailed(manifestRes.statusText)
-      return
+      if (manifestRes.status !== 404) {
+        core.setFailed(manifestRes.statusText)
+        return
+      }
+    } else {
+      // merge manifest with tomls
+      const manifestPlugins: Plugin[] = await manifestRes.json()
+
+      for (const manifestPlugin of manifestPlugins) {
+        const found = plugins.find(
+          value => value.package.id === manifestPlugin.package.id
+        )
+        if (!found) {
+          core.warning(
+            `Plugin ${manifestPlugin.package.id} was removed from manifest!`
+          )
+          continue
+        }
+
+        found.release = manifestPlugin.release
+        found.prerelease = manifestPlugin.prerelease
+        found.addon_names = manifestPlugin.addon_names
+      }
     }
 
-    // tomls are in the working dir
-    // const dir = fs.readdirSync("./addons")
-    // for (let addonToml of dir) {
-    // 	const tomlFile = fs.readFileSync(addonToml)
-    // 	const config = toml.parse(tomlFile.toString())
-    //
-    // }
-
-    const plugins: Plugin[] = await manifestRes.json()
     for (const plugin of plugins) {
       try {
         await update(plugin)
       } catch (error) {
         if (error instanceof Error) {
-          core.error(`Plugin ${plugin.name} failed to update: ${error.message}`)
+          core.error(
+            `Plugin ${plugin.package.name} failed to update: ${error.message}`
+          )
         } else {
-          core.error(`Plugin ${plugin.name} failed to update`)
+          core.error(`Plugin ${plugin.package.name} failed to update`)
         }
       }
     }

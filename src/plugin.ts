@@ -5,10 +5,11 @@ import path from 'node:path'
 import * as fs from 'node:fs'
 import { exec } from 'child_process'
 
-export enum HostType {
-  Github = 'github',
-  Standalone = 'standalone'
-}
+// export enum HostType {
+//   Github = 'github',
+//   Standalone = 'standalone'
+// }
+export type HostType = 'github' | 'standalone'
 
 export enum DownloadType {
   Archive = 'archive',
@@ -31,7 +32,7 @@ export type Release = {
   asset_index?: number
 }
 
-export type Plugin = {
+export type Package = {
   id: string
   name: string
   description: string
@@ -39,19 +40,41 @@ export type Plugin = {
   website: string
   developer: string
 
-  host_type: HostType
-  host_url: string
-  version_url?: string
-  // prereleases only used in host_type is "standalone"
-  // A prerelease is only generated if the version of the dll is bigger than the version of the latest dll.
-  prerelease_host_url?: string
-  prerelease_version_url?: string
-
-  download_type: DownloadType
-  install_mode: InstallMode
   dependencies?: string[]
   optional_dependencies?: string[]
   conflicts?: string[]
+}
+
+export type GithubHost = {
+  url: string
+}
+export type StandaloneHost = {
+  url: string
+  version_url: string
+  prerelease_url?: string
+  prerelease_version_url: string
+}
+
+export type HostInstance<T extends HostType> = T extends 'github'
+  ? GithubHost
+  : T extends 'standalone'
+    ? StandaloneHost
+    : never
+
+export type Host<T extends HostType> = {
+  [K in T]: HostInstance<K>
+}
+
+export type Installation = {
+  mode: InstallMode
+}
+
+export type Plugin = {
+  package: Package
+
+  host: Host<HostType>
+
+  installation: Installation
 
   release?: Release
   prerelease?: Release
@@ -125,22 +148,24 @@ export function createReleaseFromDll(
   fileParser.parseBytes(fileBuffer)
   const versionInfoResource = fileParser.getVersionInfoResources()
   if (versionInfoResource === undefined) {
-    throw new Error(`No versionInfoResource found for plugin ${plugin.name}`)
+    throw new Error(
+      `No versionInfoResource found for plugin ${plugin.package.name}`
+    )
   }
 
   const vsInfoSub = Object.values(versionInfoResource)[0]
   if (vsInfoSub === undefined) {
-    throw new Error(`no vsInfoSub found for plugin ${plugin.name}`)
+    throw new Error(`no vsInfoSub found for plugin ${plugin.package.name}`)
   }
 
   const versionInfo = Object.values(vsInfoSub)[0]
   if (versionInfo === undefined) {
-    throw new Error(`No versionInfo found for ${plugin.name}`)
+    throw new Error(`No versionInfo found for ${plugin.package.name}`)
   }
 
   const fixedFileInfo = versionInfo.getFixedFileInfo()
   if (fixedFileInfo === undefined) {
-    throw new Error(`No fileInfo found for ${plugin.name}`)
+    throw new Error(`No fileInfo found for ${plugin.package.name}`)
   }
 
   let addonVersion: Version = [
@@ -168,7 +193,7 @@ export function createReleaseFromDll(
     addonVersion[2] === 0 &&
     addonVersion[3] === 0
   ) {
-    throw new Error(`no addonVersion found for plugin ${plugin.name}`)
+    throw new Error(`no addonVersion found for plugin ${plugin.package.name}`)
   }
 
   // read version string
@@ -177,7 +202,7 @@ export function createReleaseFromDll(
   let addonName = undefined
   const stringFileInfo = versionInfo.getStringFileInfo()
   if (stringFileInfo === undefined) {
-    throw new Error(`No StringFileInfo found for plugin ${plugin.name}`)
+    throw new Error(`No StringFileInfo found for plugin ${plugin.package.name}`)
   } else {
     const stringInfo = Object.values(
       stringFileInfo.getStringTables()
@@ -196,7 +221,7 @@ export function createReleaseFromDll(
       addonName = stringInfo['FileDescription']
     }
     if (addonName === undefined) {
-      throw new Error(`No addonName found for plugin ${plugin.name}`)
+      throw new Error(`No addonName found for plugin ${plugin.package.name}`)
     }
   }
 

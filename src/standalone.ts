@@ -1,7 +1,6 @@
 import {
   createReleaseFromArchive,
   createReleaseFromDll,
-  DownloadType,
   isGreater,
   Plugin,
   Release
@@ -9,27 +8,24 @@ import {
 import { addAddonName } from './main'
 
 export async function updateStandalone(plugin: Plugin): Promise<void> {
-  if (!plugin.version_url) {
-    throw new Error(`no version_url for plugin ${plugin.name}`)
+  const host = plugin.host.standalone
+  if (!host.version_url) {
+    throw new Error(`no version_url for plugin ${plugin.package.name}`)
   }
   plugin.release = await downloadAndCheckVersion(
     plugin,
     plugin.release,
-    plugin.version_url,
-    plugin.host_url
+    host.version_url,
+    host.url
   )
 
   // only run when configured and release was found
-  if (
-    plugin.prerelease_host_url &&
-    plugin.prerelease_version_url &&
-    plugin.release
-  ) {
+  if (host.prerelease_url && host.prerelease_version_url && plugin.release) {
     const prerelease = await downloadAndCheckVersion(
       plugin,
       plugin.prerelease,
-      plugin.prerelease_version_url,
-      plugin.prerelease_host_url
+      host.prerelease_version_url,
+      host.prerelease_url
     )
 
     // check if prerelease is later than release, if not, remove prerelease
@@ -55,7 +51,7 @@ async function downloadAndCheckVersion(
   const versionRes = await fetch(version_url)
   if (versionRes.status !== 200) {
     throw new Error(
-      `version response status for plugin ${plugin.name}: ${versionRes.status}`
+      `version response status for plugin ${plugin.package.name}: ${versionRes.status}`
     )
   }
   const version = await versionRes.text()
@@ -71,7 +67,7 @@ async function downloadAndCheckVersion(
       return oldRelease
     }
 
-    throw new Error(`no release asset found for plugin ${plugin.name}`)
+    throw new Error(`no release asset found for plugin ${plugin.package.name}`)
   }
 
   return oldRelease
@@ -88,10 +84,12 @@ async function downloadStandalone(
   }
   const fileBuffer = await file.arrayBuffer()
   let release: Release | undefined
-  if (plugin.download_type === DownloadType.Dll) {
+  if (host_url.endsWith('.dll')) {
     release = createReleaseFromDll(plugin, fileBuffer, id, host_url)
-  } else {
+  } else if (host_url.endsWith('.zip')) {
     release = await createReleaseFromArchive(plugin, fileBuffer, id, host_url)
+  } else {
+    throw new Error(`given host url has not supported file ending ${host_url}`)
   }
 
   if (release !== undefined) {

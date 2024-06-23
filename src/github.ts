@@ -1,7 +1,6 @@
 import {
   createReleaseFromArchive,
   createReleaseFromDll,
-  DownloadType,
   isGreater,
   Plugin,
   Release
@@ -9,6 +8,12 @@ import {
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import { addAddonName } from './main'
+import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types'
+
+type GetLatestReleaseType = GetResponseDataTypeFromEndpointMethod<
+  typeof octokit.rest.repos.getLatestRelease
+>
+type GetLatestReleaseAssetType = GetLatestReleaseType['assets'][0]
 
 const env = process.env
 const envToken = env.INPUT_token
@@ -19,12 +24,13 @@ if (token === '' && envToken !== undefined) {
 const octokit = github.getOctokit(token)
 
 export async function updateFromGithub(plugin: Plugin): Promise<void> {
-  const [owner, repo] = plugin.host_url.split('/')
+  const [owner, repo] = plugin.host.github.url.split('/')
 
   const releases = await octokit.rest.repos.listReleases({
     owner,
     repo
   })
+
   const latestRelease = await octokit.rest.repos.getLatestRelease({
     owner,
     repo
@@ -33,7 +39,7 @@ export async function updateFromGithub(plugin: Plugin): Promise<void> {
   plugin.release = await findAndCreateRelease(
     plugin,
     plugin.release,
-    latestRelease
+    latestRelease.data
   )
 
   // find pre-release until latest release
@@ -64,12 +70,12 @@ export async function updateFromGithub(plugin: Plugin): Promise<void> {
 async function findAndCreateRelease(
   plugin: Plugin,
   oldRelease: Release | undefined,
-  githubRelease: any
+  githubRelease: GetLatestReleaseType
 ): Promise<Release | undefined> {
-  if (checkAssetChanged(oldRelease, githubRelease.data)) {
+  if (checkAssetChanged(oldRelease, githubRelease)) {
     let found = false
-    for (let i = 0; i < githubRelease.data.assets.length; i++) {
-      const asset = githubRelease.data.assets[i]
+    for (let i = 0; i < githubRelease.assets.length; i++) {
+      const asset = githubRelease.assets[i]
       const release = await downloadFromGithub(plugin, asset)
       if (release !== undefined) {
         release.asset_index = i
@@ -84,7 +90,9 @@ async function findAndCreateRelease(
       }
     }
     if (!found) {
-      throw new Error(`no release asset found for plugin ${plugin.name}`)
+      throw new Error(
+        `no release asset found for plugin ${plugin.package.name}`
+      )
     }
   }
   return oldRelease
@@ -92,7 +100,7 @@ async function findAndCreateRelease(
 
 async function downloadFromGithub(
   plugin: Plugin,
-  asset: any
+  asset: GetLatestReleaseAssetType
 ): Promise<Release | undefined> {
   const file = await fetch(asset.browser_download_url)
   if (!file.ok) {
@@ -100,20 +108,22 @@ async function downloadFromGithub(
   }
   const fileBuffer = await file.arrayBuffer()
   let release: Release | undefined
-  if (plugin.download_type === DownloadType.Dll) {
+  if (asset.name.endsWith('.dll')) {
     release = createReleaseFromDll(
       plugin,
       fileBuffer,
       asset.id.toString(),
       asset.browser_download_url
     )
-  } else {
+  } else if (asset.name.endsWith('.zip')) {
     release = await createReleaseFromArchive(
       plugin,
       fileBuffer,
       asset.id.toString(),
       asset.browser_download_url
     )
+  } else {
+    release = undefined
   }
 
   if (release !== undefined) {
@@ -125,11 +135,11 @@ async function downloadFromGithub(
 
 function checkAssetChanged(
   release: Release | undefined,
-  githubRelease: any
+  githubRelease: GetLatestReleaseType
 ): boolean {
   if (!release || release.asset_index === undefined) {
     return true
   }
-  const last_asset = githubRelease.data.assets[release.asset_index]
+  const last_asset = githubRelease.assets[release.asset_index]
   return last_asset === undefined || last_asset.id.toString() !== release.id
 }
