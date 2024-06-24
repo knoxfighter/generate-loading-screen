@@ -6,6 +6,7 @@ description = "ArcDPS allows the player to view their DPS and offers other tools
 tooltip = "Displays a DPS meter"
 website = "https://www.deltaconnected.com/arcdps/"
 developer = "DeltaConnected"
+issue_tracker = "https://discord.gg/T4kSbKJ5Sf"
 
 #dependencies = []
 #optional_dependencies = []

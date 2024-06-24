@@ -37644,8 +37644,8 @@ if (token === '' && envToken !== undefined) {
     token = envToken;
 }
 const octokit = github.getOctokit(token);
-async function updateFromGithub(plugin) {
-    const [owner, repo] = plugin.host.github.url.split('/');
+async function updateFromGithub(plugin, host) {
+    const [owner, repo] = host.url.split('/');
     const releases = await octokit.rest.repos.listReleases({
         owner,
         repo
@@ -37782,11 +37782,11 @@ function addAddonName(plugin, name) {
 }
 exports.addAddonName = addAddonName;
 async function update(plugin) {
-    if (plugin.host.github !== undefined) {
-        await (0, github_1.updateFromGithub)(plugin);
+    if ('github' in plugin.host) {
+        await (0, github_1.updateFromGithub)(plugin, plugin.host.github);
     }
-    else if (plugin.host.standalone !== undefined) {
-        await (0, standalone_1.updateStandalone)(plugin);
+    else if ('standalone' in plugin.host) {
+        await (0, standalone_1.updateStandalone)(plugin, plugin.host.standalone);
     }
 }
 /**
@@ -37911,8 +37911,8 @@ var InstallMode;
 })(InstallMode || (exports.InstallMode = InstallMode = {}));
 function isGreater(a, b) {
     for (let i = 0; i < 4; i++) {
-        if (a[i] > b[i]) {
-            return true;
+        if (a[i] !== b[i]) {
+            return a[i] > b[i];
         }
     }
     return false;
@@ -37976,10 +37976,7 @@ function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
         (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
         fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
     ];
-    if (addonVersion[0] === 0 &&
-        addonVersion[1] === 0 &&
-        addonVersion[2] === 0 &&
-        addonVersion[3] === 0) {
+    if (addonVersion.every(value => value === 0)) {
         addonVersion = [
             (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
             fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
@@ -37987,10 +37984,7 @@ function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
             fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
         ];
     }
-    if (addonVersion[0] === 0 &&
-        addonVersion[1] === 0 &&
-        addonVersion[2] === 0 &&
-        addonVersion[3] === 0) {
+    if (addonVersion.every(value => value === 0)) {
         throw new Error(`no addonVersion found for plugin ${plugin.package.name}`);
     }
     // read version string
@@ -38003,18 +37997,12 @@ function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
     }
     else {
         const stringInfo = Object.values(stringFileInfo.getStringTables())[0].toObject();
-        addonVersionStr = stringInfo['FileVersion'];
-        if (addonVersionStr === undefined) {
-            addonVersionStr = stringInfo['ProductVersion'];
-        }
-        if (addonVersionStr === undefined) {
-            addonVersionStr = `${addonVersion[0]}.${addonVersion[1]}.${addonVersion[2]}.${addonVersion[3]}`;
-        }
+        addonVersionStr =
+            stringInfo['FileVersion'] ??
+                stringInfo['ProductVersion'] ??
+                addonVersion.join('.');
         // read name
-        addonName = stringInfo['ProductName'];
-        if (addonName === undefined) {
-            addonName = stringInfo['FileDescription'];
-        }
+        addonName = stringInfo['ProductName'] ?? stringInfo['FileDescription'];
         if (addonName === undefined) {
             throw new Error(`No addonName found for plugin ${plugin.package.name}`);
         }
@@ -38043,8 +38031,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateStandalone = void 0;
 const plugin_1 = __nccwpck_require__(1069);
 const main_1 = __nccwpck_require__(399);
-async function updateStandalone(plugin) {
-    const host = plugin.host.standalone;
+async function updateStandalone(plugin, host) {
     if (!host.version_url) {
         throw new Error(`no version_url for plugin ${plugin.package.name}`);
     }

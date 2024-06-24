@@ -1,6 +1,7 @@
 import {
   createReleaseFromArchive,
   createReleaseFromDll,
+  GithubHost,
   isGreater,
   Plugin,
   Release
@@ -23,8 +24,11 @@ if (token === '' && envToken !== undefined) {
 }
 const octokit = github.getOctokit(token)
 
-export async function updateFromGithub(plugin: Plugin): Promise<void> {
-  const [owner, repo] = plugin.host.github.url.split('/')
+export async function updateFromGithub(
+  plugin: Plugin,
+  host: GithubHost
+): Promise<void> {
+  const [owner, repo] = host.url.split('/')
 
   const releases = await octokit.rest.repos.listReleases({
     owner,

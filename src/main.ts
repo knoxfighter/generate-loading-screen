@@ -17,10 +17,10 @@ export function addAddonName(plugin: Plugin, name: string): void {
 }
 
 async function update(plugin: Plugin): Promise<void> {
-  if (plugin.host.github !== undefined) {
-    await updateFromGithub(plugin)
-  } else if (plugin.host.standalone !== undefined) {
-    await updateStandalone(plugin)
+  if ('github' in plugin.host) {
+    await updateFromGithub(plugin, plugin.host.github)
+  } else if ('standalone' in plugin.host) {
+    await updateStandalone(plugin, plugin.host.standalone)
   }
 }
 

@@ -5,12 +5,6 @@ import path from 'node:path'
 import * as fs from 'node:fs'
 import { exec } from 'child_process'
 
-// export enum HostType {
-//   Github = 'github',
-//   Standalone = 'standalone'
-// }
-export type HostType = 'github' | 'standalone'
-
 export enum DownloadType {
   Archive = 'archive',
   Dll = 'dll'
@@ -39,31 +33,32 @@ export type Package = {
   tooltip: string
   website: string
   developer: string
+  issue_tracker?: string
+  vcs?: string
 
   dependencies?: string[]
   optional_dependencies?: string[]
   conflicts?: string[]
 }
 
-export type GithubHost = {
+// export enum HostType {
+//   Github = 'github',
+//   Standalone = 'standalone'
+// }
+// export type HostType = 'github' | 'standalone'
+
+export interface GithubHost {
   url: string
 }
-export type StandaloneHost = {
+
+export interface StandaloneHost {
   url: string
   version_url: string
   prerelease_url?: string
   prerelease_version_url: string
 }
 
-export type HostInstance<T extends HostType> = T extends 'github'
-  ? GithubHost
-  : T extends 'standalone'
-    ? StandaloneHost
-    : never
-
-export type Host<T extends HostType> = {
-  [K in T]: HostInstance<K>
-}
+type Host = { github: GithubHost } | { standalone: StandaloneHost }
 
 export type Installation = {
   mode: InstallMode
@@ -72,7 +67,7 @@ export type Installation = {
 export type Plugin = {
   package: Package
 
-  host: Host<HostType>
+  host: Host
 
   installation: Installation
 
@@ -83,8 +78,8 @@ export type Plugin = {
 
 export function isGreater(a: Version, b: Version): boolean {
   for (let i = 0; i < 4; i++) {
-    if (a[i] > b[i]) {
-      return true
+    if (a[i] !== b[i]) {
+      return a[i] > b[i]
     }
   }
   return false
@@ -174,12 +169,7 @@ export function createReleaseFromDll(
     (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
     fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
   ]
-  if (
-    addonVersion[0] === 0 &&
-    addonVersion[1] === 0 &&
-    addonVersion[2] === 0 &&
-    addonVersion[3] === 0
-  ) {
+  if (addonVersion.every(value => value === 0)) {
     addonVersion = [
       (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
       fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
@@ -187,12 +177,7 @@ export function createReleaseFromDll(
       fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
     ]
   }
-  if (
-    addonVersion[0] === 0 &&
-    addonVersion[1] === 0 &&
-    addonVersion[2] === 0 &&
-    addonVersion[3] === 0
-  ) {
+  if (addonVersion.every(value => value === 0)) {
     throw new Error(`no addonVersion found for plugin ${plugin.package.name}`)
   }
 
@@ -207,19 +192,14 @@ export function createReleaseFromDll(
     const stringInfo = Object.values(
       stringFileInfo.getStringTables()
     )[0].toObject()
-    addonVersionStr = stringInfo['FileVersion']
-    if (addonVersionStr === undefined) {
-      addonVersionStr = stringInfo['ProductVersion']
-    }
-    if (addonVersionStr === undefined) {
-      addonVersionStr = `${addonVersion[0]}.${addonVersion[1]}.${addonVersion[2]}.${addonVersion[3]}`
-    }
+
+    addonVersionStr =
+      stringInfo['FileVersion'] ??
+      stringInfo['ProductVersion'] ??
+      addonVersion.join('.')
 
     // read name
-    addonName = stringInfo['ProductName']
-    if (addonName === undefined) {
-      addonName = stringInfo['FileDescription']
-    }
+    addonName = stringInfo['ProductName'] ?? stringInfo['FileDescription']
     if (addonName === undefined) {
       throw new Error(`No addonName found for plugin ${plugin.package.name}`)
     }

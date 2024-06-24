@@ -3,12 +3,15 @@ import {
   createReleaseFromDll,
   isGreater,
   Plugin,
-  Release
+  Release,
+  StandaloneHost
 } from './plugin'
 import { addAddonName } from './main'
 
-export async function updateStandalone(plugin: Plugin): Promise<void> {
-  const host = plugin.host.standalone
+export async function updateStandalone(
+  plugin: Plugin,
+  host: StandaloneHost
+): Promise<void> {
   if (!host.version_url) {
     throw new Error(`no version_url for plugin ${plugin.package.name}`)
   }

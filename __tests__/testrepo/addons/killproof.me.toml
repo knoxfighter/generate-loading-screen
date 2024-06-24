@@ -6,6 +6,8 @@ description = "This addon shows the killproofs of players, that are registered o
 tooltip = "Shows killproof.me data ingame"
 website = "https://github.com/knoxfighter/arcdps-killproof.me-plugin"
 developer = "knox"
+issue_tracker = "https://github.com/knoxfighter/arcdps-killproof.me-plugin/issues"
+vcs = "https://github.com/knoxfighter/arcdps-killproof.me-plugin"
 
 dependencies = ["arcdps"]
 #optional_dependencies = []
