@@ -80,13 +80,10 @@ export async function run(): Promise<void> {
       try {
         await update(plugin)
       } catch (error) {
-        if (error instanceof Error) {
-          core.error(
-            `Plugin ${plugin.package.name} failed to update: ${error.message}`
-          )
-        } else {
-          core.error(`Plugin ${plugin.package.name} failed to update`)
-        }
+        // @ts-ignore
+        const message = `Plugin ${plugin.package.name} failed to update: ${error.message}`
+        core.error(message)
+        console.log(message)
       }
     }
 

@@ -37836,12 +37836,10 @@ async function run() {
                 await update(plugin);
             }
             catch (error) {
-                if (error instanceof Error) {
-                    core.error(`Plugin ${plugin.package.name} failed to update: ${error.message}`);
-                }
-                else {
-                    core.error(`Plugin ${plugin.package.name} failed to update`);
-                }
+                // @ts-ignore
+                const message = `Plugin ${plugin.package.name} failed to update: ${error.message}`;
+                core.error(message);
+                console.log(message);
             }
         }
         console.log(JSON.stringify(plugins, null, 2));
@@ -37938,11 +37936,14 @@ async function createReleaseFromArchive(plugin, fileBuffer, id, downloadUrl) {
 }
 exports.createReleaseFromArchive = createReleaseFromArchive;
 async function saveToTmp(file) {
-    let dir = (0, os_1.tmpdir)();
-    dir = node_path_1.default.resolve(dir, file.name);
+    let filePath = (0, os_1.tmpdir)();
+    filePath = node_path_1.default.resolve(filePath, file.name);
+    // enforce folder is there
+    const dirPath = node_path_1.default.dirname(filePath);
+    fs.mkdirSync(dirPath, { recursive: true });
     const buffer = await file.arrayBuffer();
-    fs.writeFileSync(dir, new DataView(buffer));
-    return dir;
+    fs.writeFileSync(filePath, new DataView(buffer));
+    return filePath;
 }
 function checkDllExports(filepath) {
     let result = false;

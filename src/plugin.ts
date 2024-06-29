@@ -114,11 +114,16 @@ export async function createReleaseFromArchive(
 }
 
 async function saveToTmp(file: File): Promise<string> {
-  let dir = tmpdir()
-  dir = path.resolve(dir, file.name)
+  let filePath = tmpdir()
+  filePath = path.resolve(filePath, file.name)
+
+  // enforce folder is there
+  const dirPath = path.dirname(filePath)
+  fs.mkdirSync(dirPath, { recursive: true })
+
   const buffer = await file.arrayBuffer()
-  fs.writeFileSync(dir, new DataView(buffer))
-  return dir
+  fs.writeFileSync(filePath, new DataView(buffer))
+  return filePath
 }
 
 function checkDllExports(filepath: string): boolean {
