@@ -1,0 +1,22 @@
+[package]
+
+id = "arcdps-buildpad"
+name = 	"BuildPad"
+description = "A companion plugin to ArcDPS that allows you to organize a list of saved builds and copy them with one click.\n\nIt detects your ArcDPS templates and converts them (automatically and/or manually) to GW2 templates. Your old gear templates, which cannot be pasted into GW2, can be previewed inside the plugin so you can remind yourself which items and stats you had saved."
+tooltip = "Offline build storage"
+website = "https://buildpad.gw2archive.eu/"
+developer = "e-scrape-artist"
+issue_tracker = "https://github.com/Artenuvielle/GW2-SCT/issues"
+vcs = "https://github.com/xvwyh/BuildPad"
+
+dependencies = ["arcdps"]
+#optional_dependencies = []
+#conflicts  = []
+
+[host.standalone]
+url = "https://buildpad.gw2archive.eu/versions/latest"
+version_url = "https://buildpad.gw2archive.eu/version.json"
+
+[installation]
+# "arc" or "gw2load"
+mode = "arc"

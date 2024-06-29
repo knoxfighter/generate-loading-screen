@@ -85,12 +85,13 @@ async function downloadStandalone(
   if (!file.ok) {
     throw new Error(`Unable to download asset ${host_url}`)
   }
+
   const fileBuffer = await file.arrayBuffer()
   let release: Release | undefined
-  if (host_url.endsWith('.dll')) {
-    release = createReleaseFromDll(plugin, fileBuffer, id, host_url)
-  } else if (host_url.endsWith('.zip')) {
-    release = await createReleaseFromArchive(plugin, fileBuffer, id, host_url)
+  if (file.url.endsWith('.dll')) {
+    release = createReleaseFromDll(plugin, fileBuffer, id, file.url)
+  } else if (file.url.endsWith('.zip')) {
+    release = await createReleaseFromArchive(plugin, fileBuffer, id, file.url)
   } else {
     throw new Error(`given host url has not supported file ending ${host_url}`)
   }

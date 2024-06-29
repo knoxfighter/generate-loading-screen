@@ -95,7 +95,7 @@ async function findAndCreateRelease(
     }
     if (!found) {
       throw new Error(
-        `no release asset found for plugin ${plugin.package.name}`
+        `no valid release asset found for plugin ${plugin.package.name}`
       )
     }
   }

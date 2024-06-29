@@ -37694,7 +37694,7 @@ async function findAndCreateRelease(plugin, oldRelease, githubRelease) {
             }
         }
         if (!found) {
-            throw new Error(`no release asset found for plugin ${plugin.package.name}`);
+            throw new Error(`no valid release asset found for plugin ${plugin.package.name}`);
         }
     }
     return oldRelease;
@@ -38079,11 +38079,11 @@ async function downloadStandalone(plugin, host_url, id) {
     }
     const fileBuffer = await file.arrayBuffer();
     let release;
-    if (host_url.endsWith('.dll')) {
-        release = (0, plugin_1.createReleaseFromDll)(plugin, fileBuffer, id, host_url);
+    if (file.url.endsWith('.dll')) {
+        release = (0, plugin_1.createReleaseFromDll)(plugin, fileBuffer, id, file.url);
     }
-    else if (host_url.endsWith('.zip')) {
-        release = await (0, plugin_1.createReleaseFromArchive)(plugin, fileBuffer, id, host_url);
+    else if (file.url.endsWith('.zip')) {
+        release = await (0, plugin_1.createReleaseFromArchive)(plugin, fileBuffer, id, file.url);
     }
     else {
         throw new Error(`given host url has not supported file ending ${host_url}`);
