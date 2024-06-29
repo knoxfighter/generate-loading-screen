@@ -37809,17 +37809,14 @@ async function run() {
             const config = toml.parse(tomlFile.toString());
             plugins.push(config);
         }
-        // download manifest
-        const manifestRes = await fetch('https://knoxfighter.github.io/addon-repo/manifest.json');
-        if (!manifestRes.ok) {
-            if (manifestRes.status !== 404) {
-                core.setFailed(manifestRes.statusText);
-                return;
-            }
+        // get manifest
+        let manifestPath = core.getInput('manifest_path');
+        if (manifestPath === '' || !fs.existsSync(manifestPath)) {
+            // token not set, we generate a new manifest
         }
         else {
             // merge manifest with tomls
-            const manifestPlugins = await manifestRes.json();
+            const manifestPlugins = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
             for (const manifestPlugin of manifestPlugins) {
                 const found = plugins.find(value => value.package.id === manifestPlugin.package.id);
                 if (!found) {
@@ -37842,8 +37839,12 @@ async function run() {
                 console.log(message);
             }
         }
-        console.log(JSON.stringify(plugins, null, 2));
-        // console.log(plugins)
+        if (manifestPath === '') {
+            console.log(JSON.stringify(plugins, null, 2));
+        }
+        else {
+            fs.writeFileSync(manifestPath, JSON.stringify(plugins));
+        }
     }
     catch (error) {
         // Fail the workflow run if an error occurs

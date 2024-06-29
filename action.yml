@@ -12,10 +12,8 @@ inputs:
   token:
     description: 'GitHub Token'
     required: true
-#  milliseconds:
-#    description: 'Your input description here'
-#    required: true
-#    default: '1000'
+  manifest_path:
+    description: 'Path to the manifest.json file'
 
 # Define your outputs here.
 #outputs:
