@@ -86,8 +86,6 @@ async function findAndCreateRelease(
 
         if (!oldRelease || isGreater(release.version, oldRelease.version)) {
           return release
-
-          // TODO: new release was found
         }
         found = true
         break

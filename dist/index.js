@@ -37687,7 +37687,6 @@ async function findAndCreateRelease(plugin, oldRelease, githubRelease) {
                 release.asset_index = i;
                 if (!oldRelease || (0, plugin_1.isGreater)(release.version, oldRelease.version)) {
                     return release;
-                    // TODO: new release was found
                 }
                 found = true;
                 break;
@@ -38059,7 +38058,8 @@ async function downloadAndCheckVersion(plugin, oldRelease, version_url, host_url
     if (versionRes.status !== 200) {
         throw new Error(`version response status for plugin ${plugin.package.name}: ${versionRes.status}`);
     }
-    const version = await versionRes.text();
+    let version = await versionRes.text();
+    version = version.trim();
     if (!oldRelease || oldRelease.id !== version) {
         const release = await downloadStandalone(plugin, host_url, version);
         if (release !== undefined) {

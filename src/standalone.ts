@@ -57,7 +57,8 @@ async function downloadAndCheckVersion(
       `version response status for plugin ${plugin.package.name}: ${versionRes.status}`
     )
   }
-  const version = await versionRes.text()
+  let version = await versionRes.text()
+  version = version.trim()
 
   if (!oldRelease || oldRelease.id !== version) {
     const release = await downloadStandalone(plugin, host_url, version)
