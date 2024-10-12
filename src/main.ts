@@ -47,7 +47,7 @@ export async function run(): Promise<void> {
     }
 
     // get manifest
-    let manifestPath = core.getInput('manifest_path')
+    const manifestPath = core.getInput('manifest_path')
     if (manifestPath === '' || !fs.existsSync(manifestPath)) {
       // token not set, we generate a new manifest
     } else {
@@ -77,8 +77,9 @@ export async function run(): Promise<void> {
       try {
         await update(plugin)
       } catch (error) {
-        // @ts-ignore
-        const message = `Plugin ${plugin.package.name} failed to update: ${error.message}`
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
+        const message = `Plugin ${plugin.package.name} failed to update: ${errorMessage}`
         core.error(message)
         console.log(message)
       }
@@ -91,9 +92,8 @@ export async function run(): Promise<void> {
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
-    // @ts-expect-error
-    console.log(error.message)
-    // @ts-expect-error
-    core.setFailed(error.message)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.log(errorMessage)
+    core.setFailed(errorMessage)
   }
 }

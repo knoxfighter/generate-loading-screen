@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /**
  * Unit tests for the action's main functionality, src/main.ts
  *
