@@ -37,10 +37,13 @@ export async function run(): Promise<void> {
     if (!githubWorkspace) {
       throw new Error('GitHub workspace not set')
     }
-    const addonsPath = path.join(githubWorkspace, 'addons')
-    const dir = fs.readdirSync(addonsPath)
+
+    // get addons path (defaults to `addons`)
+    const addonsPath = core.getInput('addons_path') || 'addons'
+    const addonsDirectory = path.join(githubWorkspace, addonsPath)
+    const dir = fs.readdirSync(addonsDirectory)
     for (const addonToml of dir) {
-      const addonPath = path.join(addonsPath, addonToml)
+      const addonPath = path.join(addonsDirectory, addonToml)
       const tomlFile = fs.readFileSync(addonPath)
       const config: Plugin = toml.parse(tomlFile.toString())
       plugins.push(config)
