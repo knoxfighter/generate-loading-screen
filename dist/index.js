@@ -37809,7 +37809,7 @@ async function run() {
             plugins.push(config);
         }
         // get manifest
-        let manifestPath = core.getInput('manifest_path');
+        const manifestPath = core.getInput('manifest_path');
         if (manifestPath === '' || !fs.existsSync(manifestPath)) {
             // token not set, we generate a new manifest
         }
@@ -37832,8 +37832,8 @@ async function run() {
                 await update(plugin);
             }
             catch (error) {
-                // @ts-ignore
-                const message = `Plugin ${plugin.package.name} failed to update: ${error.message}`;
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                const message = `Plugin ${plugin.package.name} failed to update: ${errorMessage}`;
                 core.error(message);
                 console.log(message);
             }
@@ -37847,10 +37847,9 @@ async function run() {
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        // @ts-expect-error
-        console.log(error.message);
-        // @ts-expect-error
-        core.setFailed(error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.log(errorMessage);
+        core.setFailed(errorMessage);
     }
 }
 exports.run = run;

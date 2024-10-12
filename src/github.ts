@@ -9,7 +9,7 @@ import {
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import { addAddonName } from './main'
-import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types'
+import type { GetResponseDataTypeFromEndpointMethod } from '@octokit/types'
 
 type GetLatestReleaseType = GetResponseDataTypeFromEndpointMethod<
   typeof octokit.rest.repos.getLatestRelease
