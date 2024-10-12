@@ -37800,8 +37800,9 @@ async function run() {
         if (!githubWorkspace) {
             throw new Error('GitHub workspace not set');
         }
-        const addonsPath = node_path_1.default.join(githubWorkspace, 'addons');
-        const dir = fs.readdirSync(addonsPath);
+        // get addons path (defaults to `addons`)
+        const addonsPath = core.getInput('addons_path', { required: true });
+        const dir = fs.readdirSync(node_path_1.default.join(githubWorkspace, addonsPath));
         for (const addonToml of dir) {
             const addonPath = node_path_1.default.join(addonsPath, addonToml);
             const tomlFile = fs.readFileSync(addonPath);
