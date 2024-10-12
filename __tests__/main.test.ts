@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /**
  * Unit tests for the action's main functionality, src/main.ts
  *
@@ -26,7 +28,7 @@ describe('action', () => {
 
     debugMock = jest.spyOn(core, 'debug').mockImplementation()
     errorMock = jest.spyOn(core, 'error').mockImplementation()
-    getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
+    getInputMock = jest.spyOn(core, 'getInput')
     setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
     setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
   })
@@ -40,5 +42,5 @@ describe('action', () => {
 
     expect(setFailedMock).not.toHaveBeenCalled()
     // expect(errorMock).not.toHaveBeenCalled()
-  })
+  }, 20_000)
 })

@@ -37800,16 +37800,18 @@ async function run() {
         if (!githubWorkspace) {
             throw new Error('GitHub workspace not set');
         }
-        const addonsPath = node_path_1.default.join(githubWorkspace, 'addons');
-        const dir = fs.readdirSync(addonsPath);
+        // get addons path (defaults to `addons`)
+        const addonsPath = core.getInput('addons_path') || 'addons';
+        const addonsDirectory = node_path_1.default.join(githubWorkspace, addonsPath);
+        const dir = fs.readdirSync(addonsDirectory);
         for (const addonToml of dir) {
-            const addonPath = node_path_1.default.join(addonsPath, addonToml);
+            const addonPath = node_path_1.default.join(addonsDirectory, addonToml);
             const tomlFile = fs.readFileSync(addonPath);
             const config = toml.parse(tomlFile.toString());
             plugins.push(config);
         }
         // get manifest
-        let manifestPath = core.getInput('manifest_path');
+        const manifestPath = core.getInput('manifest_path');
         if (manifestPath === '' || !fs.existsSync(manifestPath)) {
             // token not set, we generate a new manifest
         }
@@ -37832,8 +37834,8 @@ async function run() {
                 await update(plugin);
             }
             catch (error) {
-                // @ts-ignore
-                const message = `Plugin ${plugin.package.name} failed to update: ${error.message}`;
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                const message = `Plugin ${plugin.package.name} failed to update: ${errorMessage}`;
                 core.error(message);
                 console.log(message);
             }
@@ -37847,10 +37849,9 @@ async function run() {
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        // @ts-expect-error
-        console.log(error.message);
-        // @ts-expect-error
-        core.setFailed(error.message);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(errorMessage);
+        core.setFailed(errorMessage);
     }
 }
 exports.run = run;

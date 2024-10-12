@@ -37,17 +37,20 @@ export async function run(): Promise<void> {
     if (!githubWorkspace) {
       throw new Error('GitHub workspace not set')
     }
-    const addonsPath = path.join(githubWorkspace, 'addons')
-    const dir = fs.readdirSync(addonsPath)
+
+    // get addons path (defaults to `addons`)
+    const addonsPath = core.getInput('addons_path') || 'addons'
+    const addonsDirectory = path.join(githubWorkspace, addonsPath)
+    const dir = fs.readdirSync(addonsDirectory)
     for (const addonToml of dir) {
-      const addonPath = path.join(addonsPath, addonToml)
+      const addonPath = path.join(addonsDirectory, addonToml)
       const tomlFile = fs.readFileSync(addonPath)
       const config: Plugin = toml.parse(tomlFile.toString())
       plugins.push(config)
     }
 
     // get manifest
-    let manifestPath = core.getInput('manifest_path')
+    const manifestPath = core.getInput('manifest_path')
     if (manifestPath === '' || !fs.existsSync(manifestPath)) {
       // token not set, we generate a new manifest
     } else {
@@ -77,8 +80,9 @@ export async function run(): Promise<void> {
       try {
         await update(plugin)
       } catch (error) {
-        // @ts-ignore
-        const message = `Plugin ${plugin.package.name} failed to update: ${error.message}`
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
+        const message = `Plugin ${plugin.package.name} failed to update: ${errorMessage}`
         core.error(message)
         console.log(message)
       }
@@ -91,9 +95,8 @@ export async function run(): Promise<void> {
     }
   } catch (error) {
     // Fail the workflow run if an error occurs
-    // @ts-expect-error
-    console.log(error.message)
-    // @ts-expect-error
-    core.setFailed(error.message)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.log(errorMessage)
+    core.setFailed(errorMessage)
   }
 }

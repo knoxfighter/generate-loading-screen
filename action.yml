@@ -12,6 +12,9 @@ inputs:
   token:
     description: 'GitHub Token'
     required: true
+  addons_path:
+    description: 'Path to the addons directory'
+    default: addons
   manifest_path:
     description: 'Path to the manifest.json file'
 
