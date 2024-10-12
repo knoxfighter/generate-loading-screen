@@ -37801,10 +37801,11 @@ async function run() {
             throw new Error('GitHub workspace not set');
         }
         // get addons path (defaults to `addons`)
-        const addonsPath = core.getInput('addons_path', { required: true });
-        const dir = fs.readdirSync(node_path_1.default.join(githubWorkspace, addonsPath));
+        const addonsPath = core.getInput('addons_path') || 'addons';
+        const addonsDirectory = node_path_1.default.join(githubWorkspace, addonsPath);
+        const dir = fs.readdirSync(addonsDirectory);
         for (const addonToml of dir) {
-            const addonPath = node_path_1.default.join(addonsPath, addonToml);
+            const addonPath = node_path_1.default.join(addonsDirectory, addonToml);
             const tomlFile = fs.readFileSync(addonPath);
             const config = toml.parse(tomlFile.toString());
             plugins.push(config);
@@ -37833,7 +37834,7 @@ async function run() {
                 await update(plugin);
             }
             catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                const errorMessage = error instanceof Error ? error.message : String(error);
                 const message = `Plugin ${plugin.package.name} failed to update: ${errorMessage}`;
                 core.error(message);
                 console.log(message);
@@ -37848,7 +37849,7 @@ async function run() {
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage = error instanceof Error ? error.message : String(error);
         console.log(errorMessage);
         core.setFailed(errorMessage);
     }
