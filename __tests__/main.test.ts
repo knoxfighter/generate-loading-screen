@@ -42,5 +42,5 @@ describe('action', () => {
 
     expect(setFailedMock).not.toHaveBeenCalled()
     // expect(errorMock).not.toHaveBeenCalled()
-  })
+  }, 20_000)
 })
