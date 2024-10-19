@@ -138,10 +138,14 @@ export async function generateManifest({
     }
   }
 
+  const manifest = {
+    addons
+  }
+
   // output manifest
   if (manifestPath) {
-    fs.writeFileSync(manifestPath, JSON.stringify(addons))
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest))
   } else {
-    console.log(JSON.stringify(addons, null, 2))
+    console.log(JSON.stringify(manifest, null, 2))
   }
 }
