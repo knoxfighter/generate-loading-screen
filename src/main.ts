@@ -77,7 +77,7 @@ export async function generateManifest({
   }
 
   // check if manifest already exists, then merge addon definitions
-  if (manifestPath && !fs.existsSync(manifestPath)) {
+  if (manifestPath && fs.existsSync(manifestPath)) {
     const existingManifest: Plugin[] = JSON.parse(
       fs.readFileSync(manifestPath, 'utf8')
     )
