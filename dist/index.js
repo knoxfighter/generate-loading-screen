@@ -37827,7 +37827,7 @@ async function generateManifest({ addonsPath, manifestPath }) {
         addons.push(config);
     }
     // check if manifest already exists, then merge addon definitions
-    if (manifestPath && !fs.existsSync(manifestPath)) {
+    if (manifestPath && fs.existsSync(manifestPath)) {
         const existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
         for (const existingAddon of existingManifest) {
             const found = addons.find(value => value.package.id === existingAddon.package.id);
