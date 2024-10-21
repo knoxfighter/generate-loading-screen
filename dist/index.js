@@ -37853,7 +37853,10 @@ async function generateManifest({ addonsPath, manifestPath }) {
         }
     }
     const manifest = {
-        addons
+        version: 1,
+        data: {
+            addons
+        }
     };
     // output manifest
     if (manifestPath) {

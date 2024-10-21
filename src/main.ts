@@ -113,7 +113,10 @@ export async function generateManifest({
   }
 
   const manifest = {
-    addons
+    version: 1,
+    data: {
+      addons
+    }
   }
 
   // output manifest
