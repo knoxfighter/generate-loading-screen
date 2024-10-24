@@ -3,10 +3,6 @@ import { errorMap } from 'zod-validation-error'
 
 z.setErrorMap(errorMap)
 
-// TODO: can this be removed?
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const downloadType = z.enum(['archive', 'dll'])
-
 const installMode = z.enum(['gw2load', 'arc'])
 
 const version = z.tuple([z.number(), z.number(), z.number(), z.number()])
