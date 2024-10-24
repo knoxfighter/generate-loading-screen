@@ -67,4 +67,16 @@ describe('action', () => {
     )
     expect(setFailedMock).not.toHaveBeenCalled()
   })
+
+  it('should fail if manifest is invalid', async () => {
+    const manifestPromise = main.generateManifest({
+      addonsPath: path.resolve(__dirname, 'empty'),
+      manifestPath: path.resolve(__dirname, 'invalid.json')
+    })
+
+    await expect(manifestPromise).rejects.toHaveProperty(
+      'message',
+      'Invalid manifest'
+    )
+  })
 })
