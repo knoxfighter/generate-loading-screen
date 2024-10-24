@@ -86,6 +86,11 @@ export async function generateManifest({
 
   // collect addons from addon directory
   for (const fileName of fs.readdirSync(addonsPath)) {
+    // skip files that don't end with .toml
+    if (!fileName.endsWith('.toml')) {
+      continue
+    }
+
     const filePath = path.join(addonsPath, fileName)
     const tomlContent = fs.readFileSync(filePath)
 
