@@ -42510,16 +42510,23 @@ async function generateManifest({ addonsPath, manifestPath }) {
     }
     // check if manifest already exists, then merge addon definitions
     if (manifestPath && fs.existsSync(manifestPath)) {
-        const existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-        for (const existingAddon of existingManifest) {
-            const found = addons.find(value => value.package.id === existingAddon.package.id);
-            if (!found) {
-                core.warning(`Addon ${existingAddon.package.id} was removed from manifest!`);
-                continue;
+        try {
+            const existingManifest = schema_1.manifest.parse(JSON.parse(fs.readFileSync(manifestPath, 'utf8')));
+            for (const existingAddon of existingManifest.data.addons) {
+                const found = addons.find(value => value.package.id === existingAddon.package.id);
+                if (!found) {
+                    core.warning(`Addon ${existingAddon.package.id} was removed from manifest!`);
+                    continue;
+                }
+                found.release = existingAddon.release;
+                found.prerelease = existingAddon.prerelease;
+                found.addon_names = existingAddon.addon_names;
             }
-            found.release = existingAddon.release;
-            found.prerelease = existingAddon.prerelease;
-            found.addon_names = existingAddon.addon_names;
+        }
+        catch (e) {
+            core.error('Error reading the existing manifest');
+            console.error('Error reading the existing manifest');
+            console.error(e);
         }
     }
     // update addons
@@ -42714,7 +42721,7 @@ exports.createReleaseFromDll = createReleaseFromDll;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addon = void 0;
+exports.manifest = exports.addon = void 0;
 const zod_1 = __nccwpck_require__(3301);
 const zod_validation_error_1 = __nccwpck_require__(9936);
 zod_1.z.setErrorMap(zod_validation_error_1.errorMap);
@@ -42767,6 +42774,12 @@ exports.addon = zod_1.z.object({
     release: release.optional(),
     prerelease: release.optional(),
     addon_names: zod_1.z.array(zod_1.z.string()).optional()
+});
+exports.manifest = zod_1.z.object({
+    version: zod_1.z.literal(1),
+    data: zod_1.z.object({
+        addons: zod_1.z.array(exports.addon)
+    })
 });
 
 

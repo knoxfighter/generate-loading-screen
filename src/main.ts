@@ -1,5 +1,10 @@
 import * as core from '@actions/core'
-import { addon as addonSchema, Addon } from './schema'
+import {
+  addon as addonSchema,
+  Addon,
+  manifest as manifestSchema,
+  Manifest
+} from './schema'
 import { updateFromGithub } from './github'
 import { updateStandalone } from './standalone'
 import * as fs from 'node:fs'
@@ -104,24 +109,30 @@ export async function generateManifest({
 
   // check if manifest already exists, then merge addon definitions
   if (manifestPath && fs.existsSync(manifestPath)) {
-    const existingManifest: Addon[] = JSON.parse(
-      fs.readFileSync(manifestPath, 'utf8')
-    )
-
-    for (const existingAddon of existingManifest) {
-      const found = addons.find(
-        value => value.package.id === existingAddon.package.id
+    try {
+      const existingManifest = manifestSchema.parse(
+        JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
       )
-      if (!found) {
-        core.warning(
-          `Addon ${existingAddon.package.id} was removed from manifest!`
-        )
-        continue
-      }
 
-      found.release = existingAddon.release
-      found.prerelease = existingAddon.prerelease
-      found.addon_names = existingAddon.addon_names
+      for (const existingAddon of existingManifest.data.addons) {
+        const found = addons.find(
+          value => value.package.id === existingAddon.package.id
+        )
+        if (!found) {
+          core.warning(
+            `Addon ${existingAddon.package.id} was removed from manifest!`
+          )
+          continue
+        }
+
+        found.release = existingAddon.release
+        found.prerelease = existingAddon.prerelease
+        found.addon_names = existingAddon.addon_names
+      }
+    } catch (e) {
+      core.error('Error reading the existing manifest')
+      console.error('Error reading the existing manifest')
+      console.error(e)
     }
   }
 
@@ -138,7 +149,7 @@ export async function generateManifest({
     }
   }
 
-  const manifest = {
+  const manifest: Manifest = {
     version: 1,
     data: {
       addons
