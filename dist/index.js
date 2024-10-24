@@ -42741,9 +42741,6 @@ exports.manifest = exports.addon = void 0;
 const zod_1 = __nccwpck_require__(3301);
 const zod_validation_error_1 = __nccwpck_require__(9936);
 zod_1.z.setErrorMap(zod_validation_error_1.errorMap);
-// TODO: can this be removed?
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const downloadType = zod_1.z.enum(['archive', 'dll']);
 const installMode = zod_1.z.enum(['gw2load', 'arc']);
 const version = zod_1.z.tuple([zod_1.z.number(), zod_1.z.number(), zod_1.z.number(), zod_1.z.number()]);
 const release = zod_1.z.object({
