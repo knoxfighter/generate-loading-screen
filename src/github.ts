@@ -2,7 +2,7 @@ import {
   createReleaseFromArchive,
   createReleaseFromDll,
   isGreater
-} from './plugin'
+} from './addon'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 import { addAddonName } from './main'
@@ -23,7 +23,7 @@ if (token === '' && envToken !== undefined) {
 const octokit = github.getOctokit(token)
 
 export async function updateFromGithub(
-  plugin: Addon,
+  addon: Addon,
   host: GithubHost
 ): Promise<void> {
   const [owner, repo] = host.url.split('/')
@@ -38,24 +38,24 @@ export async function updateFromGithub(
     repo
   })
 
-  plugin.release = await findAndCreateRelease(
-    plugin,
-    plugin.release,
+  addon.release = await findAndCreateRelease(
+    addon,
+    addon.release,
     latestRelease.data
   )
 
   // find pre-release until latest release
   for (const release of releases.data) {
     if (release.prerelease) {
-      plugin.prerelease = await findAndCreateRelease(
-        plugin,
-        plugin.prerelease,
+      addon.prerelease = await findAndCreateRelease(
+        addon,
+        addon.prerelease,
         release
       )
       break
     } else if (release.tag_name === latestRelease.data.tag_name) {
       // TODO: if prerelease is set, we removed it
-      plugin.prerelease = undefined
+      addon.prerelease = undefined
       break
     }
   }
@@ -63,14 +63,14 @@ export async function updateFromGithub(
 
 /**
  *
- * @param plugin The plugin currently checked
- * @param oldRelease the old release (either plugin.release or plugin.prerelease)
+ * @param addon The addon currently checked
+ * @param oldRelease the old release (either addon.release or addon.prerelease)
  * @param githubRelease The github api response for the corresponding release/tag
  * @return oldRelease when the release didn't change or the new release
  * @throws Error when no valid release asset was found
  */
 async function findAndCreateRelease(
-  plugin: Addon,
+  addon: Addon,
   oldRelease: Release | undefined,
   githubRelease: GetLatestReleaseType
 ): Promise<Release | undefined> {
@@ -78,7 +78,7 @@ async function findAndCreateRelease(
     let found = false
     for (let i = 0; i < githubRelease.assets.length; i++) {
       const asset = githubRelease.assets[i]
-      const release = await downloadFromGithub(plugin, asset)
+      const release = await downloadFromGithub(addon, asset)
       if (release !== undefined) {
         release.asset_index = i
 
@@ -91,7 +91,7 @@ async function findAndCreateRelease(
     }
     if (!found) {
       throw new Error(
-        `no valid release asset found for plugin ${plugin.package.name}`
+        `no valid release asset found for addon ${addon.package.name}`
       )
     }
   }
@@ -99,7 +99,7 @@ async function findAndCreateRelease(
 }
 
 async function downloadFromGithub(
-  plugin: Addon,
+  addon: Addon,
   asset: GetLatestReleaseAssetType
 ): Promise<Release | undefined> {
   const file = await fetch(asset.browser_download_url)
@@ -110,14 +110,14 @@ async function downloadFromGithub(
   let release: Release | undefined
   if (asset.name.endsWith('.dll')) {
     release = createReleaseFromDll(
-      plugin,
+      addon,
       fileBuffer,
       asset.id.toString(),
       asset.browser_download_url
     )
   } else if (asset.name.endsWith('.zip')) {
     release = await createReleaseFromArchive(
-      plugin,
+      addon,
       fileBuffer,
       asset.id.toString(),
       asset.browser_download_url
@@ -127,7 +127,7 @@ async function downloadFromGithub(
   }
 
   if (release !== undefined) {
-    addAddonName(plugin, release.name)
+    addAddonName(addon, release.name)
   }
 
   return release

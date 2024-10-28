@@ -42260,6 +42260,161 @@ exports.NEVER = parseUtil_1.INVALID;
 
 /***/ }),
 
+/***/ 4876:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createReleaseFromDll = exports.createReleaseFromArchive = exports.isGreater = void 0;
+const pe_toolkit_1 = __nccwpck_require__(8520);
+const fflate_1 = __nccwpck_require__(2146);
+const os_1 = __nccwpck_require__(2037);
+const node_path_1 = __importDefault(__nccwpck_require__(9411));
+const fs = __importStar(__nccwpck_require__(7561));
+const child_process_1 = __nccwpck_require__(2081);
+function isGreater(a, b) {
+    for (let i = 0; i < 4; i++) {
+        if (a[i] !== b[i]) {
+            return a[i] > b[i];
+        }
+    }
+    return false;
+}
+exports.isGreater = isGreater;
+async function createReleaseFromArchive(addon, fileBuffer, id, downloadUrl) {
+    const unzipped = (0, fflate_1.unzipSync)(new Uint8Array(fileBuffer));
+    const files = Object.keys(unzipped)
+        .filter(value => value.endsWith('.dll'))
+        .map(value => new File([unzipped[value]], value));
+    for (const file of files) {
+        // save file to tmp
+        const filePath = await saveToTmp(file);
+        // check if dll has exports, skip if not
+        if (!checkDllExports(filePath)) {
+            continue;
+        }
+        // create release
+        const subFileBuffer = await file.arrayBuffer();
+        return createReleaseFromDll(addon, subFileBuffer, id, downloadUrl);
+    }
+    return undefined;
+}
+exports.createReleaseFromArchive = createReleaseFromArchive;
+async function saveToTmp(file) {
+    let filePath = (0, os_1.tmpdir)();
+    filePath = node_path_1.default.resolve(filePath, file.name);
+    // enforce folder is there
+    const dirPath = node_path_1.default.dirname(filePath);
+    fs.mkdirSync(dirPath, { recursive: true });
+    const buffer = await file.arrayBuffer();
+    fs.writeFileSync(filePath, new DataView(buffer));
+    return filePath;
+}
+function checkDllExports(filepath) {
+    let result = false;
+    (0, child_process_1.exec)(`./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, error => {
+        result = error !== undefined;
+    });
+    return result;
+}
+function createReleaseFromDll(addon, fileBuffer, id, downloadUrl) {
+    const fileParser = new pe_toolkit_1.PeFileParser();
+    fileParser.parseBytes(fileBuffer);
+    const versionInfoResource = fileParser.getVersionInfoResources();
+    if (versionInfoResource === undefined) {
+        throw new Error(`No versionInfoResource found for addon ${addon.package.name}`);
+    }
+    const vsInfoSub = Object.values(versionInfoResource)[0];
+    if (vsInfoSub === undefined) {
+        throw new Error(`no vsInfoSub found for addon ${addon.package.name}`);
+    }
+    const versionInfo = Object.values(vsInfoSub)[0];
+    if (versionInfo === undefined) {
+        throw new Error(`No versionInfo found for ${addon.package.name}`);
+    }
+    const fixedFileInfo = versionInfo.getFixedFileInfo();
+    if (fixedFileInfo === undefined) {
+        throw new Error(`No fileInfo found for ${addon.package.name}`);
+    }
+    let addonVersion = [
+        (fixedFileInfo.getStruct().dwFileVersionMS >> 16) & 0xffff,
+        fixedFileInfo.getStruct().dwFileVersionMS & 0xffff,
+        (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
+        fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
+    ];
+    if (addonVersion.every(value => value === 0)) {
+        addonVersion = [
+            (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
+            fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
+            (fixedFileInfo.getStruct().dwProductVersionLS >> 16) & 0xffff,
+            fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
+        ];
+    }
+    if (addonVersion.every(value => value === 0)) {
+        throw new Error(`no addonVersion found for addon ${addon.package.name}`);
+    }
+    // read version string
+    // console.log(versionInfo)
+    let addonVersionStr = undefined;
+    let addonName = undefined;
+    const stringFileInfo = versionInfo.getStringFileInfo();
+    if (stringFileInfo === undefined) {
+        throw new Error(`No StringFileInfo found for addon ${addon.package.name}`);
+    }
+    else {
+        const stringInfo = Object.values(stringFileInfo.getStringTables())[0].toObject();
+        addonVersionStr =
+            stringInfo['FileVersion'] ??
+                stringInfo['ProductVersion'] ??
+                addonVersion.join('.');
+        // read name
+        addonName = stringInfo['ProductName'] ?? stringInfo['FileDescription'];
+        if (addonName === undefined) {
+            throw new Error(`No addonName found for addon ${addon.package.name}`);
+        }
+    }
+    // this has to be last, so we don't override valid stuff with invalid
+    const release = {
+        id,
+        name: addonName,
+        version: addonVersion,
+        version_str: addonVersionStr,
+        download_url: downloadUrl
+    };
+    return release;
+}
+exports.createReleaseFromDll = createReleaseFromDll;
+
+
+/***/ }),
+
 /***/ 978:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -42290,7 +42445,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateFromGithub = void 0;
-const plugin_1 = __nccwpck_require__(1069);
+const addon_1 = __nccwpck_require__(4876);
 const github = __importStar(__nccwpck_require__(5438));
 const core = __importStar(__nccwpck_require__(2186));
 const main_1 = __nccwpck_require__(399);
@@ -42301,7 +42456,7 @@ if (token === '' && envToken !== undefined) {
     token = envToken;
 }
 const octokit = github.getOctokit(token);
-async function updateFromGithub(plugin, host) {
+async function updateFromGithub(addon, host) {
     const [owner, repo] = host.url.split('/');
     const releases = await octokit.rest.repos.listReleases({
         owner,
@@ -42311,16 +42466,16 @@ async function updateFromGithub(plugin, host) {
         owner,
         repo
     });
-    plugin.release = await findAndCreateRelease(plugin, plugin.release, latestRelease.data);
+    addon.release = await findAndCreateRelease(addon, addon.release, latestRelease.data);
     // find pre-release until latest release
     for (const release of releases.data) {
         if (release.prerelease) {
-            plugin.prerelease = await findAndCreateRelease(plugin, plugin.prerelease, release);
+            addon.prerelease = await findAndCreateRelease(addon, addon.prerelease, release);
             break;
         }
         else if (release.tag_name === latestRelease.data.tag_name) {
             // TODO: if prerelease is set, we removed it
-            plugin.prerelease = undefined;
+            addon.prerelease = undefined;
             break;
         }
     }
@@ -42328,21 +42483,21 @@ async function updateFromGithub(plugin, host) {
 exports.updateFromGithub = updateFromGithub;
 /**
  *
- * @param plugin The plugin currently checked
- * @param oldRelease the old release (either plugin.release or plugin.prerelease)
+ * @param addon The addon currently checked
+ * @param oldRelease the old release (either addon.release or addon.prerelease)
  * @param githubRelease The github api response for the corresponding release/tag
  * @return oldRelease when the release didn't change or the new release
  * @throws Error when no valid release asset was found
  */
-async function findAndCreateRelease(plugin, oldRelease, githubRelease) {
+async function findAndCreateRelease(addon, oldRelease, githubRelease) {
     if (checkAssetChanged(oldRelease, githubRelease)) {
         let found = false;
         for (let i = 0; i < githubRelease.assets.length; i++) {
             const asset = githubRelease.assets[i];
-            const release = await downloadFromGithub(plugin, asset);
+            const release = await downloadFromGithub(addon, asset);
             if (release !== undefined) {
                 release.asset_index = i;
-                if (!oldRelease || (0, plugin_1.isGreater)(release.version, oldRelease.version)) {
+                if (!oldRelease || (0, addon_1.isGreater)(release.version, oldRelease.version)) {
                     return release;
                 }
                 found = true;
@@ -42350,12 +42505,12 @@ async function findAndCreateRelease(plugin, oldRelease, githubRelease) {
             }
         }
         if (!found) {
-            throw new Error(`no valid release asset found for plugin ${plugin.package.name}`);
+            throw new Error(`no valid release asset found for addon ${addon.package.name}`);
         }
     }
     return oldRelease;
 }
-async function downloadFromGithub(plugin, asset) {
+async function downloadFromGithub(addon, asset) {
     const file = await fetch(asset.browser_download_url);
     if (!file.ok) {
         throw new Error(`Unable to download asset: ${asset.browser_download_url}`);
@@ -42363,16 +42518,16 @@ async function downloadFromGithub(plugin, asset) {
     const fileBuffer = await file.arrayBuffer();
     let release;
     if (asset.name.endsWith('.dll')) {
-        release = (0, plugin_1.createReleaseFromDll)(plugin, fileBuffer, asset.id.toString(), asset.browser_download_url);
+        release = (0, addon_1.createReleaseFromDll)(addon, fileBuffer, asset.id.toString(), asset.browser_download_url);
     }
     else if (asset.name.endsWith('.zip')) {
-        release = await (0, plugin_1.createReleaseFromArchive)(plugin, fileBuffer, asset.id.toString(), asset.browser_download_url);
+        release = await (0, addon_1.createReleaseFromArchive)(addon, fileBuffer, asset.id.toString(), asset.browser_download_url);
     }
     else {
         release = undefined;
     }
     if (release !== undefined) {
-        (0, main_1.addAddonName)(plugin, release.name);
+        (0, main_1.addAddonName)(addon, release.name);
     }
     return release;
 }
@@ -42576,161 +42731,6 @@ async function readManifest(manifestPath) {
 
 /***/ }),
 
-/***/ 1069:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createReleaseFromDll = exports.createReleaseFromArchive = exports.isGreater = void 0;
-const pe_toolkit_1 = __nccwpck_require__(8520);
-const fflate_1 = __nccwpck_require__(2146);
-const os_1 = __nccwpck_require__(2037);
-const node_path_1 = __importDefault(__nccwpck_require__(9411));
-const fs = __importStar(__nccwpck_require__(7561));
-const child_process_1 = __nccwpck_require__(2081);
-function isGreater(a, b) {
-    for (let i = 0; i < 4; i++) {
-        if (a[i] !== b[i]) {
-            return a[i] > b[i];
-        }
-    }
-    return false;
-}
-exports.isGreater = isGreater;
-async function createReleaseFromArchive(plugin, fileBuffer, id, downloadUrl) {
-    const unzipped = (0, fflate_1.unzipSync)(new Uint8Array(fileBuffer));
-    const files = Object.keys(unzipped)
-        .filter(value => value.endsWith('.dll'))
-        .map(value => new File([unzipped[value]], value));
-    for (const file of files) {
-        // save file to tmp
-        const filePath = await saveToTmp(file);
-        // check if dll has exports, skip if not
-        if (!checkDllExports(filePath)) {
-            continue;
-        }
-        // create release
-        const subFileBuffer = await file.arrayBuffer();
-        return createReleaseFromDll(plugin, subFileBuffer, id, downloadUrl);
-    }
-    return undefined;
-}
-exports.createReleaseFromArchive = createReleaseFromArchive;
-async function saveToTmp(file) {
-    let filePath = (0, os_1.tmpdir)();
-    filePath = node_path_1.default.resolve(filePath, file.name);
-    // enforce folder is there
-    const dirPath = node_path_1.default.dirname(filePath);
-    fs.mkdirSync(dirPath, { recursive: true });
-    const buffer = await file.arrayBuffer();
-    fs.writeFileSync(filePath, new DataView(buffer));
-    return filePath;
-}
-function checkDllExports(filepath) {
-    let result = false;
-    (0, child_process_1.exec)(`./winedump -j export ${filepath} | grep -e "get_init_addr" -e "GW2Load_GetAddonAPIVersion"`, error => {
-        result = error !== undefined;
-    });
-    return result;
-}
-function createReleaseFromDll(plugin, fileBuffer, id, downloadUrl) {
-    const fileParser = new pe_toolkit_1.PeFileParser();
-    fileParser.parseBytes(fileBuffer);
-    const versionInfoResource = fileParser.getVersionInfoResources();
-    if (versionInfoResource === undefined) {
-        throw new Error(`No versionInfoResource found for plugin ${plugin.package.name}`);
-    }
-    const vsInfoSub = Object.values(versionInfoResource)[0];
-    if (vsInfoSub === undefined) {
-        throw new Error(`no vsInfoSub found for plugin ${plugin.package.name}`);
-    }
-    const versionInfo = Object.values(vsInfoSub)[0];
-    if (versionInfo === undefined) {
-        throw new Error(`No versionInfo found for ${plugin.package.name}`);
-    }
-    const fixedFileInfo = versionInfo.getFixedFileInfo();
-    if (fixedFileInfo === undefined) {
-        throw new Error(`No fileInfo found for ${plugin.package.name}`);
-    }
-    let addonVersion = [
-        (fixedFileInfo.getStruct().dwFileVersionMS >> 16) & 0xffff,
-        fixedFileInfo.getStruct().dwFileVersionMS & 0xffff,
-        (fixedFileInfo.getStruct().dwFileVersionLS >> 16) & 0xffff,
-        fixedFileInfo.getStruct().dwFileVersionLS & 0xffff
-    ];
-    if (addonVersion.every(value => value === 0)) {
-        addonVersion = [
-            (fixedFileInfo.getStruct().dwProductVersionMS >> 16) & 0xffff,
-            fixedFileInfo.getStruct().dwProductVersionMS & 0xffff,
-            (fixedFileInfo.getStruct().dwProductVersionLS >> 16) & 0xffff,
-            fixedFileInfo.getStruct().dwProductVersionLS & 0xffff
-        ];
-    }
-    if (addonVersion.every(value => value === 0)) {
-        throw new Error(`no addonVersion found for plugin ${plugin.package.name}`);
-    }
-    // read version string
-    // console.log(versionInfo)
-    let addonVersionStr = undefined;
-    let addonName = undefined;
-    const stringFileInfo = versionInfo.getStringFileInfo();
-    if (stringFileInfo === undefined) {
-        throw new Error(`No StringFileInfo found for plugin ${plugin.package.name}`);
-    }
-    else {
-        const stringInfo = Object.values(stringFileInfo.getStringTables())[0].toObject();
-        addonVersionStr =
-            stringInfo['FileVersion'] ??
-                stringInfo['ProductVersion'] ??
-                addonVersion.join('.');
-        // read name
-        addonName = stringInfo['ProductName'] ?? stringInfo['FileDescription'];
-        if (addonName === undefined) {
-            throw new Error(`No addonName found for plugin ${plugin.package.name}`);
-        }
-    }
-    // this has to be last, so we don't override valid stuff with invalid
-    const release = {
-        id,
-        name: addonName,
-        version: addonVersion,
-        version_str: addonVersionStr,
-        download_url: downloadUrl
-    };
-    return release;
-}
-exports.createReleaseFromDll = createReleaseFromDll;
-
-
-/***/ }),
-
 /***/ 2199:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -42805,50 +42805,50 @@ exports.manifest = zod_1.z.object({
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateStandalone = void 0;
-const plugin_1 = __nccwpck_require__(1069);
+const addon_1 = __nccwpck_require__(4876);
 const main_1 = __nccwpck_require__(399);
-async function updateStandalone(plugin, host) {
+async function updateStandalone(addon, host) {
     if (!host.version_url) {
-        throw new Error(`no version_url for plugin ${plugin.package.name}`);
+        throw new Error(`no version_url for addon ${addon.package.name}`);
     }
-    plugin.release = await downloadAndCheckVersion(plugin, plugin.release, host.version_url, host.url);
+    addon.release = await downloadAndCheckVersion(addon, addon.release, host.version_url, host.url);
     // only run when configured and release was found
-    if (host.prerelease_url && host.prerelease_version_url && plugin.release) {
-        const prerelease = await downloadAndCheckVersion(plugin, plugin.prerelease, host.prerelease_version_url, host.prerelease_url);
+    if (host.prerelease_url && host.prerelease_version_url && addon.release) {
+        const prerelease = await downloadAndCheckVersion(addon, addon.prerelease, host.prerelease_version_url, host.prerelease_url);
         // check if prerelease is later than release, if not, remove prerelease
         if (prerelease) {
-            if ((0, plugin_1.isGreater)(prerelease.version, plugin.release.version)) {
+            if ((0, addon_1.isGreater)(prerelease.version, addon.release.version)) {
                 // TODO: new release was found die zweite
-                plugin.prerelease = prerelease;
+                addon.prerelease = prerelease;
                 return;
             }
         }
     }
     // TODO: if prerelease is set, we removed it
-    plugin.prerelease = undefined;
+    addon.prerelease = undefined;
 }
 exports.updateStandalone = updateStandalone;
-async function downloadAndCheckVersion(plugin, oldRelease, version_url, host_url) {
+async function downloadAndCheckVersion(addon, oldRelease, version_url, host_url) {
     const versionRes = await fetch(version_url);
     if (versionRes.status !== 200) {
-        throw new Error(`version response status for plugin ${plugin.package.name}: ${versionRes.status}`);
+        throw new Error(`version response status for addon ${addon.package.name}: ${versionRes.status}`);
     }
     let version = await versionRes.text();
     version = version.trim();
     if (!oldRelease || oldRelease.id !== version) {
-        const release = await downloadStandalone(plugin, host_url, version);
+        const release = await downloadStandalone(addon, host_url, version);
         if (release !== undefined) {
-            if (!oldRelease || (0, plugin_1.isGreater)(release.version, oldRelease.version)) {
+            if (!oldRelease || (0, addon_1.isGreater)(release.version, oldRelease.version)) {
                 return release;
                 // TODO: new release was found
             }
             return oldRelease;
         }
-        throw new Error(`no release asset found for plugin ${plugin.package.name}`);
+        throw new Error(`no release asset found for addon ${addon.package.name}`);
     }
     return oldRelease;
 }
-async function downloadStandalone(plugin, host_url, id) {
+async function downloadStandalone(addon, host_url, id) {
     const file = await fetch(host_url);
     if (!file.ok) {
         throw new Error(`Unable to download asset ${host_url}`);
@@ -42856,16 +42856,16 @@ async function downloadStandalone(plugin, host_url, id) {
     const fileBuffer = await file.arrayBuffer();
     let release;
     if (file.url.endsWith('.dll')) {
-        release = (0, plugin_1.createReleaseFromDll)(plugin, fileBuffer, id, file.url);
+        release = (0, addon_1.createReleaseFromDll)(addon, fileBuffer, id, file.url);
     }
     else if (file.url.endsWith('.zip')) {
-        release = await (0, plugin_1.createReleaseFromArchive)(plugin, fileBuffer, id, file.url);
+        release = await (0, addon_1.createReleaseFromArchive)(addon, fileBuffer, id, file.url);
     }
     else {
         throw new Error(`given host url has not supported file ending ${host_url}`);
     }
     if (release !== undefined) {
-        (0, main_1.addAddonName)(plugin, release.name);
+        (0, main_1.addAddonName)(addon, release.name);
     }
     return release;
 }

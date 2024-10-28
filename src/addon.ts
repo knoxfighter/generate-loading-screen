@@ -16,7 +16,7 @@ export function isGreater(a: Version, b: Version): boolean {
 }
 
 export async function createReleaseFromArchive(
-  plugin: Addon,
+  addon: Addon,
   fileBuffer: ArrayBuffer,
   id: string,
   downloadUrl: string
@@ -37,7 +37,7 @@ export async function createReleaseFromArchive(
 
     // create release
     const subFileBuffer = await file.arrayBuffer()
-    return createReleaseFromDll(plugin, subFileBuffer, id, downloadUrl)
+    return createReleaseFromDll(addon, subFileBuffer, id, downloadUrl)
   }
 
   return undefined
@@ -68,7 +68,7 @@ function checkDllExports(filepath: string): boolean {
 }
 
 export function createReleaseFromDll(
-  plugin: Addon,
+  addon: Addon,
   fileBuffer: ArrayBuffer,
   id: string,
   downloadUrl: string
@@ -79,23 +79,23 @@ export function createReleaseFromDll(
   const versionInfoResource = fileParser.getVersionInfoResources()
   if (versionInfoResource === undefined) {
     throw new Error(
-      `No versionInfoResource found for plugin ${plugin.package.name}`
+      `No versionInfoResource found for addon ${addon.package.name}`
     )
   }
 
   const vsInfoSub = Object.values(versionInfoResource)[0]
   if (vsInfoSub === undefined) {
-    throw new Error(`no vsInfoSub found for plugin ${plugin.package.name}`)
+    throw new Error(`no vsInfoSub found for addon ${addon.package.name}`)
   }
 
   const versionInfo = Object.values(vsInfoSub)[0]
   if (versionInfo === undefined) {
-    throw new Error(`No versionInfo found for ${plugin.package.name}`)
+    throw new Error(`No versionInfo found for ${addon.package.name}`)
   }
 
   const fixedFileInfo = versionInfo.getFixedFileInfo()
   if (fixedFileInfo === undefined) {
-    throw new Error(`No fileInfo found for ${plugin.package.name}`)
+    throw new Error(`No fileInfo found for ${addon.package.name}`)
   }
 
   let addonVersion: Version = [
@@ -113,7 +113,7 @@ export function createReleaseFromDll(
     ]
   }
   if (addonVersion.every(value => value === 0)) {
-    throw new Error(`no addonVersion found for plugin ${plugin.package.name}`)
+    throw new Error(`no addonVersion found for addon ${addon.package.name}`)
   }
 
   // read version string
@@ -122,7 +122,7 @@ export function createReleaseFromDll(
   let addonName = undefined
   const stringFileInfo = versionInfo.getStringFileInfo()
   if (stringFileInfo === undefined) {
-    throw new Error(`No StringFileInfo found for plugin ${plugin.package.name}`)
+    throw new Error(`No StringFileInfo found for addon ${addon.package.name}`)
   } else {
     const stringInfo = Object.values(
       stringFileInfo.getStringTables()
@@ -136,7 +136,7 @@ export function createReleaseFromDll(
     // read name
     addonName = stringInfo['ProductName'] ?? stringInfo['FileDescription']
     if (addonName === undefined) {
-      throw new Error(`No addonName found for plugin ${plugin.package.name}`)
+      throw new Error(`No addonName found for addon ${addon.package.name}`)
     }
   }
 
