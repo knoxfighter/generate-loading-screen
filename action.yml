@@ -1,13 +1,8 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+# https://docs.github.com/en/actions/sharing-automations/creating-actions/metadata-syntax-for-github-actions
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
-branding:
-  icon: 'heart'
-  color: 'red'
+name: generate-loading-screen
+description: Generates an addon manifest
 
-# Define your inputs here.
 inputs:
   token:
     description: 'GitHub Token'
@@ -18,10 +13,7 @@ inputs:
   manifest_path:
     description: 'Path to the manifest.json file'
 
-# Define your outputs here.
-#outputs:
-#  time:
-#    description: 'Your output description here'
+outputs: {}
 
 runs:
   using: node20
